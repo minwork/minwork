@@ -1,4 +1,10 @@
 <?php
+/*
+ * This file is part of the Minwork package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Example\ApiClient\App\Main\Utility;
 
 use Minwork\Http\Object\Response;
@@ -8,25 +14,55 @@ use Minwork\Helper\Formatter;
 use Minwork\Error\Basic\ErrorGlobal;
 use Minwork\Error\Basic\ErrorForm;
 
+/**
+ * Utility class for handling cUrl Response as JSON
+ *
+ * @author Christopher Kalkhoff
+ *        
+ */
 class JsonResponse
 {
+    use Errors;
 
     const FIELD_SUCCESS = 'success';
 
     const FIELD_ERRORS = 'error';
-    use Errors;
 
+    /**
+     * If response parsing was successful and its data flagged as success
+     *
+     * @var bool
+     */
     protected $success = false;
 
+    /**
+     * Response data field
+     *
+     * @var array
+     */
     protected $data = [];
 
+    /**
+     *
+     * @var ResponseInterface
+     */
     protected $response;
 
+    /**
+     * 
+     * @param ResponseInterface $response            
+     */
     public function __construct(ResponseInterface $response)
     {
         $this->setResponse($response);
     }
 
+    /**
+     * Set and parse Response object
+     * 
+     * @param ResponseInterface $response            
+     * @return self
+     */
     public function setResponse(ResponseInterface $response): self
     {
         $this->clearErrors();
@@ -82,17 +118,33 @@ class JsonResponse
         return $this->setSuccess(! $this->hasErrors());
     }
 
+    /**
+     * If Response parsing was successful and its data flagged as success
+     * 
+     * @return bool
+     */
     public function isSuccess(): bool
     {
         return $this->success;
     }
 
+    /**
+     * Set if JSON is flagged as success
+     * 
+     * @param bool $success            
+     * @return self
+     */
     public function setSuccess(bool $success): self
     {
         $this->success = $success;
         return $this;
     }
 
+    /**
+     * Get JSON data parsed from Response
+     * 
+     * @return array
+     */
     public function getData(): array
     {
         return $this->data;

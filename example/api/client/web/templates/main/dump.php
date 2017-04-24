@@ -1,5 +1,7 @@
 <?php
+/** @var \Example\ApiClient\App\Main\Utility\JsonResponse $response */
 $response = $data['response'];
+/** @var \Minwork\Http\Interfaces\RequestInterface $request */
 $request = $data['request'];
 ?>
 <h3 style="color: <?php echo $response->isSuccess() ? 'green' : 'red'; ?>;">

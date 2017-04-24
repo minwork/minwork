@@ -1,4 +1,10 @@
 <?php
+/*
+ * This file is part of the Minwork package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Example\ApiClient\App\User\Controller;
 
 use Example\ApiClient\App\Main\Controller\MainController;
@@ -15,6 +21,12 @@ use Minwork\Core\Framework;
 use Minwork\Basic\Interfaces\ControllerInterface;
 use Minwork\Basic\Interfaces\FrameworkInterface;
 
+/**
+ * Controller responsible for user CRUD operations
+ *
+ * @author Christopher Kalkhoff
+ *        
+ */
 class UserController extends MainController
 {
     use Connector;
@@ -33,7 +45,7 @@ class UserController extends MainController
         'last_name' => 'Testing'
     ];
 
-    protected $storage;
+    private $storage;
 
     /**
      *
@@ -55,16 +67,31 @@ class UserController extends MainController
         return $this;
     }
 
+    /**
+     * Method called by framework event for storage initialization
+     */
     public function beforeRun()
     {
         $this->storage = new Session();
     }
 
-    private function getUserId($data, $key = 'id')
+    /**
+     * Get user id from $data array or fallback to id stored in Session storage
+     *
+     * @param array $data            
+     * @param string $key            
+     * @return int|null
+     */
+    private function getUserId(array $data, string $key = 'id')
     {
         return array_key_exists($key, $data) ? intval($data[$key]) : $this->storage->get(self::SESSION_USER_ID);
     }
 
+    /**
+     * Handle creating user based on submitted form
+     *
+     * @return \Minwork\Http\Interfaces\ResponseInterface|\Minwork\Basic\Interfaces\ViewInterface
+     */
     public function create()
     {
         if (array_key_exists('User', $_POST)) {
@@ -93,6 +120,11 @@ class UserController extends MainController
         ]), 'Create user'));
     }
 
+    /**
+     * Handle reading user based on submitted id
+     * 
+     * @return \Minwork\Http\Interfaces\ResponseInterface|\Minwork\Basic\Interfaces\ViewInterface
+     */
     public function read()
     {
         if (array_key_exists('User', $_POST)) {
@@ -109,6 +141,11 @@ class UserController extends MainController
         ]), 'Read user'));
     }
 
+    /**
+     * Handle updating user based on submitted form
+     * 
+     * @return \Minwork\Http\Interfaces\ResponseInterface|\Minwork\Basic\Interfaces\ViewInterface
+     */
     public function update()
     {
         if (array_key_exists('User', $_POST)) {
@@ -128,6 +165,11 @@ class UserController extends MainController
         ]), 'Create user'));
     }
 
+    /**
+     * Handle deleting user based on submitted id
+     * 
+     * @return \Minwork\Http\Interfaces\ResponseInterface|\Minwork\Basic\Interfaces\ViewInterface
+     */
     public function delete()
     {
         if (array_key_exists('User', $_POST)) {
