@@ -129,7 +129,7 @@ class UserController extends MainController
     {
         if (array_key_exists('User', $_POST)) {
             $request = new Request();
-            return $this->dump($request->setMethod(cUrl::METHOD_GET), new JsonResponse($this->makeRequest($request, "user/read/{$this->getUserId($_POST)}")), 'Read user - response');
+            return $this->dump($request->setMethod(cUrl::METHOD_GET), new JsonResponse($this->makeRequest($request, "user/read/{$this->getUserId($_POST['User'])}")), 'Read user - response');
         }
         return ($this->show(new Webpage('user/read', [
             'form' => [
@@ -174,7 +174,7 @@ class UserController extends MainController
     {
         if (array_key_exists('User', $_POST)) {
             $request = new Request();
-            return $this->dump($request->setMethod(cUrl::METHOD_DELETE), new JsonResponse($this->makeRequest($request, "user/delete/{$this->getUserId($_POST)}")), 'Delete user - response');
+            return $this->dump($request->setMethod(cUrl::METHOD_DELETE), new JsonResponse($this->makeRequest($request, "user/delete/{$this->getUserId($_POST['User'])}")), 'Delete user - response');
         }
         return ($this->show(new Webpage('user/delete', [
             'form' => [
