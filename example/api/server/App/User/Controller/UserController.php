@@ -1,4 +1,10 @@
 <?php
+/*
+ * This file is part of the Minwork package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Example\ApiServer\App\User\Controller;
 
 use Example\ApiServer\App\Main\Controller\MainController;
@@ -14,6 +20,12 @@ use Minwork\Http\Interfaces\ResponseInterface;
 use Example\ApiServer\App\User\Operation\UpdateUserData;
 use Minwork\Http\Utility\cUrl;
 
+/**
+ * Controller responsible for user CRUD operations
+ * 
+ * @author Christopher Kalkhoff
+ *        
+ */
 class UserController extends MainController
 {
 
@@ -21,7 +33,7 @@ class UserController extends MainController
 
     /**
      * Create user
-     * 
+     *
      * @return ResponseInterface
      */
     public function create(): ResponseInterface
@@ -45,11 +57,11 @@ class UserController extends MainController
 
     /**
      * Read user data
-     * 
+     *
      * @param int $id            
      * @return ResponseInterface
      */
-    public function read($id): ResponseInterface
+    public function read(int $id): ResponseInterface
     {
         if (! $this->authenticate() || ! $this->checkMethod(cUrl::METHOD_GET)) {
             return $this->getResponse();
@@ -66,7 +78,7 @@ class UserController extends MainController
 
     /**
      * Update user data (email, first_name, last_name, new_email -> email)<br>
-     * First email field is used only for verification purposes
+     * First email field is used for verification purposes
      *
      * @param int $id            
      * @return ResponseInterface
@@ -93,11 +105,11 @@ class UserController extends MainController
 
     /**
      * Delete user
-     * 
+     *
      * @param int $id            
      * @return ResponseInterface
      */
-    public function delete($id): ResponseInterface
+    public function delete(int $id): ResponseInterface
     {
         if (! $this->authenticate() || ! $this->checkMethod(cUrl::METHOD_DELETE)) {
             return $this->getResponse();

@@ -1,17 +1,29 @@
 <?php
+/*
+ * This file is part of the Minwork package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Example\ApiServer\App\User\Operation;
 
 use Minwork\Operation\Basic\Update;
 use Minwork\Event\Traits\Connector;
 use Minwork\Operation\Object\OperationEvent;
 
+/**
+ * User model update operation
+ *
+ * @author Christopher Kalkhoff
+ *        
+ */
 class UpdateUserData extends Update
 {
-    // Enables connection to beforeUpdate method
-    const EVENT_BEFORE = 'beforeUpdate';
-    
     // Used to connect opration methods to events
     use Connector;
+    
+    // Enables connection to beforeUpdate method
+    const EVENT_BEFORE = 'beforeUpdate';
 
     public function __construct()
     {
@@ -19,6 +31,11 @@ class UpdateUserData extends Update
         $this->connect();
     }
 
+    /**
+     * If neccessary rewrite new_email to email field then delete email field (used only for validation)
+     *
+     * @param OperationEvent $event            
+     */
     public function beforeUpdate(OperationEvent $event)
     {
         // Get operation arguments
