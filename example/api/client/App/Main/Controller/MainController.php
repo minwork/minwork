@@ -21,7 +21,7 @@ use Minwork\Basic\Interfaces\ViewInterface;
 use Example\ApiClient\App\Main\View\Webpage;
 
 /**
- * Example of basic client application controller
+ * Basic controller providing usefull methods for all derivatives
  *
  * @author Christopher Kalkhoff
  *        
