@@ -1,7 +1,7 @@
 {
     "name": "minwork/minwork",
     "description": "Minwork - PHP 7 framework",
-    "type": "project",
+    "type": "library",
     "keywords": ["framework", "PHP", "PHP 7"],
     "license": "MIT",
     "authors": [
