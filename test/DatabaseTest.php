@@ -3,11 +3,12 @@ namespace Test;
 
 require "vendor/autoload.php";
 
-use Minwork\Database\Object\Database;
 use Minwork\Helper\DateHelper;
 use Minwork\Database\Object\Column;
+use Minwork\Database\MySql\Database as MySqlDatabase;
+use Minwork\Database\MySql\Table as MySqlTable;
+use Minwork\Database\Sqlite\Database as SqliteDatabase;
 use Minwork\Database\Sqlite\Table as SqliteTable;
-use Minwork\Database\MySql\Table as MysqlTable;
 use Minwork\Database\Interfaces\TableInterface;
 use Minwork\Helper\Formatter;
 use Minwork\Database\Object\AbstractTable;
@@ -23,7 +24,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
 
     public function testSqlite()
     {
-        $this->database = new Database(Database::DRIVER_SQLITE, ':memory:');
+        $this->database = new SqliteDatabase(':memory:');
         $this->table = new SqliteTable($this->database, self::TABLE_NAME, [
             new Column(TableInterface::DEFAULT_PK_FIELD, 'INT', null, false, true),
             new Column('data', 'VARCHAR(255)', 'test'),
@@ -42,31 +43,31 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
             switch ($argc) {
                 // Database host, name, user and password specified in arguments
                 case 6:
-                    $this->database = new Database(Database::DRIVER_MYSQL, $argv[2], $argv[3], $argv[4], $argv[5]);
+                    $this->database = new MySqlDatabase($argv[2], $argv[3], $argv[4], $argv[5]);
                     break;
                 // Database host, user and password specified in arguments
                 case 5:
-                    $this->database = new Database(Database::DRIVER_MYSQL, $argv[2], 'test', $argv[3], $argv[4]);
+                    $this->database = new MySqlDatabase($argv[2], 'test', $argv[3], $argv[4]);
                     break;
                 // Database host and name specified in arguments
                 case 4:
-                    $this->database = new Database(Database::DRIVER_MYSQL, $argv[2], $argv[3], 'root', '');
+                    $this->database = new MySqlDatabase($argv[2], $argv[3], 'root', '');
                     break;
                 // Database name specified in arguments
                 case 3:
-                    $this->database = new Database(Database::DRIVER_MYSQL, 'localhost', $argv[2], 'root', '');
+                    $this->database = new MySqlDatabase('localhost', $argv[2], 'root', '');
                     break;
                 // If no database configuration arguments specified then fallback to default settings
                 case 2:
                 default:
-                    $this->database = new Database(Database::DRIVER_MYSQL, 'localhost', 'test', 'root', '');
+                    $this->database = new MySqlDatabase('localhost', 'test', 'root', '');
                     break;
             }
         } catch (\PDOException $e) {
             echo "\n\nDatabase test: Cannot connect to MySQL server.\nTry specifing connection parameters via phpunit arguments like:\nvendor/bin/phpunit test/DatabaseTest.php [DBName|DBHost DBName|DBHost DBUser DBPassword|DBHost DBName DBUser DBPassword]\n\n";
             return;
         }
-        $this->table = new MysqlTable($this->database, self::TABLE_NAME, [
+        $this->table = new MySqlTable($this->database, self::TABLE_NAME, [
             new Column(TableInterface::DEFAULT_PK_FIELD, 'INT', null, false, true),
             new Column('data', 'VARCHAR(255)', 'test'),
             new Column('date', 'DATETIME', null, true)
@@ -118,7 +119,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(1, $this->table->countRows($data));
         
         $this->assertEquals($data, $this->table->select($data, array_keys($data))
-            ->fetch(Database::FETCH_ASSOC));
+            ->fetch(\PDO::FETCH_ASSOC));
         
         // Check if data column has its default value
         $this->assertEquals([
@@ -128,7 +129,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         ], [
             'data'
         ])
-            ->fetch(Database::FETCH_ASSOC));
+            ->fetch(\PDO::FETCH_ASSOC));
         // Check if insert data with default value from schema is same as table data
         $this->assertSame($this->table->format($data, true), $this->table->format($this->table->select([
             TableInterface::DEFAULT_PK_FIELD => $data[TableInterface::DEFAULT_PK_FIELD]
@@ -137,7 +138,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
             'date',
             'data'
         ])
-            ->fetch(Database::FETCH_ASSOC)));
+            ->fetch(\PDO::FETCH_ASSOC)));
         
         // Update
         $this->table->update($updateData, [
@@ -148,7 +149,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         ], array_keys($updateData), [
             'date' => TableInterface::ORDER_DESC
         ], 1, TableInterface::DEFAULT_PK_FIELD)
-            ->fetch(Database::FETCH_ASSOC));
+            ->fetch(\PDO::FETCH_ASSOC));
         
         // Insert another row and check condition building
         $this->table->insert($data3);
@@ -175,7 +176,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
             'date' => - 1,
             TableInterface::DEFAULT_PK_FIELD => 1,
             'data' => 'DESC'
-        ], 2, TableInterface::DEFAULT_PK_FIELD)->fetchAll(Database::FETCH_ASSOC);
+        ], 2, TableInterface::DEFAULT_PK_FIELD)->fetchAll(\PDO::FETCH_ASSOC);
         
         $this->assertEquals(2, count($result));
         $this->assertEquals($updateData[TableInterface::DEFAULT_PK_FIELD], $result[0][TableInterface::DEFAULT_PK_FIELD]);
@@ -207,7 +208,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         $currentData = $this->table->select([
             TableInterface::DEFAULT_PK_FIELD => $data2[TableInterface::DEFAULT_PK_FIELD],
             TableInterface::DEFAULT_PK_FIELD . '2' => $data2[TableInterface::DEFAULT_PK_FIELD . '2']
-        ])->fetch(Database::FETCH_ASSOC);
+        ])->fetch(\PDO::FETCH_ASSOC);
         
         $this->assertSame($data2, $this->table->format($currentData));
         $this->assertTrue($this->table->remove());

@@ -1,12 +1,16 @@
 <?php
 use Minwork\Database\MySql\Table;
-use Minwork\Database\Object\Database;
 use Minwork\Database\Object\Column;
+use Example\ApiServer\App\Main\Utility\Factory;
 
 require '../../../vendor/autoload.php';
 require 'App/Config.php';
 
-$table = new Table(new Database(DB_DRIVER, DB_HOST, DB_DATABASE, DB_USER, DB_PASSWORD), 'user', [
+/**
+ * @var \Minwork\Database\Object\AbstractTable $table
+ */
+$table = Factory::getUserStorage();
+$table->setColumns([
     new Column('id', 'INT', null, false, true, true),
     new Column('email', 'VARCHAR(255)'),
     new Column('first_name', 'VARCHAR(255)'),

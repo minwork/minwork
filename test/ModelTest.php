@@ -4,7 +4,6 @@ namespace Test;
 require "vendor/autoload.php";
 
 use Minwork\Basic\Model\Model;
-use Minwork\Database\Object\Database;
 use Minwork\Validation\Object\Validator;
 use Minwork\Validation\Utility\Rule;
 use Minwork\Operation\Basic\Create;
@@ -17,6 +16,8 @@ use Minwork\Basic\Model\ModelBinder;
 use Minwork\Validation\Utility\Field;
 use Minwork\Database\Object\Column;
 use Minwork\Helper\Random;
+use Minwork\Database\MySql\Database as MySqlDatabase;
+use Minwork\Database\Sqlite\Database as SqliteDatabase;
 
 class ModelTest extends \PHPUnit_Framework_TestCase
 {
@@ -30,31 +31,31 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             switch ($argc) {
                 // Database host, name, user and password specified in arguments
                 case 6:
-                    self::$database = new Database(Database::DRIVER_MYSQL, $argv[2], $argv[3], $argv[4], $argv[5]);
+                    self::$database = new MySqlDatabase($argv[2], $argv[3], $argv[4], $argv[5]);
                     break;
                     // Database host, user and password specified in arguments
                 case 5:
-                    self::$database = new Database(Database::DRIVER_MYSQL, $argv[2], 'test', $argv[3], $argv[4]);
+                    self::$database = new MySqlDatabase($argv[2], 'test', $argv[3], $argv[4]);
                     break;
                     // Database host and name specified in arguments
                 case 4:
-                    self::$database = new Database(Database::DRIVER_MYSQL, $argv[2], $argv[3], 'root', '');
+                    self::$database = new MySqlDatabase($argv[2], $argv[3], 'root', '');
                     break;
                     // Database name specified in arguments
                 case 3:
-                    self::$database = new Database(Database::DRIVER_MYSQL, 'localhost', $argv[2], 'root', '');
+                    self::$database = new MySqlDatabase('localhost', $argv[2], 'root', '');
                     break;
                     // If no database configuration arguments specified then fallback to default settings
                 case 2:
                 default:
-                    self::$database = new Database(Database::DRIVER_MYSQL, 'localhost', 'test', 'root', '');
+                    self::$database = new MySqlDatabase('localhost', 'test', 'root', '');
                     break;
             }
             self::$table = 'Minwork\Database\MySql\Table';
         } catch (\PDOException $e) {
             echo "\n\nModel test: Cannot connect to MySQL server, using SQLite instead.\nTry specifing connection parameters via phpunit arguments like:\nvendor/bin/phpunit test/ModelTest.php [DBName|DBHost DBName|DBHost DBUser DBPassword|DBHost DBName DBUser DBPassword]\n\n";
-            // If mysql is unaccessible connect to Sqlite
-            self::$database = new Database(Database::DRIVER_SQLITE, ':memory:');
+            // If MySQL is unaccessible connect to SQLite
+            self::$database = new SqliteDatabase(':memory:');
             self::$table = 'Minwork\Database\Sqlite\Table';
         }
     }
@@ -209,9 +210,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             'key' => 1
         ]));
         $list = $modelsList->getData(1)->getElements();
-        $this->assertEquals(1, $modelsList->page);
-        $this->assertNull($modelsList->onPage);
-        $this->assertEquals(2, $modelsList->total);
+        $this->assertEquals(1, $modelsList->getPage());
+        $this->assertNull($modelsList->getOnPage());
+        $this->assertEquals(2, $modelsList->getTotal());
         $this->assertEquals(2, count($list));
         $this->assertEquals('1', $list[0]->getId());
         $this->assertEquals('test2', $list[1]->getData('name'));

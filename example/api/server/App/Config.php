@@ -1,6 +1,5 @@
 <?php
 define('DB_HOST', 'localhost');
-define('DB_DRIVER', 'mysql');
 define('DB_DATABASE', 'api');
 define('DB_USER', 'root');
 define('DB_PASSWORD', '');

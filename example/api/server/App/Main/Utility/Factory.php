@@ -7,9 +7,10 @@
  */
 namespace Example\ApiServer\App\Main\Utility;
 
-use Minwork\Database\Object\Database;
 use Minwork\Storage\Interfaces\DatabaseStorageInterface;
+use Minwork\Database\MySql\Database as MySqlDatabase;
 use Minwork\Database\MySql\Table as MySqlTable;
+use Minwork\Database\Sqlite\Database as SqliteDatabase;
 use Minwork\Database\Sqlite\Table as SqliteTable;
 
 /**
@@ -69,10 +70,10 @@ class Factory
             return $storage;
         } else {
             try {
-                $db = new Database(DB_DRIVER, DB_HOST, DB_DATABASE, DB_USER, DB_PASSWORD);
+                $db = new MySqlDatabase(DB_HOST, DB_DATABASE, DB_USER, DB_PASSWORD);
                 return self::setClassObject(self::USER_STORAGE, new MySqlTable($db, self::USER_STORAGE));
             } catch (\Exception $e) {
-                $db = new Database(Database::DRIVER_SQLITE, ':memory:');
+                $db = new SqliteDatabase(':memory:');
                 return self::setClassObject(self::USER_STORAGE, new SqliteTable($db, self::USER_STORAGE));
             }
         }
