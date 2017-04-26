@@ -12,27 +12,40 @@ use Minwork\Storage\Traits\Storage;
 use Minwork\Database\Utility\Query;
 use Minwork\Event\Object\EventDispatcher;
 use Minwork\Basic\Interfaces\BindableModelInterface;
+use Minwork\Event\Interfaces\EventDispatcherInterface;
 
 /**
  * Used for n to n relation on models
+ * 
  * @author Christopher Kalkhoff
- * @method DatabaseStorageInterface getStorage()
  */
 class ModelBinder extends Model
 {
+
     /**
+     *
      * @var BindableModelInterface[]
      */
     protected $models = [];
 
-    public function __construct(DatabaseStorageInterface $storage, array $models, $eventDispatcher = null)
+    /**
+     *
+     * @param DatabaseStorageInterface $storage            
+     * @param BindableModelInterface[] $models            
+     * @param EventDispatcherInterface $eventDispatcher            
+     */
+    public function __construct(DatabaseStorageInterface $storage, array $models, EventDispatcherInterface $eventDispatcher = null)
     {
-        $this->reset()->setStorage($storage)->setModels($models)->setEventDispatcher($eventDispatcher ?? EventDispatcher::getGlobal());
+        $this->reset()
+            ->setStorage($storage)
+            ->setModels($models)
+            ->setEventDispatcher($eventDispatcher ?? EventDispatcher::getGlobal());
     }
 
     /**
      * Set models used for computing id fields
-     * @param BindableModelInterface[] $models
+     * 
+     * @param BindableModelInterface[] $models            
      * @return self
      */
     public function setModels(array $models): self
@@ -48,8 +61,8 @@ class ModelBinder extends Model
         foreach (array_count_values($idFields) as $value => $count) {
             if ($count > 1) {
                 $keys = array_keys($idFields, $value, true);
-                for ($i = 1; $i <= $count; $i++) {
-                    $key = $keys[$i-1];
+                for ($i = 1; $i <= $count; $i ++) {
+                    $key = $keys[$i - 1];
                     $idFields[$key] = "{$idFields[$key]}_{$i}";
                 }
             }
@@ -67,7 +80,7 @@ class ModelBinder extends Model
         $this->setId($id);
         return $this;
     }
-    
+
     /**
      *
      * {@inheritdoc}
@@ -78,7 +91,7 @@ class ModelBinder extends Model
     {
         return $this->id;
     }
-    
+
     /**
      * Execute actions that syncs storage with model data
      *
@@ -106,7 +119,7 @@ class ModelBinder extends Model
                     break;
             }
         }
-    
+        
         return false;
     }
 }

@@ -3,20 +3,27 @@ namespace Minwork\Basic\Interfaces;
 
 use Minwork\Http\Interfaces\RouterInterface;
 use Minwork\Http\Interfaces\EnvironmentInterface;
+use Minwork\Http\Interfaces\ResponseInterface;
 
+/**
+ * Every framework must implement that interface
+ * 
+ * @author Christopher Kalkhoff
+ *        
+ */
 interface FrameworkInterface
 {
 
     /**
      * Get router object
-     * 
+     *
      * @return RouterInterface
      */
     public function getRouter(): RouterInterface;
 
     /**
      * Set router object
-     * 
+     *
      * @param RouterInterface $router            
      * @return self
      */
@@ -24,25 +31,26 @@ interface FrameworkInterface
 
     /**
      * Get application environment object
-     * 
+     *
      * @return EnvironmentInterface
      */
     public function getEnvironment(): EnvironmentInterface;
 
     /**
      * Set environment object
-     * 
+     *
      * @param EnvironmentInterface $environment            
      * @return self
      */
     public function setEnvironment(EnvironmentInterface $environment): self;
 
     /**
-     * Redirects to specified url address<br>
+     * Return response which will redirect to specified url address<br>
      * Local address should start with '/' and has Environment domain prepended<br>
-     * External address can omit protocol ('http(s)://') address part cause it should be automatically prepended if not specified 
+     * External address can omit protocol ('http(s)://') address part cause it should be automatically prepended if not specified
      *
      * @param string $address
+     * @return ResponseInterface           
      */
-    public function redirect(string $address, bool $external = false);
+    public function redirect(string $address, bool $external = false): ResponseInterface;
 }

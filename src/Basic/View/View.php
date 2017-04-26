@@ -21,14 +21,14 @@ class View implements ViewInterface
 {
 
     /**
-     * View file path
+     * Template file path
      *
      * @var string
      */
     protected $filepath;
 
     /**
-     * Data that can be accessed in view at $data variable
+     * Data that can be accessed in view using $data variable
      *
      * @var array
      */
@@ -36,11 +36,16 @@ class View implements ViewInterface
 
     /**
      * View content in form of file parsed to string
-     * 
+     *
      * @var string
      */
     protected $content;
 
+    /**
+     *
+     * @param string $filepath            
+     * @param array $data            
+     */
     public function __construct(string $filepath, array $data = [])
     {
         $this->filepath = $filepath;

@@ -12,8 +12,8 @@ use Minwork\Validation\Interfaces\ValidatorInterface;
 use Minwork\Storage\Interfaces\DatabaseStorageInterface;
 
 /**
- * Every model must implement that interface
- * 
+ * Every model which represent single row in database must implement that interface
+ *
  * @author Christopher Kalkhoff
  *        
  */
@@ -22,7 +22,7 @@ interface ModelInterface
 
     /**
      * Run supplied operation with optional validator check which should be made before execution
-     * 
+     *
      * @param OperationInterface $operation
      *            Operation object
      * @param array $arguments
@@ -34,23 +34,21 @@ interface ModelInterface
 
     /**
      * Check if model with given id exists
-     * 
-     * @param bool $refresh
-     *            Force fresh check
+     *
      * @return bool
      */
     public function exists(): bool;
 
     /**
-     * Get model id which can be either single value or array like [{id_name} => {id_value}, ...]
-     * 
+     * Get model id which can be either single value or an array in form of [{id_name} => {id_value}, ...]
+     *
      * @return string|int|array
      */
     public function getId();
 
     /**
-     * Return model data
-     * 
+     * Return model data which typically contain associative array of database fields values
+     *
      * @param mixed $filter
      *            Which part of data should be returned (everything on null)
      * @return array
@@ -58,36 +56,38 @@ interface ModelInterface
     public function getData($filter = null);
 
     /**
-     * Get storage object
-     * 
+     * Get database storage object
+     *
      * @return DatabaseStorageInterface
      */
     public function getStorage(): DatabaseStorageInterface;
 
     /**
+     * Set sdatabase torage object
+     *
+     * @param DatabaseStorageInterface $storage            
+     * @return self
+     */
+    public function setStorage(DatabaseStorageInterface $storage): self;
+
+    /**
      * Set model id
-     * 
+     *
      * @param string|int|array $id
-     *            In case of array it should contain corresponding name and id like [{id_name} => {id_value}, ...]
+     *            In case of an array it should contain corresponding name and id like [{id_name} => {id_value}, ...]
      * @return self
      */
     public function setId($id): self;
 
     /**
      * Set model data
-     * 
-     * @param array $data            
+     *
+     * @see \Minwork\Basic\Interfaces\ModelInterface::getData()
+     * @param array $data
+     *            Typically it should have form like [{field_name} => {field_value}, ...]
      * @param bool $merge
-     *            If data should merge to existing one or replace it
+     *            If data should be merged with existing one or replace it
      * @return self
      */
     public function setData(array $data, bool $merge = true): self;
-
-    /**
-     * Set storage object
-     * 
-     * @param DatabaseStorageInterface $storage            
-     * @return self
-     */
-    public function setStorage(DatabaseStorageInterface $storage): self;
 }

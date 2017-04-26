@@ -28,6 +28,7 @@ use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
 use Minwork\Basic\Traits\Debugger;
 use Minwork\Database\Interfaces\TableInterface;
 use Minwork\Helper\Formatter;
+use Minwork\Event\Interfaces\EventDispatcherInterface;
 
 /**
  * Basic implementation of ModelInterface
@@ -41,56 +42,70 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
       getStorage as getStorageTrait;
       setStorage as setStorageTrait;
     }
-
+    
+    // Empty uninitialized model
     const STATE_EMPTY = "EMPTY";
-
+    
+    // Indicates need of creating corresponding record in database storage
     const STATE_CREATE = "CREATE";
-
+    
+    // Indicates need of updating corresponding record in database storage
     const STATE_UPDATE = "UPDATE";
-
+    
+    // Indicates no need for any operations - set after executing actions (creating or updating)
     const STATE_NOP = "NOP";
 
     /**
-     * Model id<br>
-     * If $id is array then it should be supplied in format of associative array: [{id_column_name} => {id_value}, .
-     * ..]
+     * Model identifier which can be either single value or an array in form of [{id_name} => {id_value}, ...]
      *
      * @var int|string|array|null
      */
     protected $id = null;
 
     /**
+     * Contain associative array of database fields and their corresponding values
      *
      * @var array|null
      */
     protected $data;
 
     /**
+     * List of key names that were changed in $data
      *
      * @var array
      */
     protected $changedData;
 
     /**
+     * If record of model with specified id exist in database storage
      *
      * @var boolean|null
      */
     protected $exists;
 
     /**
+     * Model state determining next action which should be made to keep it in synch with database storage
      *
      * @var string
      */
     protected $state;
 
     /**
+     * Indicates if model should synchronize state with storage immediately or whenever neccessary
      *
      * @see \Minwork\Basic\Model\Model::setBuffering()
      * @var bool
      */
     protected $buffering;
 
-    public function __construct(DatabaseStorageInterface $storage, $id = null, bool $buffering = true, $eventDispatcher = null)
+    /**
+     *
+     * @param DatabaseStorageInterface $storage            
+     * @param int|string|array|null $id            
+     * @param bool $buffering            
+     * @param EventDispatcherInterface $eventDispatcher            
+     */
+    public function __construct(DatabaseStorageInterface $storage, $id = null, bool $buffering = true, EventDispatcherInterface $eventDispatcher = null)
     {
         $this->reset()
             ->setStorage($storage)
@@ -99,6 +114,9 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
             ->setBuffering($buffering);
     }
 
+    /**
+     * Clone model and all objects set through dependency injection
+     */
     public function __clone()
     {
         $this->setStorage(clone $this->getStorage());
@@ -116,7 +134,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
     }
 
     /**
-     * Reset to initial properties values
+     * Reset to initial properties values with exception of storage and event dispatcher
      *
      * @return self
      */
@@ -131,7 +149,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
     }
 
     /**
-     * Set if model operations on data which result in storage changes should be buffered (executed in destructor) or take effect immidiately
+     * Set if model operations on data which result in storage changes should be buffered (executed whenever neccessary) or take effect immidiately
      *
      * @param bool $buffering            
      * @return self
@@ -209,7 +227,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
 
     /**
      * Get id normalized to array with column name as key and id as value like [{id_name} => {id_value}, ...]
-     * 
+     *
      * @return array
      */
     public function getNormalizedId(): array
@@ -285,7 +303,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
     }
 
     /**
-     * Execute actions that syncs storage with model data
+     * Execute actions that sync storage with model data
      *
      * @return bool
      */
@@ -405,7 +423,6 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
             $conditions = array_merge($conditions, $id);
         }
         return $conditions;
-        
     }
 
     /**

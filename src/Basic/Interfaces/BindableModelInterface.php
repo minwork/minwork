@@ -8,8 +8,8 @@
 namespace Minwork\Basic\Interfaces;
 
 /**
- * Interface that must be implemented by Model in order to use ModelBinder
- * 
+ * Interface that must be implemented by Model in order to be used by ModelBinder
+ *
  * @author Christopher Kalkhoff
  *        
  */
@@ -17,8 +17,8 @@ interface BindableModelInterface extends ModelInterface
 {
 
     /**
-     * Get name of the field which will store model id
-     * 
+     * Get name of the database field which will store model id
+     *
      * @return string
      */
     public function getBindingFieldName(): string;

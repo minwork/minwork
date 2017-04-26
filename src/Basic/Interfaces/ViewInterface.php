@@ -8,10 +8,10 @@
 namespace Minwork\Basic\Interfaces;
 
 /**
- * Interface for objects containing page content for response
+ * Interface for objects containing page content for Response
  *
  * @author Christopher Kalkhoff
- *        
+ * @see \Minwork\Http\Object\Response::setObject()
  */
 interface ViewInterface
 {

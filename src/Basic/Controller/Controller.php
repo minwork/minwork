@@ -15,7 +15,7 @@ use Minwork\Http\Interfaces\RequestInterface;
 use Minwork\Basic\Interfaces\FrameworkInterface;
 
 /**
- * Basic controller used by framework
+ * Basic implementation of ControllerInterface
  *
  * @author Christopher Kalkhoff
  *        
@@ -24,7 +24,7 @@ class Controller implements ControllerInterface
 {
 
     /**
-     * Framework reference
+     * Framework object
      *
      * @var FrameworkInterface
      */
@@ -56,10 +56,10 @@ class Controller implements ControllerInterface
     }
 
     /**
-     * Get framework
      *
-     * @param string $refresh            
-     * @return Framework
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Basic\Interfaces\ControllerInterface::getFramework()
      */
     public function getFramework(): FrameworkInterface
     {
@@ -67,10 +67,10 @@ class Controller implements ControllerInterface
     }
 
     /**
-     * Set framework object
      *
-     * @param Framework $framework            
-     * @return self
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Basic\Interfaces\ControllerInterface::setFramework()
      */
     public function setFramework(FrameworkInterface $framework): ControllerInterface
     {
@@ -79,9 +79,10 @@ class Controller implements ControllerInterface
     }
 
     /**
-     * Get response
      *
-     * @return ResponseInterface
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Basic\Interfaces\ControllerInterface::getResponse()
      */
     public function getResponse(): ResponseInterface
     {
@@ -89,10 +90,10 @@ class Controller implements ControllerInterface
     }
 
     /**
-     * Set response object
      *
-     * @param ResponseInterface $response            
-     * @return self
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Basic\Interfaces\ControllerInterface::setResponse()
      */
     public function setResponse(ResponseInterface $response): ControllerInterface
     {
@@ -101,9 +102,10 @@ class Controller implements ControllerInterface
     }
 
     /**
-     * Get request
      *
-     * @return RequestInterface
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Basic\Interfaces\ControllerInterface::getRequest()
      */
     public function getRequest(): RequestInterface
     {
@@ -111,6 +113,7 @@ class Controller implements ControllerInterface
     }
 
     /**
+     * Set request object
      *
      * @param Request $request            
      * @return self

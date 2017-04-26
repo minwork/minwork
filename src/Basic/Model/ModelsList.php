@@ -12,47 +12,60 @@ use Minwork\Database\Utility\Query;
 
 /**
  * List of models according to supplied prototype
- * @author Christopher Kalkhoff
  *
+ * @author Christopher Kalkhoff
+ *        
  */
 class ModelsList
 {
+
     /**
      * Page number
+     *
      * @var int
      */
-    public $page;
+    protected $page;
 
     /**
      * Elements on page
+     *
      * @var int
      */
-    public $onPage;
+    protected $onPage;
 
     /**
      * Total elements fitting supplied query
+     *
      * @var int
      */
-    public $total;
+    protected $total;
 
     /**
      * Model prototype used to create list of models
+     *
      * @var ModelInterface
      */
     protected $prototype;
 
     /**
      * Query used for selecting models data from storage
+     *
      * @var Query
      */
     protected $query;
 
     /**
      * List of models
-     * @var array
+     *
+     * @var ModelInterface[]
      */
     protected $list;
 
+    /**
+     *
+     * @param ModelInterface $prototype            
+     * @param Query $query            
+     */
     public function __construct(ModelInterface $prototype, Query $query)
     {
         $this->reset()->setQuery($query)->prototype = $prototype;
@@ -60,6 +73,7 @@ class ModelsList
 
     /**
      * Reset to initial properties values
+     *
      * @return self
      */
     public function reset(): self
@@ -70,10 +84,11 @@ class ModelsList
         $this->list = [];
         return $this;
     }
-    
+
     /**
-     * Set list query
-     * @param Query $query
+     * Set query used for getting models list from storage
+     *
+     * @param Query $query            
      * @return self
      */
     public function setQuery(Query $query): self
@@ -83,10 +98,10 @@ class ModelsList
     }
 
     /**
-     * Read list of models
-     * @param int $page
-     * @param int $onPage
-     * @param bool $refresh
+     * Read models list from storage
+     *
+     * @param int $page            
+     * @param int $onPage            
      * @return self
      */
     public function getData(int $page = 1, int $onPage = null): self
@@ -94,17 +109,15 @@ class ModelsList
         $this->page = $page;
         $this->onPage = $onPage;
         $query = $this->query;
-        $this->total = $this->prototype->getStorage()
-            ->count($query);
+        $this->total = $this->prototype->getStorage()->count($query);
         
-        if (!is_null($onPage)) {
+        if (! is_null($onPage)) {
             $query->limit = [
                 ($page - 1) * $onPage,
                 $onPage
             ];
         }
-        $list = $this->prototype->getStorage()
-            ->get($query);
+        $list = $this->prototype->getStorage()->get($query);
         
         foreach ($list as $data) {
             $model = clone $this->prototype;
@@ -118,10 +131,41 @@ class ModelsList
 
     /**
      * Get list of models
-     * @return array
+     *
+     * @return ModelInterface[]
      */
     public function getElements(): array
     {
         return $this->list;
+    }
+
+    /**
+     * Get current page number
+     *
+     * @return int
+     */
+    public function getPage(): int
+    {
+        return $this->page;
+    }
+
+    /**
+     * Get number of models per page
+     *
+     * @return int
+     */
+    public function getOnPage(): int
+    {
+        return $this->onPage;
+    }
+
+    /**
+     * Get total amount of results
+     *
+     * @return int
+     */
+    public function getTotal(): int
+    {
+        return $this->total;
     }
 }

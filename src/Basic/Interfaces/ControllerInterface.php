@@ -12,7 +12,7 @@ use Minwork\Http\Interfaces\RequestInterface;
 
 /**
  * Every controller must implement that interface
- * 
+ *
  * @author Christopher Kalkhoff
  *        
  */
@@ -20,7 +20,7 @@ interface ControllerInterface
 {
 
     /**
-     * Get framework
+     * Get framework object
      *
      * @param string $refresh            
      * @return Framework
@@ -36,7 +36,7 @@ interface ControllerInterface
     public function setFramework(FrameworkInterface $framework): self;
 
     /**
-     * Get response
+     * Get response object
      *
      * @return ResponseInterface
      */
@@ -51,14 +51,15 @@ interface ControllerInterface
     public function setResponse(ResponseInterface $response): self;
 
     /**
-     * Get request
+     * Get request object
      *
      * @return RequestInterface
      */
     public function getRequest(): RequestInterface;
 
     /**
-     *
+     * Set response object
+     * 
      * @param RequestInterface $request            
      * @return Controller
      */
