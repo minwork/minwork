@@ -9,7 +9,6 @@ namespace Minwork\Database\Object;
 
 use Minwork\Helper\ArrayHelper;
 use Minwork\Database\Interfaces\TableInterface;
-use Minwork\Database\Object\Database;
 use Minwork\Database\Utility\Query;
 use Minwork\Database\Interfaces\DatabaseInterface;
 use Minwork\Storage\Interfaces\DatabaseStorageInterface;
@@ -28,7 +27,7 @@ use Minwork\Basic\Traits\Debugger;
 abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
 {
     use Debugger;
-    
+
     const COLUMNS_FLAG_NAMES = 2;
 
     const COLUMNS_FLAG_NAMES_WITHOUT_PRIMARY_KEYS = 4;
@@ -118,6 +117,12 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         return $columns;
     }
 
+    /**
+     *
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Database\Interfaces\TableInterface::setColumns()
+     */
     public function setColumns(array $columns): TableInterface
     {
         $this->columns = [];
@@ -412,7 +417,9 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         if (empty($conditions)) {
             return false;
         } else {
-            return boolval($this->getDatabase()->query("SELECT EXISTS(SELECT 1 FROM {$this->getName()} {$this->getConditionsQuery($conditions)} LIMIT 1) as e")->fetchColumn());
+            return boolval($this->getDatabase()
+                ->query("SELECT EXISTS(SELECT 1 FROM {$this->getName()} {$this->getConditionsQuery($conditions)} LIMIT 1) as e")
+                ->fetchColumn());
         }
     }
 
@@ -455,38 +462,48 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
 
     /**
      *
+     * {@inheritdoc}
+     *
      * @param $key Query            
      * @see \MinWork\Storage\Interfaces\DatabaseStorageInterface::get()
      */
     public function get($key)
     {
-        $sql = $this->select($key->conditions, $key->columns, $key->order, $key->limit);
-        $result = $sql->fetchAll(Database::FETCH_ASSOC);
+        $sql = $this->select($key->getConditions(), $key->getColumns(), $key->getOrder(), $key->getLimit());
+        $result = $sql->fetchAll(\PDO::FETCH_ASSOC);
         if (! is_array($result)) {
             return null;
         }
         
-        $useDefaults = $key->columns === TableInterface::COLUMNS_ALL;
+        $useDefaults = $key->getColumns() === TableInterface::COLUMNS_ALL;
         foreach ($result as &$row) {
             $row = $this->format($row, $useDefaults);
         }
         
-        return $key->limit === 1 && is_array($result) && is_array($el = reset($result)) ? $el : $result;
+        return $key->getLimit() === 1 && is_array($result) && is_array($el = reset($result)) ? $el : $result;
     }
 
     /**
      *
      * {@inheritdoc}
      *
+     * @param $key Query            
      * @see \Framework\Storage\Interfaces\DatabaseStorageInterface::set()
      */
     public function set($key, $value): StorageInterface
     {
         if ($this->isset($key)) {
-            $this->update($value, $key->conditions, $key->limit);
+            $this->update($value, $key->getConditions(), $key->getLimit());
         } else {
-            // TODO handle different columns case
-            $values = $key->columns === TableInterface::COLUMNS_ALL ? array_combine($this->getFields(), $value) : array_combine($key->columns, $value);
+            $fields = $this->getFields();
+            $columns = $key->getColumns();
+            if ($columns === TableInterface::COLUMNS_ALL) {
+                $values = array_combine($fields, $value);
+            } elseif (is_array($columns)) {
+                $values = array_combine($columns, $value);
+            } else {
+                throw new \InvalidArgumentException('Insert query columns must be either string indicating all columns (TableInterface::COLUMNS_ALL) or array of column names');
+            }
             $this->insert($values);
         }
         return $this;
@@ -496,22 +513,24 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      *
      * {@inheritdoc}
      *
+     * @param $key Query            
      * @see \Framework\Storage\Interfaces\DatabaseStorageInterface::isset()
      */
     public function isset($key): bool
     {
-        return $this->exists($key->conditions);
+        return $this->exists($key->getConditions());
     }
 
     /**
      *
      * {@inheritdoc}
      *
+     * @param $key Query            
      * @see \Framework\Storage\Interfaces\DatabaseStorageInterface::unset()
      */
     public function unset($key): StorageInterface
     {
-        $this->delete($key->conditions, $key->limit);
+        $this->delete($key->getConditions(), $key->getLimit());
         return $this;
     }
 
@@ -519,11 +538,12 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      *
      * {@inheritdoc}
      *
+     * @param $key Query            
      * @see \MinWork\Storage\Interfaces\StorageInterface::count()
      */
     public function count($key): int
     {
-        return $this->countRows($key->conditions, $key->columns);
+        return $this->countRows($key->getConditions(), $key->getColumns());
     }
 
     /**
@@ -539,10 +559,11 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     }
 
     /**
-     * Get limit part of sql query<br>
+     * Get LIMIT part of sql query<br>
      * If $limit is array then first element should be offset and second limit
      *
-     * @param array|int $limit            
+     * @param array|int|string $limit
+     *            It can also be an object that is convertable to string
      */
     protected function getLimitQuery($limit): string
     {
@@ -555,6 +576,13 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         }
     }
 
+    /**
+     * Get GROUP BY part of sql query
+     *
+     * @param array|string $group
+     *            It can also be an object that is convertable to string
+     * @return string
+     */
     protected function getGroupQuery($group): string
     {
         if (is_array($group)) {
@@ -582,7 +610,8 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * </pre>
      * Will return 'column1, column2 DESC, "column3" ASC, "column4" DESC, "column5" ASC'
      *
-     * @param array|string $order            
+     * @param array|string $order
+     *            It can also be an object that is convertable to string
      * @return string
      */
     protected function getOrderQuery($order): string
@@ -613,7 +642,8 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     /**
      * Prepare WHERE clausule conditions query string from given params
      *
-     * @param array $conditions            
+     * @param array|string|\Minwork\Database\Utility\Condition $conditions
+     *            It can also be an object that is convertable to string
      * @return string
      */
     protected function getConditionsQuery($conditions): string
@@ -683,7 +713,8 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * Prepare columns query part<br>
      * If columns are associative array then they should be in form of: [{column_name} => {column_alias}, ...]
      *
-     * @param array|string $columns            
+     * @param array|string $columns
+     *            It can also be an object that is convertable to string
      */
     protected function prepareColumnsList($columns)
     {
@@ -700,6 +731,6 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
                 ], $columns));
             }
         }
-        return $columns;
+        return strval($columns);
     }
 }
