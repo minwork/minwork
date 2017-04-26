@@ -21,10 +21,11 @@ use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
 use Minwork\Basic\Interfaces\FrameworkInterface;
 use Minwork\Http\Interfaces\EnvironmentInterface;
 use Minwork\Helper\Formatter;
+use Minwork\Http\Utility\HttpCode;
 
 /**
- * Framework
- * 
+ * Basic implementation of FrameworkInterface
+ *
  * @author Christopher Kalkhoff
  *        
  */
@@ -48,11 +49,17 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
 
     /**
      * Router object
-     * 
+     *
      * @var RouterInterface
      */
     protected $router;
 
+    /**
+     *
+     * @param RouterInterface $router            
+     * @param EnvironmentInterface $environment            
+     * @param EventDispatcherInterface $eventDisptacher            
+     */
     public function __construct(RouterInterface $router, EnvironmentInterface $environment, EventDispatcherInterface $eventDisptacher = null)
     {
         $this->setRouter($router)
@@ -108,7 +115,7 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
 
     /**
      * Output response recieved from controller method
-     * 
+     *
      * @param mixed $response            
      * @throws \Exception
      * @return bool
@@ -137,13 +144,15 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
         
         http_response_code($response->getHttpCode());
         
-        echo $response->getContent();
+        if (! empty($response->getContent())) {
+            echo $response->getContent();
+        }
         return true;
     }
 
     /**
      * Run application based on supplied url
-     * 
+     *
      * @param string $url            
      * @param bool $returnContent
      *            If content should be outputed or returned
@@ -197,11 +206,11 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
      *
      * @see \Minwork\Basic\Interfaces\FrameworkInterface::redirect()
      */
-    public function redirect(string $address, bool $external = false)
+    public function redirect(string $address, bool $external = false): ResponseInterface
     {
         $this->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_REDIRECT));
         $address = $external ? Formatter::makeUrl($address) : $this->getEnvironment()->getDomain() . $address;
-        header("Location: {$address}");
-        return;
+        $response = new Response();
+        return $response->setHttpCode(HttpCode::FOUND)->setHeader("Location: {$address}", false);
     }
 }

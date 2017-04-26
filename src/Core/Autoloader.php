@@ -1,4 +1,11 @@
 <?php
+
+/*
+ * This file is part of the Minwork package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 class MinworkAutoloader
 {
 
@@ -10,14 +17,39 @@ class MinworkAutoloader
 
     const DEFAULT_NAMESPACE_LOWERCASE = true;
 
+    /**
+     * Extension of files that can match given namespace
+     * 
+     * @var string
+     */
     private $fileExtension;
 
+    /**
+     * Namespace part that will be trimmed before trying to load class (according to PSR-4)
+     * 
+     * @var string
+     */
     private $basicNamespace;
 
+    /**
+     * Search directory for classes (namespace converted to file path will be appended to this directory path)
+     * 
+     * @var string
+     */
     private $basicPath;
 
+    /**
+     * Separator for namespace which will be used to conver namespace parts to directory path
+     * 
+     * @var string
+     */
     private $namespaceSeparator;
 
+    /**
+     * Whether or not class namespace will be converted to lowercase before trying to match file
+     * 
+     * @var bool
+     */
     private $namespaceLowercase;
 
     /**
@@ -31,11 +63,11 @@ class MinworkAutoloader
     public function __construct($namespace = null, $path = null)
     {
         $this->basicNamespace = $namespace ?? 'Minwork';
-        $this->basicPath = ($path == self::DEFAULT_DIR_SEPARATOR ? "" : is_null($path) ? preg_replace('/'.DIRECTORY_SEPARATOR.'Core$/', '', __DIR__) : $path);
+        $this->basicPath = ($path == self::DEFAULT_DIR_SEPARATOR ? "" : is_null($path) ? preg_replace('/' . DIRECTORY_SEPARATOR . 'Core$/', '', __DIR__) : $path);
         $this->fileExtension = self::DEFAULT_FILE_EXTENSION;
         $this->namespaceSeparator = self::DEFAULT_NAMESPACE_SEPARATOR;
         $this->namespaceLowercase = self::DEFAULT_NAMESPACE_LOWERCASE;
-        if (substr($this->basicPath, -1) === self::DEFAULT_DIR_SEPARATOR || substr($this->basicPath, -1) === DIRECTORY_SEPARATOR) {
+        if (substr($this->basicPath, - 1) === self::DEFAULT_DIR_SEPARATOR || substr($this->basicPath, - 1) === DIRECTORY_SEPARATOR) {
             $this->basicPath = substr($this->basicPath, 0, - 1);
         }
     }
@@ -48,7 +80,7 @@ class MinworkAutoloader
         $self = new self();
         return $self->register();
     }
-    
+
     /**
      * Sets basic namespace
      *
