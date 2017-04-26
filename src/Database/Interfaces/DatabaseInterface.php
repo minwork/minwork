@@ -1,4 +1,10 @@
 <?php
+/*
+ * This file is part of the Minwork package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Minwork\Database\Interfaces;
 
 /**
@@ -37,28 +43,28 @@ interface DatabaseInterface
 
     /**
      * Get database host address
-     * 
+     *
      * @return string
      */
     public function getHost(): string;
 
     /**
      * Get database name
-     * 
+     *
      * @return string
      */
     public function getName(): string;
 
     /**
      * Get database charset
-     * 
+     *
      * @return string
      */
     public function getCharset(): string;
 
     /**
      * Get database options used during initialization
-     * 
+     *
      * @return array
      */
     public function getOptions(): array;

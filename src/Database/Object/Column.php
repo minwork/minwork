@@ -7,11 +7,10 @@
  */
 namespace Minwork\Database\Object;
 
-use Minwork\Database\Object\Database;
 use Minwork\Database\Interfaces\ColumnInterface;
 
 /**
- * Column object for table
+ * Column object used by table for creation, synchronization with database or formatting its value using appropiate PHP type
  *
  * @author Christopher Kalkhoff
  *        
@@ -19,18 +18,53 @@ use Minwork\Database\Interfaces\ColumnInterface;
 class Column implements ColumnInterface
 {
 
+    /**
+     * Unescaped column name
+     *
+     * @var string
+     */
     protected $name;
 
+    /**
+     * Column type defined according to specific driver like: INT or VARCHAR(255)
+     *
+     * @var string
+     */
     protected $type;
 
+    /**
+     * Corresponding PHP type based on $type and defined by ColumnInterface constant
+     *
+     * @var string
+     */
     protected $internalType;
 
+    /**
+     * Column default value
+     *
+     * @var mixed
+     */
     protected $defaultValue;
 
+    /**
+     * If column value can be NULL
+     *
+     * @var bool
+     */
     protected $nullable;
 
+    /**
+     * If column is primary key
+     *
+     * @var bool
+     */
     protected $isPrimaryKey;
 
+    /**
+     * If column should have automatically generated incremental value
+     *
+     * @var bool
+     */
     protected $autoIncrement;
 
     /**
@@ -40,6 +74,7 @@ class Column implements ColumnInterface
      * @param mixed $defaultValue            
      * @param bool $nullable            
      * @param bool $primaryKey            
+     * @param bool $autoIncrement            
      */
     public function __construct(string $name, string $type, $defaultValue = null, bool $nullable = false, bool $primaryKey = false, bool $autoIncrement = false)
     {
@@ -120,8 +155,9 @@ class Column implements ColumnInterface
     }
 
     /**
-     * Check if column type contains string which determine its internal type
-     * 
+     * Check if column type contain supplied string.
+     * This method is used to determine column internal type.
+     *
      * @param string $type            
      * @return bool
      */

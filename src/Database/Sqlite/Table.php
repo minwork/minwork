@@ -7,13 +7,12 @@
  */
 namespace Minwork\Database\Sqlite;
 
-use Minwork\Database\Object\Database;
 use Minwork\Database\Object\AbstractTable;
 use Minwork\Database\Interfaces\ColumnInterface;
 use Minwork\Database\Object\Column;
 
 /**
- * Database table
+ * SQLite implementation of database table
  *
  * @author Christopher Kalkhoff
  *        
@@ -21,6 +20,12 @@ use Minwork\Database\Object\Column;
 class Table extends AbstractTable
 {
 
+    /**
+     *
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Database\Object\AbstractTable::getDbColumns()
+     */
     protected function getDbColumns(): array
     {
         $columns = [];
@@ -33,6 +38,12 @@ class Table extends AbstractTable
         return $columns;
     }
 
+    /**
+     *
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Database\Object\AbstractTable::getColumnDefinition()
+     */
     protected function getColumnDefinition(ColumnInterface $column): string
     {
         // If column is rowid

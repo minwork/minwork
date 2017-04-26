@@ -1,6 +1,18 @@
 <?php
+/*
+ * This file is part of the Minwork package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Minwork\Database\Interfaces;
 
+/**
+ * Interface for table column
+ *
+ * @author Christopher Kalkhoff
+ *        
+ */
 interface ColumnInterface
 {
 
@@ -46,7 +58,7 @@ interface ColumnInterface
     public function getType(): string;
 
     /**
-     * Get column value PHP data type (one of the type constants)
+     * Get column PHP data type (one of the type constants)
      *
      * @return string
      */
@@ -83,7 +95,7 @@ interface ColumnInterface
     public function isNullable(): bool;
 
     /**
-     * If column value can be set to NULL
+     * Set if column value can be set to NULL
      *
      * @param bool $nullable            
      * @return self
@@ -121,8 +133,8 @@ interface ColumnInterface
     public function setAutoIncrement(bool $autoIncrement = true): self;
 
     /**
-     * Format value according to column specification
-     * 
+     * Format value according to column PHP type
+     *
      * @param mixed $value            
      * @return mixed
      */

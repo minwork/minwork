@@ -1,8 +1,20 @@
 <?php
+/*
+ * This file is part of the Minwork package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Minwork\Database\Utility;
 
 use Minwork\Helper\Formatter;
 
+/**
+ * Helper class for storing complex query conditions and then converting them to string
+ *
+ * @author Christopher Kalkhoff
+ *        
+ */
 class Condition
 {
 
@@ -11,19 +23,35 @@ class Condition
     const TYPE_VALUE = 'value';
 
     const TYPE_EXPRESSION = 'expression';
-    
+
     const TYPE_CONDITION = 'condition';
 
     /**
+     * Array containing parts of query in form of list of 2 elements lists (type and value)
      *
      * @var array
      */
     protected $query;
 
+    /**
+     * Function used to escape query elements with value type
+     *
+     * @var callable
+     */
     protected $valueEscapeFunction;
 
+    /**
+     * Function used to escape query elements with column type
+     *
+     * @var callable
+     */
     protected $columnEscapeFunction;
 
+    /**
+     *
+     * @param callable $valueEscapeFunction            
+     * @param callable $columnEscapeFunction            
+     */
     public function __construct(callable $valueEscapeFunction = null, callable $columnEscapeFunction = null)
     {
         $valueEscapeFunction = is_null($valueEscapeFunction) ? function ($value) {
@@ -35,6 +63,13 @@ class Condition
         $this->setValueEscapeFunction($valueEscapeFunction)->setColumnEscapeFunction($columnEscapeFunction);
     }
 
+    /**
+     * Add column element to query array
+     *
+     * @param string $name
+     *            Unescaped column name
+     * @return self
+     */
     protected function addColumn(string $name): self
     {
         $this->query[] = [
@@ -43,7 +78,13 @@ class Condition
         ];
         return $this;
     }
-    
+
+    /**
+     * Add condition object to query array
+     *
+     * @param self $condition            
+     * @return self
+     */
     protected function addCondition(self $condition): self
     {
         $this->query[] = [
@@ -53,6 +94,13 @@ class Condition
         return $this;
     }
 
+    /**
+     * Add expression element to query array
+     *
+     * @param mixed $expression
+     *            Must be convertable to string
+     * @return self
+     */
     protected function addExpression($expression): self
     {
         $this->query[] = [
@@ -62,6 +110,13 @@ class Condition
         return $this;
     }
 
+    /**
+     * Add value element to query array
+     *
+     * @param mixed $value
+     *            Must be valid argument for value escape function
+     * @return self
+     */
     protected function addValue($value): self
     {
         $this->query[] = [
@@ -71,6 +126,11 @@ class Condition
         return $this;
     }
 
+    /**
+     * Convert condition to string applying escape functions and converting query array elements to string
+     *
+     * @return string
+     */
     public function __toString(): string
     {
         $stringArray = [];
@@ -95,44 +155,72 @@ class Condition
         return implode(' ', $stringArray);
     }
 
+    /**
+     * Set value escape function
+     *
+     * @param callable $function            
+     * @return self
+     */
     public function setValueEscapeFunction(callable $function): self
     {
         $this->valueEscapeFunction = $function;
         return $this;
     }
 
+    /**
+     * Set column escape function
+     *
+     * @param callable $function            
+     * @return self
+     */
     public function setColumnEscapeFunction(callable $function): self
     {
         $this->columnEscapeFunction = $function;
         return $this;
     }
 
+    /**
+     * Append column to query.
+     * This method should be called before appending condition specific syntax.
+     *
+     * @param string $name
+     *            Unescaped column name
+     * @return self
+     */
     public function column(string $name): self
     {
         return $this->addColumn($name);
     }
 
     /**
+     * Append condition to query to create complex conditions.
+     * This object string value will be enclosed within brackets.
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Interfaces\self::condition()
+     * @param self $condition            
+     * @return self
      */
     public function condition(self $condition): self
     {
         return $this->addCondition($condition);
     }
 
+    /**
+     * Append expression (convertable to string) to query.
+     *
+     * @param mixed $expression            
+     * @return self
+     */
     public function expression($expression): self
     {
         return $this->addExpression($expression);
     }
 
     /**
+     * Append AND syntax to qurey.
+     * Must be preceded by column method.
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Interfaces\self::and()
+     * @see \Minwork\Database\Utility\Condition::column()
+     * @return self
      */
     public function and(): self
     {
@@ -140,10 +228,11 @@ class Condition
     }
 
     /**
+     * Append OR syntax to qurey.
+     * Must be preceded by column method.
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Interfaces\self::or()
+     * @see \Minwork\Database\Utility\Condition::column()
+     * @return self
      */
     public function or(): self
     {
@@ -151,10 +240,15 @@ class Condition
     }
 
     /**
+     * Append BETWEEN 'value1' AND 'value2' syntax to qurey.
+     * Must be preceded by column method.
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Interfaces\self::between()
+     * @see \Minwork\Database\Utility\Condition::column()
+     * @param mixed $value1
+     *            Must be valid escape value function argument
+     * @param mixed $value2
+     *            Must be valid escape value function argument
+     * @return self
      */
     public function between($value1, $value2): self
     {
@@ -165,10 +259,14 @@ class Condition
     }
 
     /**
+     * Append IN('value1', 'value2', ...) syntax to qurey.
+     * Must be preceded by column method.
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Interfaces\self::in()
+     * @see \Minwork\Database\Utility\Condition::column()
+     * @param array $array
+     *            Array of unescaped values
+     * @throws \InvalidArgumentException
+     * @return self
      */
     public function in(array $array): self
     {
@@ -188,10 +286,14 @@ class Condition
     }
 
     /**
+     * Append NOT IN('value1', 'value2', ...) syntax to qurey.
+     * Must be preceded by column method.
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Interfaces\self::notIn()
+     * @see \Minwork\Database\Utility\Condition::column()
+     * @param array $array
+     *            Array of unescaped values
+     * @throws \InvalidArgumentException
+     * @return self
      */
     public function notIn(array $array): self
     {
@@ -211,10 +313,11 @@ class Condition
     }
 
     /**
+     * Append IS NULL syntax to qurey.
+     * Must be preceded by column method.
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Interfaces\self::isNull()
+     * @see \Minwork\Database\Utility\Condition::column()
+     * @return self
      */
     public function isNull(): self
     {
@@ -222,10 +325,11 @@ class Condition
     }
 
     /**
+     * Append IS NOT NULL syntax to qurey.
+     * Must be preceded by column method.
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Interfaces\self::isNotNull()
+     * @see \Minwork\Database\Utility\Condition::column()
+     * @return self
      */
     public function isNotNull(): self
     {
@@ -233,10 +337,13 @@ class Condition
     }
 
     /**
+     * Append equal to value (column = value) expression to qurey.
+     * Must be preceded by column method.
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Interfaces\self::equal()
+     * @see \Minwork\Database\Utility\Condition::column()
+     * @param mixed $value
+     *            Must be valid escape value function argument
+     * @return self
      */
     public function equal($value): self
     {
@@ -244,10 +351,13 @@ class Condition
     }
 
     /**
+     * Append not equal to value (column <> value) expression to qurey.
+     * Must be preceded by column method.
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Interfaces\self::notEqual()
+     * @see \Minwork\Database\Utility\Condition::column()
+     * @param mixed $value
+     *            Must be valid escape value function argument
+     * @return self
      */
     public function notEqual($value): self
     {
@@ -255,10 +365,13 @@ class Condition
     }
 
     /**
+     * Append greater than value (column > value) expression to qurey.
+     * Must be preceded by column method.
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Interfaces\self::gt()
+     * @see \Minwork\Database\Utility\Condition::column()
+     * @param mixed $value
+     *            Must be valid escape value function argument
+     * @return self
      */
     public function gt($value): self
     {
@@ -266,10 +379,13 @@ class Condition
     }
 
     /**
+     * Append greater than or equal to value (column >= value) expression to qurey.
+     * Must be preceded by column method.
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Interfaces\self::gte()
+     * @see \Minwork\Database\Utility\Condition::column()
+     * @param mixed $value
+     *            Must be valid escape value function argument
+     * @return self
      */
     public function gte($value): self
     {
@@ -277,10 +393,13 @@ class Condition
     }
 
     /**
+     * Append lower than value (column < value) expression to qurey.
+     * Must be preceded by column method.
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Interfaces\self::lt()
+     * @see \Minwork\Database\Utility\Condition::column()
+     * @param mixed $value
+     *            Must be valid escape value function argument
+     * @return self
      */
     public function lt($value): self
     {
@@ -288,10 +407,13 @@ class Condition
     }
 
     /**
+     * Append lower than or equal to value (column <= value) expression to qurey.
+     * Must be preceded by column method.
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Interfaces\self::lte()
+     * @see \Minwork\Database\Utility\Condition::column()
+     * @param mixed $value
+     *            Must be valid escape value function argument
+     * @return self
      */
     public function lte($value): self
     {

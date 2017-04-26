@@ -25,28 +25,28 @@ abstract class AbstractDatabase extends \PDO implements DatabaseInterface
 
     /**
      * Database host address
-     * 
+     *
      * @var string
      */
     protected $host;
 
     /**
      * Database name
-     * 
+     *
      * @var string
      */
     protected $name;
 
     /**
      * Database charset
-     * 
+     *
      * @var string
      */
     protected $charset;
 
     /**
      * Database options used in init method
-     * 
+     *
      * @var array
      */
     protected $options;

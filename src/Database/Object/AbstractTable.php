@@ -19,7 +19,7 @@ use Minwork\Database\Utility\Condition;
 use Minwork\Basic\Traits\Debugger;
 
 /**
- * Database table
+ * Abtract table used both as prototype for driver specific table implementation and model storage
  *
  * @author Christopher Kalkhoff
  *        
@@ -42,12 +42,14 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     protected $database;
 
     /**
+     * Table name in database
      *
      * @var string
      */
     protected $name;
 
     /**
+     * List of table columns
      *
      * @var ColumnInterface[]
      */
@@ -55,14 +57,9 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
 
     /**
      *
-     * @var string[]
-     */
-    
-    /**
-     * Mysql table constructor
-     *
      * @param DatabaseInterface $database            
      * @param string $name            
+     * @param ColumnInterface[] $columns            
      */
     public function __construct(DatabaseInterface $database, string $name, array $columns = [])
     {
@@ -71,12 +68,24 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
             ->setColumns($columns);
     }
 
+    /**
+     * Set database object
+     *
+     * @param DatabaseInterface $database            
+     * @return TableInterface
+     */
     protected function setDatabase(DatabaseInterface $database): TableInterface
     {
         $this->database = $database;
         return $this;
     }
 
+    /**
+     * Set table name in database
+     *
+     * @param string $name            
+     * @return TableInterface
+     */
     protected function setName(string $name): TableInterface
     {
         $this->name = Formatter::removeQuotes($name);
@@ -136,12 +145,10 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     }
 
     /**
-     * Format data according to columns config<br>
      *
-     * @param array $data
-     *            Use data keys as column name for formatting values
-     * @param bool $defaults
-     *            Use default column value if it key is not present in data array
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Database\Interfaces\TableInterface::format()
      */
     public function format(array $data, bool $defaults = false): array
     {
@@ -167,9 +174,10 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     }
 
     /**
-     * Get database object
      *
-     * @return DatabaseInterface
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Database\Interfaces\TableInterface::getDatabase()
      */
     public function getDatabase(): DatabaseInterface
     {
@@ -177,9 +185,10 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     }
 
     /**
-     * Get table name
      *
-     * @return string
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Database\Interfaces\TableInterface::getName()
      */
     public function getName($escaped = true): string
     {
@@ -187,7 +196,9 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     }
 
     /**
+     * Get columns config from database table schema in format compatible with setColumns method
      *
+     * @see \Minwork\Database\Object\AbstractTable::setColumns()
      * @return ColumnInterface[]
      */
     abstract protected function getDbColumns(): array;
@@ -324,6 +335,11 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * {@inheritdoc}
      *
      * @see \Minwork\Database\Interfaces\TableInterface::select()
+     * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
+     * @see \Minwork\Database\Object\AbstractTable::prepareColumnsList()
+     * @see \Minwork\Database\Object\AbstractTable::getOrderQuery()
+     * @see \Minwork\Database\Object\AbstractTable::getLimitQuery()
+     * @see \Minwork\Database\Object\AbstractTable::getGroupQuery()
      */
     public function select($conditions = [], $columns = self::COLUMNS_ALL, $order = null, $limit = null, $group = null)
     {
@@ -337,10 +353,10 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     }
 
     /**
-     * Insert into table
      *
-     * @param array $values            
-     * @return mixed
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Database\Interfaces\TableInterface::insert()
      */
     public function insert(array $values)
     {
@@ -366,12 +382,12 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     }
 
     /**
-     * Update in table
      *
-     * @param array $values            
-     * @param array $conditions            
-     * @param int|array $limit            
-     * @return \PDOStatement|bool
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Database\Interfaces\TableInterface::update()
+     * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
+     * @see \Minwork\Database\Object\AbstractTable::getLimitQuery()
      */
     public function update(array $values, $conditions = [], $limit = null)
     {
@@ -389,11 +405,12 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     }
 
     /**
-     * Delete from table
      *
-     * @param array $conditions            
-     * @param int|array $limit            
-     * @return \PDOStatement|bool
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Database\Interfaces\TableInterface::delete()
+     * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
+     * @see \Minwork\Database\Object\AbstractTable::getLimitQuery()
      */
     public function delete($conditions = [], $limit = null)
     {
@@ -405,11 +422,11 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     }
 
     /**
-     * Check if row(s) exists in table
      *
-     * @param array $conditions            
-     * @param string $operator            
-     * @return bool
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Database\Interfaces\TableInterface::exists()
+     * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
      */
     public function exists($conditions): bool
     {
@@ -424,12 +441,13 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     }
 
     /**
-     * Count table rows fitting specified conditions
      *
-     * @param array $conditions            
-     * @param string $operator            
-     * @param string|array $columns            
-     * @return int
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Database\Interfaces\TableInterface::countRows()
+     * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
+     * @see \Minwork\Database\Object\AbstractTable::prepareColumnsList()
+     * @see \Minwork\Database\Object\AbstractTable::getGroupQuery()
      */
     public function countRows($conditions = [], $columns = self::COLUMNS_ALL, $group = null): int
     {
@@ -686,9 +704,10 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     }
 
     /**
-     * Prepares equal to value query part<br>
+     * Prepare column value for conditions defined by array<br>
      * Single elements are escaped and arrays are parsed to IN(...) format
      *
+     * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
      * @param mixed $value            
      * @return mixed
      */
