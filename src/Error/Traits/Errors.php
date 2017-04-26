@@ -9,13 +9,12 @@ namespace Minwork\Error\Traits;
 
 use Minwork\Error\Basic\ErrorGlobal;
 use Minwork\Error\Basic\ErrorForm;
-use Minwork\Helper\Debugger;
 use Minwork\Error\Object\Errors as ErrorsStorage;
 use Minwork\Error\Interfaces\ErrorsStorageInterface;
 
 /**
- * Trait for erros storage inside object
- * 
+ * Trait used for adding, getting and clearing errors using basic storage that implements ErrorsStorageInterface
+ *
  * @author Christopher Kalkhoff
  *        
  */
@@ -24,14 +23,14 @@ trait Errors
 
     /**
      * Errors storage object
-     * 
+     *
      * @var ErrorsStorageInterface
      */
     protected $errors = null;
 
     /**
      * Returns error object or creates it if necessary
-     * 
+     *
      * @return ErrorsStorageInterface
      */
     public function getErrors(): ErrorsStorageInterface
@@ -43,37 +42,37 @@ trait Errors
     }
 
     /**
-     * Add error using strings as arguments<br>
-     * This method automatically creates fitting error object and adds it to storage
-     * 
-     * @param string ...$args            
+     * Create error object based on arguments and add it object to errors storage
+     * By default it creates ErrorGlobal object
+     *
+     * @see \Minwork\Error\Basic\ErrorForm
+     * @see \Minwork\Error\Basic\ErrorGlobal
+     * @param string $args,...
+     *            Error properties used for creating appropiate object, like:<br>
+     *            <i>addError(field_name, message)</i> will create ErrorForm<br>
+     *            <i>addError(message)</i> will create ErrorGlobal
+     *            
      * @return self
      */
     public function addError(string ...$args): self
     {
         $count = count($args);
         
-        if ($count < 1) {
-            Debugger::debug('This method require at least one argument');
-        }
-        
         switch ($count) {
-            case 1:
-                $this->getErrors()->addError(new ErrorGlobal($args[0]));
-                break;
             case 2:
                 $this->getErrors()->addError(new ErrorForm($args[0], $args[1]));
                 break;
+            case 1:
             default:
-                Debugger::debug("Invalid arguments count ({$count})");
+                $this->getErrors()->addError(new ErrorGlobal($args[0]));
                 break;
         }
         return $this;
     }
 
     /**
-     * If errors storage contain errors
-     * 
+     * If errors storage contain any error
+     *
      * @return bool
      */
     public function hasErrors(): bool
@@ -82,8 +81,8 @@ trait Errors
     }
 
     /**
-     * Clear errors array
-     * 
+     * Clear stored errors
+     *
      * @return self
      */
     public function clearErrors(): self

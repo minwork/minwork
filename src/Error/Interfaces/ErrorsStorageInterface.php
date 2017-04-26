@@ -7,27 +7,33 @@
  */
 namespace Minwork\Error\Interfaces;
 
+/**
+ * Interface for errors storage
+ *
+ * @author Christopher Kalkhoff
+ *        
+ */
 interface ErrorsStorageInterface
 {
 
     /**
      * If storage contains any errors
-     * 
+     *
      * @return bool
      */
     public function hasErrors(): bool;
 
     /**
-     * Get array of printable errors
-     * 
-     * @param array|null $config            
-     * @return array
+     * Get error objects array
+     *
+     * @param mixed $config            
+     * @return ErrorInterface[]
      */
     public function getErrors($config = null): array;
 
     /**
      * Add error object to storage
-     * 
+     *
      * @param ErrorInterface $error            
      * @return self
      */
@@ -35,7 +41,7 @@ interface ErrorsStorageInterface
 
     /**
      * Merge error storage with another
-     * 
+     *
      * @param ErrorsStorageInterface $error            
      * @return self
      */
@@ -43,7 +49,7 @@ interface ErrorsStorageInterface
 
     /**
      * Clear errors array
-     * 
+     *
      * @return self
      */
     public function clearErrors(): self;

@@ -10,8 +10,8 @@ namespace Minwork\Error\Basic;
 use Minwork\Error\Object\ErrorPrototype;
 
 /**
- * Global error with message only
- * 
+ * Global error - message only
+ *
  * @author Christopher Kalkhoff
  *        
  */
@@ -22,7 +22,7 @@ class ErrorGlobal extends ErrorPrototype
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Error\Object\ErrorPrototype::getType()
      */

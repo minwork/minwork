@@ -106,6 +106,6 @@ abstract class ErrorPrototype implements ErrorInterface
      */
     public function getFieldName(): string
     {
-        return $this->fieldName;
+        return strval($this->fieldName);
     }
 }

@@ -10,8 +10,8 @@ namespace Minwork\Error\Basic;
 use Minwork\Error\Object\ErrorPrototype;
 
 /**
- * Form error class with field name and optional row number
- * 
+ * Form error - error bind to specific field
+ *
  * @author Christopher Kalkhoff
  *        
  */
@@ -22,8 +22,11 @@ class ErrorForm extends ErrorPrototype
 
     /**
      * Create form error for field specified by name
-     * @param string $name Field name like <i>email</i> or <i>Prefix[0][name][0]</i> 
-     * @param string $message Error message
+     * 
+     * @param string $name
+     *            Field name like <i>email</i> or <i>Prefix[0][name][0]</i>
+     * @param string $message
+     *            Error message
      */
     public function __construct($name, $message)
     {
@@ -33,7 +36,7 @@ class ErrorForm extends ErrorPrototype
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Error\Object\ErrorPrototype::getType()
      */

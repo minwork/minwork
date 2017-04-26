@@ -11,23 +11,28 @@ namespace Minwork\Error\Interfaces;
  * Error objects interfaces
  *
  * @author Krzysztof Kalkhoff
- *        
  */
 interface ErrorInterface
 {
 
     /**
      * Get string representation of error message
+     * 
+     * @return string
      */
     public function __toString(): string;
 
     /**
-     * Get string representation of error message
+     * Get error message
+     * 
+     * @return string
      */
     public function getMessage(): string;
 
     /**
-     * Get type of error
+     * Get error type
+     * 
+     * @return string
      */
     public function getType(): string;
 

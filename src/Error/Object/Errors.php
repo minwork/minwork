@@ -22,17 +22,17 @@ class Errors implements ErrorsStorageInterface
 {
 
     /**
-     * Storage for errors
+     * Array storage for error objects
      *
-     * @var array
+     * @var ErrorInterface[][]
      */
     protected $list = [];
 
     /**
-     * Add error to list
      *
-     * @param ErrorPrototype $errorObj            
-     * @return Error
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Error\Interfaces\ErrorsStorageInterface::addError()
      */
     public function addError(ErrorInterface $errorObj): ErrorsStorageInterface
     {
@@ -52,24 +52,22 @@ class Errors implements ErrorsStorageInterface
     }
 
     /**
-     * Create object, add error and return
+     * Create errors storage, add error and return newly created object
      *
-     * @author Krzysztof Kalkhoff
-     *        
-     * @param ErrorPrototype $errorObj            
-     * @return Error
+     * @param ErrorPrototype $error            
+     * @return self
      */
-    public static function addAndReturn(ErrorInterface $errorObj)
+    public static function addAndReturn(ErrorInterface $error)
     {
         $error = new self();
-        $error->add($errorObj);
-        return $error;
+        return $error->addError($error);
     }
 
     /**
-     * Check if there were any errors added
      *
-     * @return boolean
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Error\Interfaces\ErrorsStorageInterface::hasErrors()
      */
     public function hasErrors(): bool
     {
@@ -109,14 +107,13 @@ class Errors implements ErrorsStorageInterface
      *
      * {@inheritdoc}
      *
-     * @see \MinWork\Error\Interfaces\ErrorsContainerInterface::getErrors()
+     * @see \Minwork\Error\Interfaces\ErrorsStorageInterface::getErrors()
      */
     public function getErrors($config = null): array
     {
         $return = [];
         if (is_null($config)) {
             $return = $this->list;
-            ;
         } elseif (array_key_exists($config, $this->list)) {
             $return = $this->list[$config];
         }
