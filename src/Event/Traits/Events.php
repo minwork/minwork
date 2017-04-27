@@ -11,21 +11,26 @@ use Minwork\Event\Interfaces\EventDispatcherInterface;
 use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
 
 /**
- * Getter and setter for internal event dispatcher 
- * @author Christopher Kalkhoff
+ * Getter and setter for event dispatcher stored within object.
+ * This trait implement all methods from EventDispatcherContainerInterface
  *
+ * @see \Minwork\Event\Interfaces\EventDispatcherContainerInterface
+ * @author Christopher Kalkhoff
+ *        
  */
 trait Events {
 
     /**
      * Event dispatcher object
+     *
      * @var EventDispatcherInterface
      */
     protected $eventDispatcher;
 
     /**
-     * Set event dispatcher object 
-     * @param EventDispatcherInterface $eventDispatcher
+     * Set event dispatcher object
+     *
+     * @param EventDispatcherInterface $eventDispatcher            
      * @return self
      */
     public function setEventDispatcher(EventDispatcherInterface $eventDispatcher): EventDispatcherContainerInterface
@@ -35,7 +40,8 @@ trait Events {
     }
 
     /**
-     * Get event dispatcher object 
+     * Get event dispatcher object
+     *
      * @return EventDispatcherInterface
      */
     public function getEventDispatcher(): EventDispatcherInterface

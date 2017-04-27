@@ -1,4 +1,10 @@
 <?php
+/*
+ * This file is part of the Minwork package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 namespace Minwork\Event\Object;
 
 use Minwork\Event\Interfaces\EventInterface;
@@ -6,29 +12,30 @@ use Minwork\Event\Interfaces\EventDispatcherInterface;
 
 /**
  * Basic implementation of event dispatcher interface
- * @author Christopher Kalkhoff
  *
+ * @author Christopher Kalkhoff
+ *        
  */
 class EventDispatcher implements EventDispatcherInterface
 {
 
     /**
      * Global event dispatcher object
-     * 
+     *
      * @var EventDispatcherInterface
      */
     protected static $global;
 
     /**
      * List of event listeners
-     * 
+     *
      * @var array
      */
     protected $listeners = [];
 
     /**
      * Get global object or create it if necessary
-     * 
+     *
      * @return self
      */
     public static function getGlobal(): self
@@ -41,7 +48,7 @@ class EventDispatcher implements EventDispatcherInterface
 
     /**
      * Make current object accessible statically by getGlobal function
-     * 
+     *
      * @return self
      */
     public function makeGlobal(): self
@@ -52,7 +59,7 @@ class EventDispatcher implements EventDispatcherInterface
 
     /**
      * Trigger given event
-     * 
+     *
      * @param EventInterface $event            
      * @return self
      */
@@ -61,6 +68,7 @@ class EventDispatcher implements EventDispatcherInterface
         $name = $event->setActive(true)->getName();
         if (array_key_exists($name, $this->listeners)) {
             $listenersList = $this->listeners[$name];
+            // Sort by priority
             ksort($listenersList);
             foreach ($listenersList as $listeners) {
                 foreach ($listeners as $listener) {
@@ -76,7 +84,7 @@ class EventDispatcher implements EventDispatcherInterface
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Event\Interfaces\EventDispatcherInterface::addListener($event, $listener, $priority)
      */
@@ -88,7 +96,7 @@ class EventDispatcher implements EventDispatcherInterface
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Event\Interfaces\EventDispatcherInterface::removeListener($event, $listener)
      */

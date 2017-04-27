@@ -9,29 +9,39 @@ namespace Minwork\Event\Interfaces;
 
 /**
  * Interface for event object
- * @author Christopher Kalkhoff
  *
+ * @author Christopher Kalkhoff
+ *        
  */
-interface EventInterface {
+interface EventInterface
+{
+
     /**
      * Get event name
+     *
      * @return string
      */
-	public function getName(): string;
-	/**
-	 * Set if event is active and should propagate to listeners
-	 * @param bool $active
-	 * @return self
-	 */
-	public function setActive(bool $active): self;
-	/**
-	 * If event is active
-	 * @return bool
-	 */
-	public function isActive(): bool;
-	/**
-	 * String representation of event - usually same as name
-	 * @return string
-	 */
-	public function __toString(): string;
+    public function getName(): string;
+
+    /**
+     * Set if event is active and should propagate to awaiting listeners
+     *
+     * @param bool $active            
+     * @return self
+     */
+    public function setActive(bool $active): self;
+
+    /**
+     * If event is active
+     *
+     * @return bool
+     */
+    public function isActive(): bool;
+
+    /**
+     * String representation of the event - usually same as name
+     *
+     * @return string
+     */
+    public function __toString(): string;
 }

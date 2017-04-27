@@ -14,13 +14,15 @@ use Minwork\Event\Object\EventDispatcher;
 
 /**
  * Trait used for automatic event listeners binding
- * @author Christopher Kalkhoff
  *
+ * @author Christopher Kalkhoff
+ *        
  */
 trait Connector {
 
     /**
      * Connect events to dispatcher
+     *
      * @param EventDispatcherInterface $dispatcher            
      * @param object|array $connector
      *            <br><u>Available formats</u>:<br>
@@ -42,6 +44,7 @@ trait Connector {
         $methodsMap = [];
         $mapper = [];
         
+        // Function to normalize event name by removing all underscores and 'event' string then converting to lowercase
         $normalizedEventName = function ($event) {
             $eventName = strtr($event, '_', '');
             if (($pos = mb_stripos($eventName, 'event')) !== false) {
@@ -50,10 +53,12 @@ trait Connector {
             return mb_strtolower($event);
         };
         
+        // Normalize list of current object methods to lowercase
         foreach ($methods as $method) {
             $methodsMap[$method] = mb_strtolower($method);
         }
         
+        // If connector is object or class name string search its constants to match with current object methods
         if (is_object($connector) || is_string($connector)) {
             $reflection = new \ReflectionClass($connector);
             $constants = $reflection->getConstants();
@@ -63,6 +68,7 @@ trait Connector {
                     $mapper[$event][] = $method;
                 }
             }
+            // If connector is array then map it to [event_name => current_object_method, ...]
         } elseif (is_array($connector)) {
             if (ArrayHelper::isAssoc($connector)) {
                 foreach ($connector as $event => $method) {
@@ -77,6 +83,7 @@ trait Connector {
             }
         }
         
+        // Add listeners according to events mapped to method names
         foreach ($mapper as $eventName => $methods) {
             foreach ($methods as $method) {
                 $eventDispatcher->addListener($eventName, [
