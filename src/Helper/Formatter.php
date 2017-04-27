@@ -63,17 +63,18 @@ class Formatter
      * <pre>$_GET['search']['offer']['id']</pre>
      * <pre>Formatter::defaultArrayValue($_GET, ['search', 'offer', 'id'], 0)</pre>
      *
+     * @see ArrayHelper::getKeysArray()
      * @param array $array
      *            Source array
-     * @param array $keys
-     *            Array keys in format of ['key1', 'key2']
+     * @param mixed $keys
+     *            Array keys in format compatible with ArrayHelper::getKeysArray() method
      * @param mixed $value            
      * @return mixed
      */
-    public static function defaultArrayValue(array $array, array $keys, $value)
+    public static function defaultArrayValue(array $array, $keys, $value)
     {
         $return = $array;
-        foreach ($keys as $key) {
+        foreach (ArrayHelper::getKeysArray($keys) as $key) {
             if (! is_array($return) || ! array_key_exists($key, $return)) {
                 return $value;
             }
@@ -182,9 +183,12 @@ class Formatter
     /**
      * Create html <a> tag
      *
-     * @param string $address            
-     * @param string $text            
-     * @param array $attributes            
+     * @param string $address
+     *            Link address
+     * @param string $text
+     *            Link text
+     * @param array $attributes
+     *            <a> tag attributes
      * @return string
      */
     public static function makeHtmlLink(string $address, string $text, array $attributes = []): string
@@ -195,7 +199,8 @@ class Formatter
     /**
      * Normalize string to English alphabet removing all special characters and whitespaces
      *
-     * @param string $msg            
+     * @param string $string            
+     * @param string $whitespaceReplacement            
      * @return string
      */
     public static function textId(string $string, string $whitespaceReplacement = self::DEFAULT_WHITESPACE_REPLACEMENT): string
@@ -227,13 +232,13 @@ class Formatter
 
     /**
      * Convert any variable to compact simple string
-     * 
+     *
      * @param mixed $var            
      * @param bool $quote
      *            If strings should be outputed as quoted like <i>'this'</i> to distinguish them from boolean and number variables
      * @return string
      */
-    public static function toString($var, $quote = true): string
+    public static function toString($var, bool $quote = true): string
     {
         if (is_string($var)) {
             return $quote ? "'{$var}'" : $var;
@@ -284,37 +289,38 @@ class Formatter
      * Encode html tags with entities
      *
      * @param array|string $data            
-     * @return mixed
+     * @return array|string
      */
-    public static function cleanHTMLData($data)
+    public static function encodeHTMLData($data)
     {
         $return = $data;
         if (is_array($return)) {
             foreach ($return as $i => $w)
                 if (is_array($w)) {
-                    self::cleanHTMLData($return[$i]);
+                    self::encodeHTMLData($return[$i]);
                 } else {
-                    $return[$i] = htmlentities($w, ENT_QUOTES, self::STRING_ENCODING);
+                    $return[$i] = htmlentities(strval($w), ENT_QUOTES, self::STRING_ENCODING);
                 }
         } else {
-            $return = htmlentities($return, ENT_QUOTES, self::STRING_ENCODING);
+            $return = htmlentities(strval($return), ENT_QUOTES, self::STRING_ENCODING);
         }
         return $return;
     }
 
     /**
-     * Decode html entities encoded by cleanHTMLData
-     *
+     * Decode html entities encoded by encodeHTMLData
+     * 
+     * @see Formatter::encodeHTMLData()
      * @param array|string $data            
      * @param string $allowedTags            
      */
-    public static function restoreHTMLData($data, string $allowedTags = null): string
+    public static function decodeHTMLData($data, string $allowedTags = ''): string
     {
         $return = $data;
         if (is_array($return)) {
             foreach ($return as $i => $w)
                 if (is_array($w)) {
-                    $return[$i] = self::cleanHTMLData($return[$i]);
+                    $return[$i] = self::encodeHTMLData($return[$i]);
                 } else {
                     $return[$i] = html_entity_decode($w, ENT_QUOTES, self::STRING_ENCODING);
                     if (! empty($allowedTags)) {
@@ -391,20 +397,25 @@ class Formatter
         }
         return $return;
     }
-    
+
     /**
-     * Removes <b>'</b> and <b>"</b> from string
-     * @param string $string
+     * Removes all types of quotes ( <b>'</b> <b>`</b> <b>"</b> ) from string
+     *
+     * @param string $string            
      * @return string
      */
     public static function removeQuotes(string $string): string
     {
-        return str_replace(['\'', '"', '`'], '', $string);
+        return str_replace([
+            '\'',
+            '"',
+            '`'
+        ], '', $string);
     }
 
     /**
      * Clean string using trim and strip_tags
-     * 
+     *
      * @param string $string            
      * @return string
      */
@@ -468,7 +479,7 @@ class Formatter
     }
 
     /**
-     * Make given text inline, remove every newline char
+     * Make supplied text inline by removing any newline char
      *
      * @param string $content            
      * @return string

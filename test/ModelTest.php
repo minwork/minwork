@@ -72,7 +72,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         ];
         $newData = [
             'name' => 'test2',
-            'change_date' => DateHelper::addHours(DateHelper::now(), 2)->format('Y-m-d H:i:s')
+            'change_date' => DateHelper::addHours(DateHelper::now(), 2)
         ];
         $newId = 'unexisting';
         /** @var $table \Minwork\Database\Interfaces\TableInterface */

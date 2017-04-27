@@ -9,7 +9,7 @@ namespace Minwork\Helper;
 
 /**
  * Basic validation methods
- * 
+ *
  * @author Christopher Kalkhoff
  *        
  */
@@ -18,7 +18,7 @@ class Validation
 
     /**
      * If string contains any whitespace
-     * 
+     *
      * @param string $string            
      * @return bool
      */
@@ -29,7 +29,7 @@ class Validation
 
     /**
      * If string is proper email address
-     * 
+     *
      * @param string $email            
      * @return bool
      */
@@ -48,14 +48,13 @@ class Validation
     }
 
     /**
-     * If given string is valid phone
+     * If string is valid European phone number
      *
      * @param string $phone
      *            Phone number to check
      * @param string $strict
      *            If phone must have exactly 9 digits
-     * @param string $makePhone            
-     * @return boolean
+     * @return bool
      */
     public static function isPhone(string $phone, bool $strict = false): bool
     {
@@ -64,7 +63,7 @@ class Validation
 
     /**
      * If given string is valid street name
-     * 
+     *
      * @param string $name            
      * @return bool
      */
@@ -75,7 +74,7 @@ class Validation
 
     /**
      * If given string is valid city name
-     * 
+     *
      * @param string $name            
      * @return bool
      */
@@ -86,7 +85,7 @@ class Validation
 
     /**
      * If given string is valid building number
-     * 
+     *
      * @param string $name            
      * @return bool
      */
@@ -97,7 +96,7 @@ class Validation
 
     /**
      * If given string is valid apartment number
-     * 
+     *
      * @param string $name            
      * @return bool
      */
@@ -107,23 +106,19 @@ class Validation
     }
 
     /**
-     * If given string is not empty or null
-     * 
-     * @param string $name            
+     * If given var is not empty string or null
+     *
+     * @param string $var            
      * @return bool
      */
-    public static function isNotEmpty(string $value): bool
+    public static function isNotEmpty($var): bool
     {
-        if ($value == '' || $value == null) {
-            return false;
-        } else {
-            return true;
-        }
+        return $var === '' || is_null($var);
     }
 
     /**
      * If string contains only letter of alphabet (and optionally space)
-     * 
+     *
      * @param string $string            
      * @param bool $includeSpace            
      * @return bool
@@ -136,7 +131,7 @@ class Validation
 
     /**
      * If variable is proper timestamp
-     * 
+     *
      * @param mixed $timestamp            
      * @return bool
      */
@@ -147,8 +142,8 @@ class Validation
 
     /**
      * Alias for DateHelper::isEmpty
-     * 
-     * @see DateHelper::isEmpty
+     *
+     * @see DateHelper::isEmpty()
      * @param string $date            
      * @return bool
      */
@@ -159,7 +154,7 @@ class Validation
 
     /**
      * If variable is float (optional check of decimal digits number)
-     * 
+     *
      * @param mixed $value            
      * @param bool $decimal            
      * @return bool
@@ -180,22 +175,22 @@ class Validation
 
     /**
      * If variable is integer (optional range check)
-     * 
+     *
      * @param mixed $value            
      * @param int $min            
      * @param int $max            
      * @return bool
      */
-    public static function isInt($value, int $min = null, int $max = null): bool
+    public static function isInt($value, $min = null, $max = null): bool
     {
         $options = array(
             'options' => array()
         );
-        if ($min !== null) {
-            $options['options']['min_range'] = $min;
+        if (! is_null($min)) {
+            $options['options']['min_range'] = intval($min);
         }
-        if ($max !== null) {
-            $options['options']['max_range'] = $max;
+        if (! is_null($max)) {
+            $options['options']['max_range'] = intval($max);
         }
         if (empty($options['options'])) {
             return filter_var($value, FILTER_VALIDATE_INT) !== false;
@@ -206,7 +201,7 @@ class Validation
 
     /**
      * If variable is boolean
-     * 
+     *
      * @param mixed $value            
      * @return bool
      */

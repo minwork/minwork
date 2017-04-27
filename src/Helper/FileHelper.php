@@ -9,7 +9,7 @@ namespace Minwork\Helper;
 
 /**
  * Basic file management functions
- * 
+ *
  * @author Christopher Kalkhoff
  *        
  */
@@ -22,11 +22,12 @@ class FileHelper
      * Recursively create specified directory
      *
      * @param string $dir            
-     * @return boolean
+     * @return bool If directory was successfully created
      */
-    public static function createDirectory(string $dir)
+    public static function createDirectory(string $dir): bool
     {
         $dir = str_replace(DIRECTORY_SEPARATOR, self::DIR_SEPARATOR, Formatter::removeLeadingSlash($dir));
+        $result = true;
         if (! is_dir($dir)) {
             $path = explode(self::DIR_SEPARATOR, $dir);
             $tmpPath = "";
@@ -37,20 +38,20 @@ class FileHelper
                 
                 $tmpPath .= $subFolder . self::DIR_SEPARATOR;
                 if (! is_dir($tmpPath)) {
-                    mkdir($tmpPath);
+                    $result = $result && mkdir($tmpPath);
                 }
             }
         }
-        return true;
+        return $result;
     }
 
     /**
      * Recursively remove specified directory
      *
      * @param string $dir            
-     * @return boolean
+     * @return bool If directory was successfully removed
      */
-    public static function removeDirectory(string $dir)
+    public static function removeDirectory(string $dir): bool
     {
         if (! Formatter::endsWith($dir, DIRECTORY_SEPARATOR) && ! Formatter::endsWith($dir, self::DIR_SEPARATOR)) {
             $dir .= self::DIR_SEPARATOR;
@@ -60,6 +61,7 @@ class FileHelper
             return false;
         }
         
+        $result = true;
         if ($handle = opendir($dir)) {
             $dirsToVisit = array();
             while (false !== ($file = readdir($handle))) {
@@ -68,16 +70,16 @@ class FileHelper
                         $dirsToVisit[] = $dir . $file;
                     } else 
                         if (is_file($dir . $file)) {
-                            unlink($dir . $file);
+                            $result = $result && unlink($dir . $file);
                         }
                 }
             }
             closedir($handle);
             foreach ($dirsToVisit as $w) {
-                self::removeDirectory($w);
+                $result = $result && self::removeDirectory($w);
             }
         }
-        rmdir($dir);
-        return true;
+        $result = $result && rmdir($dir);
+        return $result;
     }
 }
