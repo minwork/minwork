@@ -9,16 +9,18 @@ namespace Minwork\Operation\Interfaces;
 
 /**
  * Interface for operations that can be reverted
- * @author Christopher Kalkhoff
  *
+ * @author Christopher Kalkhoff
+ *        
  */
 interface RevertableOperationInterface extends OperationInterface
 {
 
     /**
-     * Revert operation changes to object
-     * @param RevertableObjectOperationInterface $object
-     * @param array $arguments
+     * Revert operation changes to the object
+     *
+     * @param RevertableObjectOperationInterface $object            
+     * @param array $arguments            
      */
     public function revert(RevertableObjectOperationInterface $object, array $arguments);
 }

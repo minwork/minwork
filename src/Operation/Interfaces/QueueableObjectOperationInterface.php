@@ -17,7 +17,7 @@ interface QueueableObjectOperationInterface extends ObjectOperationInterface
 {
 
     /**
-     * Append operation to queue
+     * Append operation to the queue
      *
      * @param OperationInterface $operation            
      * @param array $arguments            

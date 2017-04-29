@@ -16,13 +16,14 @@ use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
 use Minwork\Operation\Interfaces\RevertableOperationInterface;
 
 /**
- * Abstract operation for CRUD
- * 
+ * Abstract operation for handling CRUD
+ *
  * @author Christopher Kalkhoff
  *        
  */
 abstract class AbstractOperation implements OperationInterface, EventDispatcherContainerInterface
 {
+    use Events;
 
     const BEFORE_EVENT_PREFIX = "before";
 
@@ -30,40 +31,43 @@ abstract class AbstractOperation implements OperationInterface, EventDispatcherC
 
     /**
      * Operation name
-     * 
+     *
      * @var string
      */
     protected $name;
 
     /**
      * If operation can be reverted
-     * 
+     *
      * @var bool
      */
     protected $canRevert;
 
     /**
      * If operation can be queued
-     * 
+     *
      * @var bool
      */
     protected $canQueue;
 
     /**
      * Stores operation result
-     * 
+     *
      * @var mixed $result
      */
     protected $result = null;
-    
-    use Events;
 
     /**
      * Operation constructor
-     * @param string $name Operation name
-     * @param bool $canQueue Decides if operation can be added to the queue. If not, it will be executed immidiately 
-     * @param bool $canRevert Decides if operation can be reverted. If so, it need to implement RevertableOperationInterface
-     * @param EventDispatcherInterface $eventDispatcher Event dispatcher for before and after execution events
+     *
+     * @param string $name
+     *            Operation name
+     * @param bool $canQueue
+     *            Decides if operation can be added to the queue. If not, it will be executed immidiately
+     * @param bool $canRevert
+     *            Decides if operation can be reverted. If so, it need to implement RevertableOperationInterface
+     * @param EventDispatcherInterface $eventDispatcher
+     *            Event dispatcher for before and after execution events
      * @see \Minwork\Operation\Interfaces\RevertableOperationInterface
      */
     public function __construct(string $name, bool $canQueue = true, bool $canRevert = false, EventDispatcherInterface $eventDispatcher = null)
@@ -75,28 +79,8 @@ abstract class AbstractOperation implements OperationInterface, EventDispatcherC
     }
 
     /**
-     * Get operation result
-     * 
-     * @return mixed
-     */
-    public function getResult()
-    {
-        return $this->result;
-    }
-
-    /**
-     * If operation finished and has result
-     * 
-     * @return bool
-     */
-    protected function hasResult(): bool
-    {
-        return ! is_null($this->result);
-    }
-
-    /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Operation\Interfaces\OperationInterface::getName()
      */
@@ -107,42 +91,7 @@ abstract class AbstractOperation implements OperationInterface, EventDispatcherC
 
     /**
      *
-     * {@inheritDoc}
-     *
-     * @see \Minwork\Operation\Interfaces\OperationInterface::setName()
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
-        return $this;
-    }
-
-    /**
-     *
-     * {@inheritDoc}
-     *
-     * @see \Minwork\Operation\Interfaces\OperationInterface::canRevert()
-     */
-    public function canRevert()
-    {
-        return $this->canRevert;
-    }
-
-    /**
-     *
-     * {@inheritDoc}
-     *
-     * @see \Minwork\Operation\Interfaces\OperationInterface::setCanRevert()
-     */
-    public function setCanRevert($bool)
-    {
-        $this->canRevert = (bool) $bool;
-        return $this;
-    }
-
-    /**
-     *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Operation\Interfaces\OperationInterface::canQueue()
      */
@@ -153,19 +102,71 @@ abstract class AbstractOperation implements OperationInterface, EventDispatcherC
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
-     * @see \Minwork\Operation\Interfaces\OperationInterface::setCanQueue()
+     * @see \Minwork\Operation\Interfaces\OperationInterface::canRevert()
      */
-    public function setCanQueue($bool)
+    public function canRevert(): bool
     {
-        $this->canQueue = (bool) $bool;
+        return $this->canRevert;
+    }
+
+    /**
+     * Get operation result
+     *
+     * @return mixed
+     */
+    public function getResult()
+    {
+        return $this->result;
+    }
+
+    /**
+     * If operation finished and has result
+     *
+     * @return bool
+     */
+    protected function hasResult(): bool
+    {
+        return ! is_null($this->result);
+    }
+
+    /**
+     * Set operation name
+     *
+     * @return self
+     */
+    protected function setName(string $name): self
+    {
+        $this->name = $name;
+        return $this;
+    }
+
+    /**
+     * Set if operation can be reverted
+     *
+     * @return self
+     */
+    protected function setCanRevert(bool $bool): self
+    {
+        $this->canRevert = (bool) $bool;
+        return $this;
+    }
+
+    /**
+     * Set if operation can be queued
+     *
+     * @return self
+     */
+    protected function setCanQueue(bool $bool): self
+    {
+        $this->canQueue = boolval($bool);
         return $this;
     }
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Operation\Interfaces\OperationInterface::execute()
      */
@@ -173,7 +174,6 @@ abstract class AbstractOperation implements OperationInterface, EventDispatcherC
     {
         $methodName = mb_strtolower($this->getName());
         $eventBefore = new OperationEvent(self::BEFORE_EVENT_PREFIX . ucfirst($methodName), $arguments);
-        
         
         $this->getEventDispatcher()->dispatch($eventBefore);
         if (! $this->hasResult() && $eventBefore->hasResult()) {
@@ -183,7 +183,6 @@ abstract class AbstractOperation implements OperationInterface, EventDispatcherC
         // Use eventBefore arguments cause they may changed in before method
         $arguments = $eventBefore->getArguments();
         if (! $this->hasResult() && method_exists($object, $methodName)) {
-            
             $this->result = call_user_func_array([
                 $object,
                 $methodName

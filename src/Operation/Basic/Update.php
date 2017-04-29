@@ -37,11 +37,15 @@ class Update extends AbstractOperation implements RevertableOperationInterface
     protected $previousData = null;
 
     /**
-     * Operation constructor
-     * @param string $name Operation name
-     * @param bool $canQueue Decides if operation can be added to the queue. If not, it will be executed immidiately 
-     * @param bool $canRevert Decides if operation can be reverted. If so, it need to implement RevertableOperationInterface
-     * @param EventDispatcherInterface $eventDispatcher Event dispatcher for before and after execution events
+     *
+     * @param string $name
+     *            Operation name
+     * @param bool $canQueue
+     *            Decides if operation can be added to the queue. If not, it will be executed immidiately
+     * @param bool $canRevert
+     *            Decides if operation can be reverted. If so, it need to implement RevertableOperationInterface
+     * @param EventDispatcherInterface $eventDispatcher
+     *            Event dispatcher for before and after execution events
      * @see \Minwork\Operation\Interfaces\RevertableOperationInterface
      */
     public function __construct(string $name = self::OPERATION_NAME, bool $canQueue = true, bool $canRevert = false, EventDispatcherInterface $eventDispatcher = null)
@@ -51,7 +55,7 @@ class Update extends AbstractOperation implements RevertableOperationInterface
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Operation\Interfaces\OperationInterface::execute()
      */
@@ -72,7 +76,7 @@ class Update extends AbstractOperation implements RevertableOperationInterface
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Operation\Interfaces\RevertableOperationInterface::revert()
      */

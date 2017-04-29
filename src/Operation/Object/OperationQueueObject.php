@@ -11,7 +11,7 @@ use Minwork\Operation\Interfaces\OperationInterface;
 
 /**
  * Helper for operations queue
- * 
+ *
  * @author Christopher Kalkhoff
  *        
  */
@@ -20,32 +20,37 @@ class OperationQueueObject
 
     /**
      * Operation object
-     * 
+     *
      * @var OperationInterface
      */
     protected $operation;
 
     /**
      * Operation arguments
-     * 
+     *
      * @var array
      */
     protected $arguments;
 
     /**
      * If operation was executed
-     * 
+     *
      * @var bool
      */
     protected $executed = false;
 
     /**
      * Operation result
-     * 
+     *
      * @var mixed
      */
     protected $result = null;
 
+    /**
+     *
+     * @param AbstractOperation $operation            
+     * @param array $arguments            
+     */
     public function __construct(AbstractOperation $operation, array $arguments)
     {
         $this->operation = $operation;
@@ -54,7 +59,7 @@ class OperationQueueObject
 
     /**
      * Get operation object
-     * 
+     *
      * @return \Minwork\Operation\Interfaces\OperationInterface
      */
     public function getOperation(): OperationInterface
@@ -64,6 +69,8 @@ class OperationQueueObject
 
     /**
      * Get operation arguments
+     *
+     * @return array
      */
     public function getArguments(): array
     {
@@ -72,7 +79,7 @@ class OperationQueueObject
 
     /**
      * Set operation result
-     * 
+     *
      * @param mixed $result            
      * @return self
      */
@@ -85,7 +92,7 @@ class OperationQueueObject
 
     /**
      * Get operation result
-     * 
+     *
      * @return mixed
      */
     public function getResult()
@@ -95,7 +102,7 @@ class OperationQueueObject
 
     /**
      * If operation is executed
-     * 
+     *
      * @param bool $reset
      *            If executed property should be set to false
      * @return bool

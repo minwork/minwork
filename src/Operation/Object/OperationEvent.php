@@ -20,32 +20,37 @@ class OperationEvent implements EventInterface
 
     /**
      * Operation name
-     * 
+     *
      * @var string
      */
     protected $name;
 
     /**
      * Operation arguments
-     * 
+     *
      * @var array
      */
     protected $arguments;
 
     /**
      * If event is active
-     * 
+     *
      * @var bool
      */
     protected $active;
 
     /**
      * Operation result
-     * 
+     *
      * @var mixed
      */
     protected $result = null;
 
+    /**
+     *
+     * @param string $name            
+     * @param array $arguments            
+     */
     public function __construct(string $name, array $arguments = [])
     {
         $this->name = $name;
@@ -65,12 +70,12 @@ class OperationEvent implements EventInterface
 
     /**
      * Set operation arguments
-     * 
+     *
      * @param array $arguments            
      * @param string $merge            
      * @return self
      */
-    public function setArguments(array $arguments, $merge = false): self
+    public function setArguments(array $arguments, bool $merge = false): self
     {
         $this->arguments = $merge ? array_merge($this->arguments, $arguments) : $arguments;
         return $this;

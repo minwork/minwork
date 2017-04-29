@@ -13,38 +13,38 @@ use Minwork\Operation\Interfaces\QueueableObjectOperationInterface;
 use Minwork\Operation\Interfaces\RevertableObjectOperationInterface;
 
 /**
- * Trait used for object utilizing operations
- * 
+ * Trait used for utilizing operations inside object
+ *
  * @author Christopher Kalkhoff
- *        
  */
 trait Operations
 {
 
     /**
      * History of all executed operations
-     * 
+     *
      * @var array
      */
     protected $operationHistory = [];
 
     /**
      * Operations queue
-     * 
+     *
      * @var array
      */
     protected $operationQueue = [];
 
     /**
      * Operations revert queue
-     * 
+     *
      * @var array
      */
     protected $revertOperationQueue = [];
 
     /**
-     * Execute given operation
-     * 
+     * Execute supplied operation
+     *
+     * @see \Minwork\Operation\Interfaces\ObjectOperationInterface::executeOperation()
      * @param OperationInterface $operation            
      * @param array $arguments            
      * @return mixed
@@ -57,7 +57,7 @@ trait Operations
     }
 
     /**
-     * Append operation to queue
+     * Add operation to the queue
      *
      * @param OperationInterface $operation            
      * @param array $arguments            
@@ -70,8 +70,8 @@ trait Operations
     }
 
     /**
-     * Prepend operation to revert queue
-     * 
+     * Prepend operation to the revert queue
+     *
      * @param OperationInterface $operation            
      * @param array $arguments            
      * @return RevertableObjectOperationInterface
@@ -87,7 +87,6 @@ trait Operations
      *
      * @param bool $clear
      *            If queue should be cleared afterwards
-     *            
      * @return array
      */
     public function executeQueue(bool $clear = false)
@@ -114,7 +113,6 @@ trait Operations
      *
      * @param bool $clear
      *            If queue should be cleared afterwards
-     *            
      * @return array
      */
     public function revertQueue(bool $clear = false)
@@ -135,4 +133,3 @@ trait Operations
         return $result;
     }
 }
-

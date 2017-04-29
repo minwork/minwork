@@ -9,16 +9,18 @@ namespace Minwork\Operation\Interfaces;
 
 /**
  * Interface for object that supports operations
+ * 
  * @author Christopher Kalkhoff
- *
+ *        
  */
 interface ObjectOperationInterface
 {
 
     /**
      * Execute given operation
-     * @param OperationInterface $operation
-     * @param array $arguments
+     * 
+     * @param OperationInterface $operation            
+     * @param array $arguments            
      */
     public function executeOperation(OperationInterface $operation, array $arguments);
 }

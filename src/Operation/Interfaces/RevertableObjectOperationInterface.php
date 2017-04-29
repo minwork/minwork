@@ -11,17 +11,20 @@ namespace Minwork\Operation\Interfaces;
  * Interface for object that supports revertable operations
  *
  * @author Christopher Kalkhoff
- *
+ *        
  */
-interface RevertableObjectOperationInterface extends QueueableObjectOperationInterface {
+interface RevertableObjectOperationInterface extends QueueableObjectOperationInterface
+{
+
     /**
      * Prepend operation to revert queue
      *
-     * @param OperationInterface $operation
-     * @param array $arguments
+     * @param OperationInterface $operation            
+     * @param array $arguments            
      * @return self
      */
     public function addToRevertQueue(OperationInterface $operation, array $arguments): self;
+
     /**
      * Execute revert operations queue
      *

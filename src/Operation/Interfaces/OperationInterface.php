@@ -9,44 +9,39 @@ namespace Minwork\Operation\Interfaces;
 
 /**
  * Interface for operation
- * @author Christopher Kalkhoff
  *
+ * @author Christopher Kalkhoff
+ *        
  */
-interface OperationInterface {
+interface OperationInterface
+{
+
     /**
      * Execute operation
-     * @param array $arguments
+     *
+     * @param array $arguments            
      * @return mixed
      */
     public function execute(ObjectOperationInterface $object, array $arguments);
+
     /**
      * Get operation name
+     *
      * @return string
      */
-    public function getName();
+    public function getName(): string;
+
     /**
      * If operation can be reverted
+     *
      * @return bool
      */
-    public function canRevert();
+    public function canRevert(): bool;
+
     /**
      * If operation can be queued
+     *
      * @return bool
      */
-    public function canQueue();
-    /**
-     * Set operation name
-     * @return self
-     */
-    public function setName($name);
-    /**
-     * Set if operation can be reverted
-     * @return self
-     */
-    public function setCanRevert($bool);
-    /**
-     * Set if operation can be queued
-     * @return self
-     */
-    public function setCanQueue($bool);
+    public function canQueue(): bool;
 }
