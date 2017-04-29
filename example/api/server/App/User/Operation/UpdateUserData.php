@@ -19,12 +19,9 @@ use Minwork\Operation\Object\OperationEvent;
  */
 class UpdateUserData extends Update
 {
-    // Used to connect opration methods to events
+    // Used to connect operation methods to events
     use Connector;
     
-    // Enables connection to beforeUpdate method
-    const EVENT_BEFORE = 'beforeUpdate';
-
     public function __construct()
     {
         parent::__construct();
