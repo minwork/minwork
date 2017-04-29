@@ -9,7 +9,7 @@ namespace Minwork\Storage\Interfaces;
 
 /**
  * Basic interface for storages
- * 
+ *
  * @author Christopher Kalkhoff
  *        
  */
@@ -18,14 +18,13 @@ interface StorageInterface
 
     /**
      * Get value of stored object
-     * 
-     * @param mixed $key
-     *            If null this should return all storage elements unless $key is set to default value inside a method
+     *
+     * @param mixed $key            
      */
     public function get($key);
 
     /**
-     * Set value of selected element in storage
+     * Set value of an element selected by $key
      *
      * @param mixed $key            
      * @param mixed $value            
@@ -34,8 +33,8 @@ interface StorageInterface
     public function set($key, $value): self;
 
     /**
-     * Check if value exists for given key
-     * 
+     * Check if value exists for supplied $key
+     *
      * @param mixed $key            
      * @return bool
      */
@@ -43,18 +42,16 @@ interface StorageInterface
 
     /**
      * Remove from storage
-     * 
-     * @param mixed $key
-     *            If null every storage element should be removed
+     *
+     * @param mixed $key            
      * @return self
      */
     public function unset($key): self;
 
     /**
-     * Count matching elements in storage
-     * 
-     * @param mixed $key
-     *            If null this should return count of all storage elements
+     * Count elements matching $key
+     *
+     * @param mixed $key            
      * @return int
      */
     public function count($key): int;

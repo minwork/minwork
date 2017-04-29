@@ -11,7 +11,7 @@ use Minwork\Storage\Interfaces\StorageInterface;
 
 /**
  * Basic getter and setter for storage inside object
- * 
+ *
  * @author Christopher Kalkhoff
  *        
  */
@@ -19,14 +19,14 @@ trait Storage {
 
     /**
      * Storage object
-     * 
+     *
      * @var StorageInterface
      */
     protected $storage;
 
     /**
      * Get storage object
-     * 
+     *
      * @return StorageInterface
      */
     public function getStorage(): StorageInterface
@@ -36,7 +36,7 @@ trait Storage {
 
     /**
      * Set storage object
-     * 
+     *
      * @param StorageInterface $storage            
      * @return self
      */

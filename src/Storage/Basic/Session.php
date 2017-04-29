@@ -19,7 +19,8 @@ class Session extends AbstractArrayStorage
 {
 
     /**
-     * Initialize session as array storage
+     * If cannot access $_SESSION array manually initialize it
+     * @throws \Exception
      */
     public function __construct()
     {

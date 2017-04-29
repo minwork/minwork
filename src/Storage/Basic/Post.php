@@ -17,7 +17,9 @@ use Minwork\Storage\Object\AbstractArrayStorage;
  */
 class Post extends AbstractArrayStorage
 {
-    public function __construct() {
+
+    public function __construct()
+    {
         parent::__construct($_POST);
     }
 }

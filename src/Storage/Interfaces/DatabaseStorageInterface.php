@@ -25,14 +25,14 @@ interface DatabaseStorageInterface extends StorageInterface
     public function getDatabase(): DatabaseInterface;
 
     /**
-     * Get id field name or array of names
+     * Get primary key field name or array of names
      *
      * @return string|array
      */
     public function getPkField();
 
     /**
-     * Get array of field names (excluding id)
+     * Get array of field names (excluding primary keys)
      *
      * @return array
      */

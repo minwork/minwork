@@ -6,7 +6,7 @@ use Minwork\Helper\ArrayHelper;
 
 /**
  * Abstract implementation of array storage
- * 
+ *
  * @author Christopher Kalkhoff
  *        
  */
@@ -15,11 +15,16 @@ class AbstractArrayStorage implements StorageInterface
 
     /**
      * Array used as storage
-     * 
+     *
      * @var array
      */
     protected $array;
 
+    /**
+     *
+     * @param array $array
+     *            Pointer to the array which will be used as a storage
+     */
     public function __construct(array &$array)
     {
         $this->array = &$array;
@@ -27,7 +32,7 @@ class AbstractArrayStorage implements StorageInterface
 
     /**
      * Encode value before write
-     * 
+     *
      * @param mixed $value            
      */
     protected function encode($value)
@@ -37,58 +42,57 @@ class AbstractArrayStorage implements StorageInterface
 
     /**
      * Decode value after read
-     * 
+     *
      * @param mixed $value            
      */
     protected function decode($value)
     {
         if (is_string($value)) {
             $decoded = @unserialize($value);
-            if ($decoded === false) {
-                return $value;
+            if ($decoded !== false) {
+                return $decoded;
             }
-            return $decoded;
         }
         return $value;
     }
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Storage\Interfaces\StorageInterface::get($key)
      */
     public function get($key)
     {
-        return $this->decode(ArrayHelper::handleElementByKeys($this->array, ArrayHelper::forceArray($key)));
+        return $this->decode(ArrayHelper::handleElementByKeys($this->array, ArrayHelper::getKeysArray($key)));
     }
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Storage\Interfaces\StorageInterface::set($key, $value)
      */
     public function set($key, $value): StorageInterface
     {
-        ArrayHelper::handleElementByKeys($this->array, ArrayHelper::forceArray($key), $this->encode($value));
+        ArrayHelper::handleElementByKeys($this->array, ArrayHelper::getKeysArray($key), $this->encode($value));
         return $this;
     }
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Storage\Interfaces\StorageInterface::isset($key)
      */
     public function isset($key): bool
     {
-        return ! is_null(ArrayHelper::handleElementByKeys($this->array, ArrayHelper::forceArray($key)));
+        return ! is_null(ArrayHelper::handleElementByKeys($this->array, ArrayHelper::getKeysArray($key)));
     }
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Storage\Interfaces\StorageInterface::unset($key)
      */
@@ -125,6 +129,10 @@ class AbstractArrayStorage implements StorageInterface
      */
     public function count($key): int
     {
-        return $this->isset($key) ? 1 : 0;
+        if ($this->isset($key)) {
+            $var = $this->get($key);
+            return is_array($var) || (is_object($var) && $var instanceof \Countable) ? count($var) : 1;
+        }
+        return 0;
     }
 }
