@@ -7,8 +7,10 @@
  */
 namespace Minwork\Http\Interfaces;
 
+use Minwork\Error\Interfaces\ErrorsStorageInterface;
+
 /**
- * Interface for request object
+ * Interface for HTTP request object
  *
  * @author Christopher Kalkhoff
  *        
@@ -17,9 +19,11 @@ interface RequestInterface
 {
 
     /**
-     * Execute request to given url and return Response object
+     * Execute request to set url and return response object
      *
-     * @param mixed $config            
+     * @see \Minwork\Http\Interfaces\RequestInterface::setUrl()
+     * @param mixed $config
+     *            Any config neccessary for performing request
      * @return ResponseInterface
      */
     public function execute($config = null): ResponseInterface;
@@ -34,14 +38,14 @@ interface RequestInterface
     /**
      * Set requested url
      *
-     * @see UrlInterface
-     * @param string|object $url
+     * @see \Minwork\Http\Interfaces\UrlInterface
+     * @param string|UrlInterface $url
      *            Either string with proper url or object implementing UrlInterface
      */
     public function setUrl($url): self;
 
     /**
-     * Set request method
+     * Set request http method
      *
      * @param string $method            
      * @return self
@@ -75,12 +79,12 @@ interface RequestInterface
     /**
      * Get request errors
      *
-     * @return mixed
+     * @return ErrorsStorageInterface
      */
-    public function getErrors();
+    public function getErrors(): ErrorsStorageInterface;
 
     /**
-     * Get current url
+     * Get request url address
      *
      * @return string
      */

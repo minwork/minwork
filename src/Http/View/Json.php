@@ -28,11 +28,12 @@ class Json implements ViewInterface
 
     /**
      * Create JSON view
-     * @param array $data
+     *
+     * @param array $data            
      */
-    public function __construct($data = [])
+    public function __construct(array $data = [])
     {
-        $this->data = $data;
+        $this->setData($data);
     }
 
     /**
@@ -69,24 +70,14 @@ class Json implements ViewInterface
     }
 
     /**
-     * Set JSON array
+     * Set array that will be encoded using json_encode
      *
      * @param array $data            
+     * @param bool $merge            
      */
-    public function setData(array $data): self
+    public function setData(array $data, bool $merge = true): self
     {
-        $this->data = $data;
-        return $this;
-    }
-
-    /**
-     * Merge current JSON array with specified data
-     *
-     * @param array $data            
-     */
-    public function appendData(array $data): self
-    {
-        $this->data = array_merge($this->data, $data);
+        $this->data = $merge ? array_merge($this->data, $data) : $data;
         return $this;
     }
 }

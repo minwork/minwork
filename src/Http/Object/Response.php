@@ -11,54 +11,66 @@ use Minwork\Http\Utility\HttpCode;
 use Minwork\Http\Interfaces\ResponseInterface;
 use Minwork\Basic\Interfaces\ViewInterface;
 
+/**
+ * Basic implementation of ResponseInterface
+ *
+ * @author Christopher Kalkhoff
+ *        
+ */
 class Response implements ResponseInterface
 {
 
     /**
      * If response is empty
-     * 
-     * @var boolean
+     *
+     * @var bool
      */
     protected $empty = true;
 
     /**
      * Object with response content
-     * 
-     * @var ResponseObjectInterface
+     *
+     * @var ViewInterface
      */
     protected $object;
 
     /**
-     * Response string representation of content
-     * 
+     * String representation of response content
+     *
      * @var string
      */
     protected $content;
 
     /**
      * Http code
-     * 
+     *
      * @var int
      */
     protected $httpCode;
 
     /**
      * List of headers
-     * 
+     *
      * @var array
      */
     protected $headers = [];
 
-    public function __construct($content = '', $contentType = self::CONTENT_TYPE_TEXT, $httpCode = HttpCode::OK)
+    /**
+     *
+     * @param mixed $content            
+     * @param string $contentType            
+     * @param int $httpCode            
+     */
+    public function __construct($content = '', string $contentType = self::CONTENT_TYPE_TEXT, int $httpCode = HttpCode::OK)
     {
-        $this->setContent((string) $content);
-        $this->setContentType($contentType);
-        $this->setHttpCode($httpCode);
+        $this->setContent($content)
+            ->setContentType($contentType)
+            ->setHttpCode($httpCode);
     }
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Http\Interfaces\ResponseInterface::isEmpty()
      */
@@ -69,30 +81,31 @@ class Response implements ResponseInterface
 
     /**
      * Set object with content for response
-     * 
+     *
      * @param ViewInterface $obj            
      * @return self
      */
     public function setObject(ViewInterface $obj): self
     {
         $this->object = $obj;
-        $this->setContent($obj->getContent());
-        $this->setContentType($obj->getContentType());
+        $this->setContent($obj->getContent())
+            ->setContentType($obj->getContentType());
         return $this;
     }
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Http\Interfaces\ResponseInterface::setContentType($type)
      */
     public function setContentType(string $type): ResponseInterface
     {
         $contentType = "Content-Type: {$type}";
-        $matches = array_filter($this->headers, function($element) {
+        $matches = array_filter($this->headers, function ($element) {
             return strpos($element, "Content-Type") !== false;
         });
+        // Replace existing content type header with new one
         foreach (array_keys($matches) as $key) {
             unset($this->headers[$key]);
         }
@@ -102,13 +115,13 @@ class Response implements ResponseInterface
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Http\Interfaces\ResponseInterface::setHeader($header, $append)
      */
-    public function setHeader($header, bool $append = true): ResponseInterface
+    public function setHeader($header, bool $merge = true): ResponseInterface
     {
-        if ($append) {
+        if ($merge) {
             if (is_string($header)) {
                 $this->headers[] = $header;
             } elseif (is_array($header)) {
@@ -129,20 +142,20 @@ class Response implements ResponseInterface
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Http\Interfaces\ResponseInterface::setContent($content)
      */
     public function setContent($content): ResponseInterface
     {
         $this->empty = empty($content);
-        $this->content = $content;
+        $this->content = strval($content);
         return $this;
     }
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Http\Interfaces\ResponseInterface::getContent()
      */
@@ -153,7 +166,7 @@ class Response implements ResponseInterface
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Http\Interfaces\ResponseInterface::setHttpCode($code)
      */
@@ -165,7 +178,7 @@ class Response implements ResponseInterface
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Http\Interfaces\ResponseInterface::getHttpCode()
      */
@@ -176,7 +189,7 @@ class Response implements ResponseInterface
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Http\Interfaces\ResponseInterface::getHeaders()
      */

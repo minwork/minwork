@@ -12,20 +12,33 @@ use Minwork\Http\Utility\Server;
 
 /**
  * Stores environmental variables
- * 
+ *
  * @author Christopher Kalkhoff
  *        
  */
 class Environment implements EnvironmentInterface
 {
+
+    /**
+     * Application domain (like https://mydomain.com or http://subdomain.otherdomain.com:3000/test)
+     *
+     * @var string
+     */
     protected $domain;
+
+    /**
+     * Environment type (development, production, local)
+     *
+     * @var string
+     */
     protected $type;
-    public function __construct(string $domain = null, string $type = EnvironmentInterface::TYPE_DEVELOPMENT)
+
+    public function __construct(string $domain = '', string $type = EnvironmentInterface::TYPE_DEVELOPMENT)
     {
-        $this->domain = $domain ?? Server::getDomain();
+        $this->domain = empty($domain) ? Server::getDomain() : $domain;
         $this->type = $type;
     }
-    
+
     /**
      *
      * {@inheritdoc}

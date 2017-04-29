@@ -18,7 +18,7 @@ use Minwork\Http\Utility\Url;
 use Minwork\Basic\Traits\Debugger;
 
 /**
- * Basic request object handling GET and POST data, used in controllers
+ * Basic implementation of RequestInterface
  *
  * @author Krzysztof Kalkhoff
  *        
@@ -28,21 +28,21 @@ class Request implements RequestInterface
     use Errors, Debugger;
 
     /**
-     * Request method by default POST
+     * Request method - default POST
      *
      * @var string
      */
     protected $method;
 
     /**
-     * Query of the request (by default GET)
+     * Query of the request - default $_GET array
      *
      * @var array
      */
     protected $query;
 
     /**
-     * Request data (by default POST)
+     * Request data - default $_POST array
      *
      * @var mixed
      */
@@ -56,16 +56,9 @@ class Request implements RequestInterface
     protected $headers;
 
     /**
-     * If request is valid
+     * Requested URL - default current page address
      *
-     * @var bool
-     */
-    protected $valid = null;
-
-    /**
-     * Requesting Url (by default current page address)
-     *
-     * @var string
+     * @var string|null
      */
     protected $url = null;
 
@@ -145,7 +138,7 @@ class Request implements RequestInterface
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Http\Interfaces\RequestInterface::setUrl($url)
      */
@@ -161,7 +154,7 @@ class Request implements RequestInterface
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Http\Interfaces\RequestInterface::execute($config)
      */
@@ -176,18 +169,18 @@ class Request implements RequestInterface
 
     /**
      *
-     * {@inheritDoc}
+     * {@inheritdoc}
      *
      * @see \Minwork\Http\Interfaces\RequestInterface::getUrl()
      */
     public function getUrl(): string
     {
-        if (empty($this->url)) {
-            $url = new Url(getAbsolutePageUrl());
+        if (is_null($this->url)) {
+            $url = new Url(Server::getAbsoluteUrl());
             if (! empty($this->query)) {
                 $url->appendQuery($this->query);
             }
-            return $url->buildUrl();
+            return $url->getUrl();
         }
         return $this->url;
     }
@@ -239,11 +232,14 @@ class Request implements RequestInterface
         $this->headers = $headers;
         return $this;
     }
-    
+
     /**
-     * Append header to request headers list
-     * @param string $name Header name
-     * @param string $value Header string value
+     * Append header (or replace if header with supplied name already exist) to request headers list
+     * 
+     * @param string $name
+     *            Header name
+     * @param string $value
+     *            Header string value
      */
     public function appendHeader(string $name, string $value): self
     {

@@ -9,7 +9,6 @@ namespace Minwork\Http\Object;
 
 use Minwork\Helper\Formatter;
 use Minwork\Http\Interfaces\RouterInterface;
-use Minwork\Helper\ArrayHelper;
 use Minwork\Basic\Interfaces\ControllerInterface;
 use Minwork\Http\Utility\LangCode;
 use Minwork\Basic\Traits\Debugger;
@@ -81,7 +80,7 @@ class Router implements RouterInterface
     protected $methodArguments;
 
     /**
-     * Page number (by default should be 1)
+     * Page number (by default 1)
      *
      * @var int
      */
@@ -94,9 +93,14 @@ class Router implements RouterInterface
      */
     protected $routing;
 
-    public function __construct($routing)
+    /**
+     *
+     * @see \Minwork\Http\Object\Router::setRouting()
+     * @param array $routing            
+     */
+    public function __construct(array $routing)
     {
-        $this->reset()->setRouting(ArrayHelper::forceArray($routing));
+        $this->reset()->setRouting($routing);
     }
 
     /**
@@ -135,6 +139,8 @@ class Router implements RouterInterface
                     $this->debug("Routing array should contain default controller route at '" . self::DEFAULT_CONTROLLER_ROUTE_NAME . "' key");
                 }
                 $this->routing = array_merge($this->routing, $curRouting);
+            } else {
+                $this->debug("Routing entry at {$key} in file {$route} is not array - skipping this file");
             }
         }
         return $this;

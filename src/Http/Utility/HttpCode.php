@@ -182,14 +182,25 @@ class HttpCode
         505 => 'HTTP Version Not Supported'
     );
 
-    public static function getReadable($code)
+    /**
+     * Get string representation of supplied http code
+     *
+     * @param int $code            
+     * @return string
+     */
+    public static function getReadable(int $code): string
     {
         return self::$readable[$code];
     }
 
-    public static function isError($code)
+    /**
+     * If supplied code indicates error
+     *
+     * @param int $code            
+     * @return bool
+     */
+    public static function isError(int $code): bool
     {
         return is_numeric($code) && $code >= self::BAD_REQUEST;
     }
 }
-?>

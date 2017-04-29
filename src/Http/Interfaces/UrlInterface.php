@@ -9,7 +9,7 @@ namespace Minwork\Http\Interfaces;
 
 /**
  * Interface for url object
- * 
+ *
  * @author Christopher Kalkhoff
  *        
  */
@@ -17,24 +17,31 @@ interface UrlInterface
 {
 
     /**
+     * Get url string representation (usually same as getUrl)
+     *
+     * @return string
+     */
+    public function __toString(): string;
+
+    /**
      * Get url string representation
-     * 
+     *
      * @return string
      */
     public function getUrl(): string;
 
     /**
      * Get url param
-     * 
-     * @param string $param            
+     *
+     * @param string $name            
      * @return string
      */
-    public function getParam(string $param): string;
+    public function getParam(string $name): string;
 
     /**
      * Append query param(s)
-     * 
-     * @param mixed $query            
+     *
+     * @param string|array $query            
      * @return self
      */
     public function appendQuery($query): self;

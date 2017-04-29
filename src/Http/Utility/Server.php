@@ -8,8 +8,8 @@
 namespace Minwork\Http\Utility;
 
 /**
- * Helper for informations stored in $_SERVER array<br>
- * Returns default value if specified key is not present in $_SERVER
+ * Helper class for obtaining informations stored in $_SERVER array<br>
+ * Returns default value if specified option is not present in $_SERVER array
  *
  * @author Christopher Kalkhoff
  *        
@@ -33,7 +33,7 @@ class Server
 
     /**
      * If script was queried through the HTTPS protocol
-     * 
+     *
      * @return string
      */
     public static function getHttps(): string
@@ -43,7 +43,7 @@ class Server
 
     /**
      * Get server name
-     * 
+     *
      * @return string
      */
     public static function getServerName(): string
@@ -53,7 +53,7 @@ class Server
 
     /**
      * Get server port
-     * 
+     *
      * @return string
      */
     public static function getPort(): string
@@ -63,7 +63,7 @@ class Server
 
     /**
      * Get server protocol
-     * 
+     *
      * @return string
      */
     public static function getProtocol(): string
@@ -72,7 +72,7 @@ class Server
     }
 
     /**
-     * Get relative URL of page
+     * Get relative URL (without domain) of current page (like 'test/test')
      *
      * @return string
      */
@@ -87,7 +87,7 @@ class Server
     }
 
     /**
-     * Get request method
+     * Get request http method
      *
      * @return string
      */
@@ -111,14 +111,14 @@ class Server
      *
      * @return string
      */
-    public static function getRelativeURL(): string
+    public static function getRelativeUrl(): string
     {
         return array_key_exists('REQUEST_URI', $_SERVER) ? $_SERVER['REQUEST_URI'] : '/';
         ;
     }
 
     /**
-     * Get currently used protocol
+     * Get currently used protocol name (like http or https)
      *
      * @return string
      */
@@ -141,7 +141,8 @@ class Server
     }
 
     /**
-     * Get absolute URL of current page
+     * Get current page domain
+     * <pre>protocol://server_name[:port]</pre>
      *
      * @return string
      */
@@ -158,23 +159,24 @@ class Server
     }
 
     /**
-     * Request absolute URL
+     * Get absolute URL of current page
+     * <pre>protocol::/server_name[:port]/[relative_url]</pre>
      *
      * @return string
      */
-    public static function getAbsoluteURL(): string
+    public static function getAbsoluteUrl(): string
     {
-        return self::getDomain() . self::getRelativeURL();
+        return self::getDomain() . self::getRelativeUrl();
     }
 
     /**
-     * Get aproximated request process time
+     * Get aproximated request process time or 0 if cannot get it from $_SERVER array
      *
      * @return float
      */
     public static function getTimer(): float
     {
-        return microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
+        return array_key_exists('REQUEST_TIME_FLOAT', $_SERVER) ? microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'] : 0;
     }
 
     /**

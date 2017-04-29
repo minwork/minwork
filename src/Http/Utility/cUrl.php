@@ -21,7 +21,7 @@ use Minwork\Basic\Traits\Debugger;
 class cUrl
 {
     use Debugger;
-    
+
     const METHOD_GET = "GET";
 
     const METHOD_POST = "POST";
@@ -32,10 +32,49 @@ class cUrl
 
     const METHOD_DELETE = "DELETE";
 
-    protected $url, $fields, $curl, $cookies = [], $headers = [], $options = [];
+    /**
+     * Url object
+     * 
+     * @var UrlInterface
+     */
+    protected $url;
 
     /**
-     * Contructor
+     * Used as POST body fields or GET query
+     * 
+     * @var array
+     */
+    protected $fields;
+
+    /**
+     * cURL handle
+     * 
+     * @var resource
+     */
+    protected $curl;
+
+    /**
+     * cURL cookies set by CURLOPT_COOKIE option
+     * 
+     * @var array
+     */
+    protected $cookies = [];
+
+    /**
+     * cURL http headers set by CURLOPT_HTTPHEADER option
+     * 
+     * @var array
+     */
+    protected $headers = [];
+
+    /**
+     * cURL options list used for curl_setopt
+     * 
+     * @var array
+     */
+    protected $options = [];
+
+    /**
      *
      * @param UrlInterface $url            
      * @param array $fields            
@@ -45,12 +84,11 @@ class cUrl
         if (! extension_loaded("curl")) {
             throw new \Exception("You must enable cURL library first");
         }
-        $this->setUrl($url);
-        $this->setFields($fields);
+        $this->setUrl($url)->setFields($fields);
     }
 
     /**
-     * Set curl fields
+     * Set cURL fields used as POST body fields or GET query
      *
      * @param array $fields            
      * @return self
@@ -74,7 +112,7 @@ class cUrl
     }
 
     /**
-     * Set curl opt
+     * Set curl option used for curl_setopt
      *
      * @param string $option            
      * @param mixed $value            
@@ -128,7 +166,7 @@ class cUrl
     }
 
     /**
-     * Handle curl response and parse it to ResponseInterface object
+     * Handle curl response and parse it to Response object
      *
      * @param string $response            
      * @return ResponseInterface
@@ -166,7 +204,7 @@ class cUrl
     }
 
     /**
-     * Prepare get method options
+     * Prepare GET method options
      *
      * @return self
      */
@@ -184,7 +222,7 @@ class cUrl
     }
 
     /**
-     * Prepare post method options
+     * Prepare POST method options
      *
      * @return self
      */
@@ -198,7 +236,7 @@ class cUrl
     }
 
     /**
-     * Prepare put method options
+     * Prepare PUT method options
      *
      * @return self
      */
@@ -211,7 +249,7 @@ class cUrl
     }
 
     /**
-     * Prepare patch method options
+     * Prepare PATCH method options
      *
      * @return self
      */
@@ -226,7 +264,7 @@ class cUrl
     }
 
     /**
-     * Prepare delete method options
+     * Prepare DELETE method options
      *
      * @return self
      */
@@ -279,7 +317,7 @@ class cUrl
     }
 
     /**
-     * Set curl user agent opt
+     * Set curl user agent option
      *
      * @param string $agent            
      * @return self
@@ -291,7 +329,7 @@ class cUrl
     }
 
     /**
-     * Set curl referrer opt
+     * Set curl referrer option
      *
      * @param string $referrer            
      * @return self
@@ -303,7 +341,7 @@ class cUrl
     }
 
     /**
-     * Set curl cookie opt
+     * Set curl cookie option
      *
      * @param string $key            
      * @param mixed $value            

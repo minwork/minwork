@@ -9,7 +9,7 @@ namespace Minwork\Http\Utility;
 
 /**
  * Language codes container
- * 
+ *
  * @author Christopher Kalkhoff
  *        
  */

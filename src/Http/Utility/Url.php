@@ -19,7 +19,7 @@ use Minwork\Basic\Traits\Debugger;
 class Url implements UrlInterface
 {
     use Debugger;
-    
+
     const PARAM_SCHEME = "scheme";
 
     const PARAM_HOST = "host";
@@ -48,7 +48,7 @@ class Url implements UrlInterface
      *
      * @var array
      */
-    protected $url;
+    protected $params;
 
     /**
      * Url query
@@ -57,22 +57,28 @@ class Url implements UrlInterface
      */
     protected $query;
 
+    /**
+     *
+     * @param string $url            
+     */
     public function __construct(string $url)
     {
         $this->rawUrl = $url;
-        $this->url = $this->parseUrl($url);
+        $this->params = $this->parseUrl($url);
     }
 
     /**
-     * Get url param 
-     * @param string $name Param name as specified in constants
+     * Get url param
+     *
+     * @param string $name
+     *            Param name as specified in constants
      * @return string
      */
     protected function getUrlParam(string $name): string
     {
-        return array_key_exists($name, $this->url) ? $this->url[$name] : '';
+        return array_key_exists($name, $this->params) ? $this->params[$name] : '';
     }
-    
+
     /**
      * Parse url string into array of params
      *
@@ -146,21 +152,22 @@ class Url implements UrlInterface
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Http\Interfaces\UrlInterface::getParam($param)
+     * @see \Minwork\Http\Interfaces\UrlInterface::getParam()
      */
-    public function getParam(string $param): string
+    public function getParam(string $name): string
     {
-        if (array_key_exists($param, $this->url)) {
-            return $this->url[$param];
+        if (array_key_exists($name, $this->params)) {
+            return $this->params[$name];
         }
-        $this->debug("Param {$param} doesn't exists");
+        $this->debug("Param {$name} doesn't exists");
         return '';
     }
 
     /**
-     * Get current url as string
-     * 
-     * @return string
+     *
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Http\Interfaces\UrlInterface::__toString()
      */
     public function __toString(): string
     {
