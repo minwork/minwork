@@ -139,7 +139,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
             if (! $column instanceof ColumnInterface) {
                 throw new \InvalidArgumentException('Columns array element must implement ColumnInterface');
             }
-            $this->columns[strval($column)] = $column;
+            $this->columns[$column->getName(false)] = $column;
         }
         return $this;
     }
@@ -228,14 +228,14 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         foreach ($curColumns as $name => $column) {
             if (array_key_exists($name, $dbColumns)) {
                 if ($dbColumns[$name] != $column) {
-                    $modify[strval($column)] = $this->getColumnDefinition($column);
+                    $modify[$column->getName(false)] = $this->getColumnDefinition($column);
                 }
             } else {
-                $add[strval($column)] = $this->getColumnDefinition($column);
+                $add[$column->getName(false)] = $this->getColumnDefinition($column);
             }
             
             if ($column->isPrimaryKey()) {
-                $pk[strval($column)] = $column;
+                $pk[$column->getName(false)] = $column;
             }
         }
         $remove = array_diff_key($dbColumns, $curColumns);
@@ -280,9 +280,9 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         $query = [];
         $pk = [];
         foreach ($this->getColumns() as $column) {
-            $query[strval($column)] = $this->getColumnDefinition($column);
+            $query[$column->getName(false)] = $this->getColumnDefinition($column);
             if ($column->isPrimaryKey()) {
-                $pk[strval($column)] = $column;
+                $pk[$column->getName(false)] = $column;
             }
         }
         if (empty($pk)) {

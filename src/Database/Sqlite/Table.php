@@ -88,9 +88,9 @@ class Table extends AbstractTable
         $pk = [];
         $columns = $this->getColumns();
         foreach ($columns as $column) {
-            $query[strval($column)] = $this->getColumnDefinition($column);
+            $query[$column->getName(false)] = $this->getColumnDefinition($column);
             if ($column->isPrimaryKey()) {
-                $pk[strval($column)] = $column;
+                $pk[$column->getName(false)] = $column;
             }
         }
         if (empty($pk)) {
