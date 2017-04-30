@@ -8,10 +8,7 @@
 namespace Minwork\Validation\Object;
 
 use Minwork\Validation\Interfaces\ValidatorInterface;
-use Minwork\Error\Traits\Errors;
-use Minwork\Validation\Interfaces\RuleInterface;
-use Minwork\Validation\Interfaces\FieldInterface;
-use function foo\func;
+use Minwork\Validation\Traits\Validator;
 
 /**
  * Basic implementation of validator interface
@@ -21,76 +18,42 @@ use function foo\func;
  */
 class Validator implements ValidatorInterface
 {
-    
-    use Errors;
+    use Validator;
 
     /**
-     * If validation was successful
+     * Validation config which is a list of objects implementing ValidatorInterface
      *
-     * @var bool
-     */
-    protected $valid = false;
-
-    /**
-     * Handle to validated object
-     * 
-     * @var mixed
-     */
-    protected $object;
-
-    /**
-     * Validation config
-     *
-     * @var array
+     * @var ValidatorInterface[]
      */
     protected $config;
 
     /**
-     * Set validator config as array of rules or array of arrays of rules
+     * Initialize validator with array of objects implementing ValidatorInterface
      *
-     * @param array $config
-     *            Array of [{field} => {RuleObject}, ...] or [{field} => [{RuleObject}, ...], ...]
+     * @param ValidatorInterface[] $config            
+     * @throws \InvalidArgumentException
      */
     public function __construct(array $config = [])
     {
-        $this->config = $config;
+        $this->setConfig($config);
     }
 
     /**
+     * Set validator config which is list of ValidatorInterface objects
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Validation\Interfaces\ValidatorInterface::setObject()
+     * @param ValidatorInterface[] $config            
+     * @throws \InvalidArgumentException
+     * @return self
      */
-    public function setObject($object): ValidatorInterface
+    public function setConfig(array $config): self
     {
-        $this->object = $object;
-        return $this;
-    }
-
-    /**
-     *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Validation\Interfaces\ValidatorInterface::getObject()
-     */
-    public function getObject()
-    {
-        if (empty($this->object)) {
-            throw new \Exception('No object is set');
+        foreach ($config as $validator) {
+            if (! is_object($validator) || ! $validator instanceof ValidatorInterface) {
+                throw new \InvalidArgumentException('Config elements must be objects implementing ValidatorInterface');
+            }
         }
-        return $this->object;
-    }
-
-    /**
-     *
-     * {@inheritdoc}
-     *
-     * @see \Framework\Validation\Interfaces\ValidatorInterface::isValid()
-     */
-    public function isValid(): bool
-    {
-        return $this->valid;
+        $this->config = $config;
+        return $this;
     }
 
     /**
@@ -105,45 +68,17 @@ class Validator implements ValidatorInterface
         
         if (empty($data)) {
             $this->addError('No data provided');
-        } elseif (is_array($data)) {
+        } else {
             foreach ($this->config as $validator) {
-                if (! is_object($validator)) {
-                    throw new \InvalidArgumentException('Config elements must be objects');
+                if ($this->hasContext()) {
+                    $validator->setContext($this->getContext());
                 }
                 
-                if ($validator instanceof RuleInterface) {
-                    /* @var $validator RuleInterface */
-                    if (! $validator->setObject($this->getObject())->check($data)) {
-                        $this->addError($validator->getError());
-                        if ($validator->getImportance() == RuleInterface::IMPORTANCE_CRITICAL) {
-                            break;
-                        }
-                    }
-                } elseif ($validator instanceof FieldInterface) {
-                    /* @var $object FieldInterface */
-                    $name = $validator->getName();
-                    
-                    // If field is mandatory check if it exists in data
-                    if (! array_key_exists($name, $data) && $validator->isMandatory()) {
-                        $this->addError($name, $validator->getError());
+                if (! $validator->validate($data)->isValid()) {
+                    $this->getErrors()->merge($validator->getErrors());
+                    if (method_exists($validator, 'hasCriticalError') && $validator->hasCriticalError()) {
                         break;
                     }
-                    
-                    // Check rules only if field is present in data array
-                    if (array_key_exists($name, $data)) {
-                        $rules = $validator->getRules();
-                        foreach ($rules as $r) {
-                            /* @var $r RuleInterface */
-                            if (! $r->setObject($this->getObject())->check($data[$name])) {
-                                $this->addError($name, $r->getError());
-                                if ($r->getImportance() == RuleInterface::IMPORTANCE_CRITICAL) {
-                                    break (2);
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    throw new \InvalidArgumentException("Config must contain objects implementing FieldInterface or RuleInterface");
                 }
             }
         }

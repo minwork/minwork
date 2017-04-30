@@ -7,16 +7,24 @@
  */
 namespace Minwork\Validation\Utility;
 
-use Minwork\Validation\Interfaces\RuleInterface;
+use Minwork\Validation\Interfaces\ValidatorInterface;
+use Minwork\Validation\Traits\Validator;
+use Minwork\Helper\Formatter;
 
 /**
- * Basic implementation of validation rule interface for validator
+ * Rule validator - defined by callback to validation function
  *
  * @author Christopher Kalkhoff
  *        
  */
-class Rule implements RuleInterface
+class Rule implements ValidatorInterface
 {
+    use Validator;
+    
+    // Validation will break immidietely after this rule conditions are not met
+    const IMPORTANCE_CRITICAL = 'IMPORTANCE_CRITICAL';
+    // Validation will continue after this rule conditions are not met
+    const IMPORTANCE_NORMAL = 'IMPORTANCE_NORMAL';
 
     /**
      * Function for checking data
@@ -33,6 +41,13 @@ class Rule implements RuleInterface
     protected $arguments;
 
     /**
+     * Error to add when rule validation fails
+     *
+     * @var string
+     */
+    protected $error;
+
+    /**
      * Expected function result
      *
      * @var bool
@@ -40,26 +55,13 @@ class Rule implements RuleInterface
     protected $expect;
 
     /**
-     * String repesentation of error
-     *
-     * @var string
-     */
-    protected $error;
-
-    /**
      * Imporance of a rule which determines validator behaviour during rule check
+     * If rule importance is critical in case of error during check validator should immediately finish validation returning false<br>
+     * For normal importance all rules should be checked before returing final result of validation
      *
-     * @see RuleInterface::getImportance()
      * @var string
      */
     protected $importance;
-
-    /**
-     * Validated object
-     *
-     * @var mixed
-     */
-    protected $object;
 
     /**
      * Set rule config
@@ -67,16 +69,17 @@ class Rule implements RuleInterface
      * @param string|callable $callback
      *            String if it's a method of Validation helper, callable otherwise
      * @param string $error
-     *            Error to diplay if check fail
+     *            Error to diplay if validation fail
      * @param array $arguments
      *            Additional arguments passed to callback
      * @param bool $expect
      *            Expected callback return
      * @param string $importance
      *            Importance of a rule
-     * @see RuleInterface::getImportance() for rule importance usage description
+     * @param bool $expect
+     *            Expected function result
      */
-    public function __construct($callback, string $error = '', array $arguments = [], $importance = self::IMPORTANCE_NORMAL, bool $expect = true)
+    public function __construct($callback, string $error = '', array $arguments = [], string $importance = self::IMPORTANCE_NORMAL, bool $expect = true)
     {
         if (is_string($callback) && ! is_callable($callback) && method_exists("\Minwork\Helper\Validation", $callback)) {
             $callback = "\Minwork\Helper\Validation::{$callback}";
@@ -87,7 +90,7 @@ class Rule implements RuleInterface
         $this->callback = $callback;
         $this->arguments = $arguments;
         $this->expect = $expect;
-        $this->error = $error;
+        $this->error = empty($error) ? 'Rule check failed at method ' . (is_array($callback) ? implode('::', $callback) : strval($callback)) . '(' . Formatter::toString($arguments) . ')' : $error;
         $this->importance = $importance;
     }
 
@@ -95,75 +98,28 @@ class Rule implements RuleInterface
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Validation\Interfaces\RuleInterface::setObject()
+     * @see \Minwork\Validation\Interfaces\ValidatorInterface::validate()
      */
-    public function setObject($object): RuleInterface
+    public function validate($data): ValidatorInterface
     {
-        $this->object = $object;
+        $this->clearErrors();
+        
+        $arguments = $this->arguments;
+        array_unshift($arguments, $data);
+        $this->valid = call_user_func_array($this->callback, $arguments) === $this->expect;
+        if (! $this->valid) {
+            $this->addError($this->error);
+        }
         return $this;
     }
 
     /**
+     * If whole validation should stop when this rule conditions are not met
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Validation\Interfaces\RuleInterface::getObject()
+     * @return bool
      */
-    public function getObject()
+    public function hasCriticalError(): bool
     {
-        if (empty($this->object)) {
-            throw new \Exception('No object is set');
-        }
-        return $this->object;
-    }
-
-    /**
-     *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Validation\Interfaces\RuleInterface::check($value)
-     */
-    public function check($value): bool
-    {
-        $arguments = $this->arguments;
-        array_unshift($arguments, $value);
-        return call_user_func_array($this->callback, $arguments) === $this->expect;
-    }
-
-    /**
-     *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Validation\Interfaces\RuleInterface::getError()
-     */
-    public function getError(): string
-    {
-        // If error is empty produce default output
-        if (empty($this->error)) {
-            $this->error = "Rule check failed at method {$this->getName()}(" . implode(', ', $this->arguments) . ")";
-        }
-        return $this->error;
-    }
-
-    /**
-     *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Validation\Interfaces\RuleInterface::getName()
-     */
-    public function getName(): string
-    {
-        return (is_array($this->callback) ? implode('::', $this->callback) : $this->callback);
-    }
-
-    /**
-     *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Validation\Interfaces\RuleInterface::getImportance()
-     */
-    public function getImportance(): string
-    {
-        return $this->importance;
+        return $this->valid === false && $this->importance === self::IMPORTANCE_CRITICAL;
     }
 }

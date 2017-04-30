@@ -355,13 +355,11 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
      */
     public function execute(OperationInterface $operation, array $arguments = [], ValidatorInterface $validator = null)
     {
-        if (! is_null($validator)) {
-            if (! $validator->setObject($this)
-                ->validate(count($arguments) == 1 ? reset($arguments) : $arguments)
-                ->isValid()) {
-                $this->getErrors()->merge($validator->getErrors());
-                return false;
-            }
+        if (! is_null($validator) && ! $validator->setContext($this)
+            ->validate(count($arguments) == 1 ? reset($arguments) : $arguments)
+            ->isValid()) {
+            $this->getErrors()->merge($validator->getErrors());
+            return false;
         }
         $result = $this->executeOperation($operation, $arguments);
         

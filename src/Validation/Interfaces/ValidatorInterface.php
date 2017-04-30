@@ -19,24 +19,25 @@ interface ValidatorInterface
 {
 
     /**
-     * Set object which is validated
-     * 
-     * @param mixed $object            
+     * Set optional context for validation so any sub-validators can access it (like model object during form data validation)
+     *
+     * @param mixed $context            
      * @return self
      */
-    public function setObject($object): self;
+    public function setContext($context): self;
 
     /**
-     * Get validated object
-     */
-    public function getObject();
-
-    /**
-     * If validation was successful
-     *
+     * If current validator has context
      * @return bool
      */
-    public function isValid(): bool;
+    public function hasContext(): bool;
+    
+    /**
+     * Get validation context
+     * 
+     * @return mixed
+     */
+    public function getContext();
 
     /**
      * Validate supplied data
@@ -45,6 +46,13 @@ interface ValidatorInterface
      * @return self
      */
     public function validate($data): self;
+    
+    /**
+     * If validation was successful
+     *
+     * @return bool
+     */
+    public function isValid(): bool;
 
     /**
      * Get errors storage

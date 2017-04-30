@@ -1,48 +1,71 @@
 <?php
 namespace Minwork\Validation\Utility;
 
-use Minwork\Validation\Interfaces\FieldInterface;
-use Minwork\Validation\Interfaces\RuleInterface;
+use Minwork\Validation\Interfaces\ValidatorInterface;
+use Minwork\Validation\Traits\Validator;
 
-class Field implements FieldInterface
+/**
+ *
+ * @author Christopher Kalkhoff
+ *        
+ */
+class Field implements ValidatorInterface
 {
+    use Validator;
 
     /**
      * Field name
-     * 
+     *
      * @var string
      */
     protected $name;
 
     /**
      * Field rules
-     * 
-     * @see Field::setRules()
-     * @var RuleInterface[]
+     *
+     * @var Rule[]
      */
     protected $rules;
 
     /**
-     * Is field mandatory
-     * 
+     * If field is mandatory
+     *
      * @var bool
      */
     protected $mandatory;
 
     /**
-     * String representation of error
-     * 
-     * @see FieldInterface::isMandatory()
+     * Global error when field is mandatory but didn't found key corresponding to its name during validation on $data array
+     *
      * @var string
      */
     protected $error;
 
+    /**
+     * If field has critical error and should immidietely stop further validation
+     * This property is propagated from Rule objects
+     *
+     * @var bool
+     */
+    protected $hasCriticalError = false;
+
+    /**
+     *
+     * @param string $name
+     *            Field form name
+     * @param Rule[] $rules
+     *            Set of rules for validating this field
+     * @param bool $mandatory
+     *            If this field is mandatory and must be present in $data array in validate method
+     * @param string $error
+     *            Global error when field is mandatory but didn't found key corresponding to its name during validation on $data array
+     */
     public function __construct(string $name, array $rules = [], bool $mandatory = true, string $error = '')
     {
         $this->name = $name;
-        $this->setRules($rules);
         $this->mandatory = $mandatory;
-        $this->error = $error;
+        $this->error = empty($error) ? "Field {$name} is mandatory" : $error;
+        $this->setRules($rules);
     }
 
     /**
@@ -50,13 +73,13 @@ class Field implements FieldInterface
      *
      * @param RuleInterface[] $rules            
      * @throws \InvalidArgumentException
-     * @return \Minwork\Validation\Utility\Field
+     * @return self
      */
-    public function setRules(array $rules)
+    public function setRules(array $rules): self
     {
         foreach ($rules as $rule) {
-            if (! $rule instanceof RuleInterface) {
-                throw new \InvalidArgumentException('Rule must be object implementing RuleInterface');
+            if (! is_object($rule) || ! $rule instanceof Rule) {
+                throw new \InvalidArgumentException('Field rule must be an Rule object');
             }
         }
         $this->rules = $rules;
@@ -64,25 +87,9 @@ class Field implements FieldInterface
     }
 
     /**
+     * Get field name corresponding to input form name
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Validation\Interfaces\RuleInterface::getError()
-     */
-    public function getError(): string
-    {
-        // If error is empty produce default output
-        if (empty($this->error)) {
-            $this->error = "Field {$this->getName()} is mandatory";
-        }
-        return $this->error;
-    }
-
-    /**
-     *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Validation\Interfaces\RuleInterface::getName()
+     * @return string
      */
     public function getName(): string
     {
@@ -90,10 +97,9 @@ class Field implements FieldInterface
     }
 
     /**
+     * If this field is mandatory and should validate all the rules bond to it
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Validation\Interfaces\RuleInterface::isMandatory()
+     * @return bool
      */
     public function isMandatory(): bool
     {
@@ -104,10 +110,59 @@ class Field implements FieldInterface
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Validation\Interfaces\RuleInterface::getRules()
+     * @param array $data
+     *            Form data
+     * @see \Minwork\Validation\Interfaces\ValidatorInterface::validate()
      */
-    public function getRules(): array
+    public function validate($data): ValidatorInterface
     {
-        return $this->rules;
+        $this->clearErrors();
+        
+        if (! is_array($data)) {
+            throw new \InvalidArgumentException('Field validation data must be an array representing form data');
+        }
+        
+        if (! array_key_exists($this->getName(), $data)) {
+            if ($this->isMandatory()) {
+                $this->addError($this->error);
+                $this->valid = false;
+            } else {
+                $this->valid = true;
+            }
+            return $this;
+        }
+        
+        $fieldData = $data[$this->getName()];
+        
+        foreach ($this->rules as $rule) {
+            if ($this->hasContext()) {
+                $rule->setContext($this->getContext());
+            }
+            
+            if (! $rule->validate($fieldData)->isValid()) {
+                foreach ($rule->getErrors()->getErrors() as $error) {
+                    $this->addError($this->getName(), $error->getMessage());
+                }
+                // If rule has critical error instantly break further errors validation
+                if ($rule->hasCriticalError()) {
+                    $this->hasCriticalError = true;
+                    break;
+                }
+            }
+        }
+        
+        $this->valid = ! $this->hasErrors();
+        return $this;
+    }
+
+    /**
+     * If field has critical error and should immidietely stop further validation
+     * This property is propagated from Rule objects
+     *
+     * @return bool
+     */
+    public function hasCriticalError(): bool
+    {
+        return $this->hasCriticalError;
     }
 }

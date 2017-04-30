@@ -60,6 +60,6 @@ class UserUpdateValidator extends Validator
     public function sameEmail(array $data): bool
     {
         // Check if provided email matches current user email
-        return $this->getObject()->getData('email') == $data['email'];
+        return $this->getContext()->getData('email') == $data['email'];
     }
 }
