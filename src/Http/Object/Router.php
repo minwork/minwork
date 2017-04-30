@@ -12,6 +12,7 @@ use Minwork\Http\Interfaces\RouterInterface;
 use Minwork\Basic\Interfaces\ControllerInterface;
 use Minwork\Http\Utility\LangCode;
 use Minwork\Basic\Traits\Debugger;
+use Minwork\Helper\ArrayHelper;
 
 /**
  * Basic implementation of router interface
@@ -96,11 +97,11 @@ class Router implements RouterInterface
     /**
      *
      * @see \Minwork\Http\Object\Router::setRouting()
-     * @param array $routing            
+     * @param array|string $routing            
      */
-    public function __construct(array $routing)
+    public function __construct($routing)
     {
-        $this->reset()->setRouting($routing);
+        $this->reset()->setRouting(ArrayHelper::forceArray($routing));
     }
 
     /**

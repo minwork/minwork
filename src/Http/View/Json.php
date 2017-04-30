@@ -77,7 +77,7 @@ class Json implements ViewInterface
      */
     public function setData(array $data, bool $merge = true): self
     {
-        $this->data = $merge ? array_merge($this->data, $data) : $data;
+        $this->data = $merge && !is_null($this->data) ? array_merge($this->data, $data) : $data;
         return $this;
     }
 }

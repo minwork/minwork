@@ -147,7 +147,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($updateData, $this->table->select([
             TableInterface::DEFAULT_PK_FIELD => $updateData[TableInterface::DEFAULT_PK_FIELD]
         ], array_keys($updateData), [
-            'date' => TableInterface::ORDER_DESC
+            'date' => -1
         ], 1, TableInterface::DEFAULT_PK_FIELD)
             ->fetch(\PDO::FETCH_ASSOC));
         

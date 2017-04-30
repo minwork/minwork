@@ -27,9 +27,9 @@ class ModelsList
     protected $page;
 
     /**
-     * Elements on page
+     * Elements on page (if null then all results must be returned on a single page)
      *
-     * @var int
+     * @var int|null
      */
     protected $onPage;
 
@@ -101,10 +101,10 @@ class ModelsList
      * Read models list from storage
      *
      * @param int $page            
-     * @param int $onPage            
+     * @param int|null $onPage            
      * @return self
      */
-    public function getData(int $page = 1, int $onPage = null): self
+    public function getData(int $page = 1, $onPage = null): self
     {
         $this->page = $page;
         $this->onPage = $onPage;
@@ -112,10 +112,10 @@ class ModelsList
         $this->total = $this->prototype->getStorage()->count($query);
         
         if (! is_null($onPage)) {
-            $query->limit = [
+            $query->setLimit([
                 ($page - 1) * $onPage,
                 $onPage
-            ];
+            ]);
         }
         $list = $this->prototype->getStorage()->get($query);
         
@@ -152,9 +152,9 @@ class ModelsList
     /**
      * Get number of models per page
      *
-     * @return int
+     * @return int|null
      */
-    public function getOnPage(): int
+    public function getOnPage()
     {
         return $this->onPage;
     }

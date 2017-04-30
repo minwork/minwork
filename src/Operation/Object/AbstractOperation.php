@@ -84,7 +84,7 @@ abstract class AbstractOperation implements OperationInterface, EventDispatcherC
      *
      * @see \Minwork\Operation\Interfaces\OperationInterface::getName()
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -95,7 +95,7 @@ abstract class AbstractOperation implements OperationInterface, EventDispatcherC
      *
      * @see \Minwork\Operation\Interfaces\OperationInterface::canQueue()
      */
-    public function canQueue()
+    public function canQueue(): bool
     {
         return $this->canQueue;
     }

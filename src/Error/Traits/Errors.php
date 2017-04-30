@@ -29,7 +29,7 @@ trait Errors
     protected $errors = null;
 
     /**
-     * Returns error object or creates it if necessary
+     * Return errors storage object (creates it if necessary)
      *
      * @return ErrorsStorageInterface
      */

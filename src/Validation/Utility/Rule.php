@@ -87,10 +87,11 @@ class Rule implements ValidatorInterface
         if (! is_callable($callback)) {
             throw new \InvalidArgumentException("Callback is neither callable nor Validation method ({$callback})");
         }
+        
         $this->callback = $callback;
         $this->arguments = $arguments;
         $this->expect = $expect;
-        $this->error = empty($error) ? 'Rule check failed at method ' . (is_array($callback) ? implode('::', $callback) : strval($callback)) . '(' . Formatter::toString($arguments) . ')' : $error;
+        $this->error = $error;
         $this->importance = $importance;
     }
 
@@ -108,7 +109,7 @@ class Rule implements ValidatorInterface
         array_unshift($arguments, $data);
         $this->valid = call_user_func_array($this->callback, $arguments) === $this->expect;
         if (! $this->valid) {
-            $this->addError($this->error);
+            $this->addError(empty($this->error) ? 'Rule check failed at ' . (is_array($this->callback) ? implode('::', $this->callback) : (is_object($this->callback) && $this->callback instanceof \Closure ? 'anonymous_function' : strval($this->callback))) . '(' . implode(', ', array_map(['\Minwork\Helper\Formatter', 'toString'], $arguments)) . ')' : $this->error);
         }
         return $this;
     }

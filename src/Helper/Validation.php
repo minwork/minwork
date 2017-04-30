@@ -113,7 +113,7 @@ class Validation
      */
     public static function isNotEmpty($var): bool
     {
-        return $var === '' || is_null($var);
+        return $var !== '' && !is_null($var);
     }
 
     /**

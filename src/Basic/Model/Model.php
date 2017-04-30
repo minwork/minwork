@@ -358,6 +358,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
         if (! is_null($validator) && ! $validator->setContext($this)
             ->validate(count($arguments) == 1 ? reset($arguments) : $arguments)
             ->isValid()) {
+                var_dump($validator->getErrors()->getErrors());
             $this->getErrors()->merge($validator->getErrors());
             return false;
         }

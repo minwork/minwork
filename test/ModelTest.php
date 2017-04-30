@@ -92,7 +92,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
                 new Rule('isInt', '', [], Rule::IMPORTANCE_NORMAL, false)
             ]),
             new Field('email', [
-                new Rule('isEmail'),
+                new Rule('isEmail', '', [false]),
                 new Rule($validatorFunction, '', [
                     true,
                     false
@@ -210,7 +210,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             'key' => 1
         ]));
         $list = $modelsList->getData(1)->getElements();
-        $this->assertEquals(1, $modelsList->getPage());
+        $this->assertSame(1, $modelsList->getPage());
         $this->assertNull($modelsList->getOnPage());
         $this->assertEquals(2, $modelsList->getTotal());
         $this->assertEquals(2, count($list));
@@ -221,9 +221,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->setQuery(new Query())
             ->getData(1, 2)
             ->getElements();
-        $this->assertEquals(1, $modelsList->page);
-        $this->assertEquals(2, $modelsList->onPage);
-        $this->assertEquals(3, $modelsList->total);
+        $this->assertEquals(1, $modelsList->getPage());
+        $this->assertEquals(2, $modelsList->getOnPage());
+        $this->assertEquals(3, $modelsList->getTotal());
         $this->assertEquals(2, count($list));
         
         // Clean up

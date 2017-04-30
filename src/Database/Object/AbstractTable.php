@@ -190,7 +190,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      *
      * @see \Minwork\Database\Interfaces\TableInterface::getName()
      */
-    public function getName($escaped = true): string
+    public function getName(bool $escaped = true): string
     {
         return $escaped ? static::DEFAULT_ESCAPE_CHAR . $this->name . static::DEFAULT_ESCAPE_CHAR : $this->name;
     }

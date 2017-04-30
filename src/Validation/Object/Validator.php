@@ -8,7 +8,7 @@
 namespace Minwork\Validation\Object;
 
 use Minwork\Validation\Interfaces\ValidatorInterface;
-use Minwork\Validation\Traits\Validator;
+use Minwork\Validation\Traits\Validator as ValidatorTrait;
 
 /**
  * Basic implementation of validator interface
@@ -18,7 +18,7 @@ use Minwork\Validation\Traits\Validator;
  */
 class Validator implements ValidatorInterface
 {
-    use Validator;
+    use ValidatorTrait;
 
     /**
      * Validation config which is a list of objects implementing ValidatorInterface

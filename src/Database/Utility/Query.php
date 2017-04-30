@@ -87,6 +87,7 @@ class Query
     public function setConditions($conditions): self
     {
         $this->conditions = $conditions;
+        return $this;
     }
 
     /**
@@ -109,6 +110,7 @@ class Query
     public function setColumns($columns): self
     {
         $this->columns = $columns;
+        return $this;
     }
 
     /**
@@ -131,6 +133,7 @@ class Query
     public function setLimit($limit): self
     {
         $this->limit = $limit;
+        return $this;
     }
 
     /**
@@ -153,6 +156,7 @@ class Query
     public function setOrder($order): self
     {
         $this->order = $order;
+        return $this;
     }
 
     /**
@@ -175,5 +179,6 @@ class Query
     public function setGroup($group): self
     {
         $this->group = $group;
+        return $this;
     }
 }

@@ -3,6 +3,7 @@ namespace Minwork\Validation\Utility;
 
 use Minwork\Validation\Interfaces\ValidatorInterface;
 use Minwork\Validation\Traits\Validator;
+use Minwork\Error\Basic\ErrorGlobal;
 
 /**
  *
@@ -125,13 +126,10 @@ class Field implements ValidatorInterface
         if (! array_key_exists($this->getName(), $data)) {
             if ($this->isMandatory()) {
                 $this->addError($this->error);
-                $this->valid = false;
-            } else {
-                $this->valid = true;
             }
+            $this->valid = ! $this->hasErrors();
             return $this;
         }
-        
         $fieldData = $data[$this->getName()];
         
         foreach ($this->rules as $rule) {
@@ -140,7 +138,7 @@ class Field implements ValidatorInterface
             }
             
             if (! $rule->validate($fieldData)->isValid()) {
-                foreach ($rule->getErrors()->getErrors() as $error) {
+                foreach ($rule->getErrors()->getErrors(ErrorGlobal::TYPE) as $error) {
                     $this->addError($this->getName(), $error->getMessage());
                 }
                 // If rule has critical error instantly break further errors validation
