@@ -33,6 +33,12 @@ interface ResponseInterface
     const CONTENT_TYPE_JSON = 'application/json';
 
     const CONTENT_TYPE_CSS = 'text/css';
+    
+    const CONTENT_TYPE_JPEG = 'image/jpeg';
+    
+    const CONTENT_TYPE_GIF = 'image/gif';
+    
+    const CONTENT_TYPE_PNG = 'image/png';
 
     /**
      * If response is empty
