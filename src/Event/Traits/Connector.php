@@ -39,7 +39,7 @@ trait Connector {
     protected function connect($connector = null, EventDispatcherInterface $eventDispatcher = null): self
     {
         $connector = $connector ?? $this;
-        $eventDispatcher = $eventDispatcher ?? ($this instanceof EventDispatcherContainerInterface ? $this->getEventDispatcher() : new EventDispatcher());
+        $eventDispatcher = $eventDispatcher ?? ($this instanceof EventDispatcherContainerInterface ? $this->getEventDispatcher() : EventDispatcher::getGlobal());
         $methods = get_class_methods($this);
         $methodsMap = [];
         $mapper = [];
