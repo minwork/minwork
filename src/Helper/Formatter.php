@@ -115,7 +115,7 @@ class Formatter
      * @param int $length            
      * @param string $linkAddress            
      */
-    public static function smartCutString(string $string, int $length, string $linkAddress = null): string
+    public static function smartCutString(string $string, int $length, string $linkAddress = ''): string
     {
         $len = mb_strlen($string, self::STRING_ENCODING);
         if ($len <= $length) {
