@@ -277,7 +277,7 @@ class Column implements ColumnInterface
      */
     public function format($value)
     {
-        if ((is_null($value) || strcasecmp($value, 'null')) && $this->isNullable()) {
+        if ((is_null($value) || strcasecmp($value, 'null') === 0) && $this->isNullable()) {
             return null;
         }
         
