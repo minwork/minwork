@@ -9,6 +9,7 @@ namespace Minwork\Http\Utility;
 
 use Minwork\Http\Interfaces\EnvironmentInterface;
 use Minwork\Http\Utility\Server;
+use Minwork\Helper\Formatter;
 
 /**
  * Stores environmental variables
@@ -35,8 +36,7 @@ class Environment implements EnvironmentInterface
 
     public function __construct(string $domain = '', string $type = EnvironmentInterface::TYPE_DEVELOPMENT)
     {
-        $this->domain = empty($domain) ? Server::getDomain() : $domain;
-        $this->type = $type;
+        $this->setDomain(empty($domain) ? Server::getDomain() : $domain)->setType($type);
     }
 
     /**
@@ -81,7 +81,7 @@ class Environment implements EnvironmentInterface
      */
     public function setDomain(string $domain): EnvironmentInterface
     {
-        $this->domain = $domain;
+        $this->domain = Formatter::makeUrl($domain);
         return $this;
     }
 }
