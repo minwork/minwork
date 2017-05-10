@@ -23,14 +23,14 @@ interface ControllerInterface
      * Get framework object
      *
      * @param string $refresh            
-     * @return Framework
+     * @return FrameworkInterface
      */
     public function getFramework(): FrameworkInterface;
 
     /**
      * This method sets Framework object which enable Controller to use its context
      *
-     * @param Framework $framework            
+     * @param FrameworkInterface $framework            
      * @return self
      */
     public function setFramework(FrameworkInterface $framework): self;
