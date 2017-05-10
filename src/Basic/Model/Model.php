@@ -110,7 +110,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
         $this->reset()
             ->setStorage($storage)
             ->setId($id)
-            ->setEventDispatcher($eventDispatcher ?? EventDispatcher::getGlobal())
+            ->setEventDispatcher($eventDispatcher ?? new EventDispatcher())
             ->setBuffering($buffering);
     }
 
