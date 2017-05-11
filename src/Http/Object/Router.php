@@ -303,6 +303,9 @@ class Router implements RouterInterface
         // Process method name
         if (method_exists($controller, $methodNormalized = strtr($method, '-', '_'))) {
             $this->method = $methodNormalized;
+        } elseif (method_exists($controller, self::DEFAULT_CONTROLLER_METHOD)) {
+            $this->addMethodArgument($this->methodArguments, $method);
+            $this->method = self::DEFAULT_CONTROLLER_METHOD;
         } else {
             throw new \DomainException("Cannot find method {$methodNormalized} inside " . get_class($controller) . " controller");
         }
@@ -312,13 +315,7 @@ class Router implements RouterInterface
         $numRequired = $reflection->getNumberOfRequiredParameters();
         $numCurrent = count($this->getMethodArguments());
         if ($numRequired > $numCurrent) {
-            // If request doesn't have enough arguments for method set it as invalid
-            $this->getController()
-                ->getRequest()
-                ->setValid(false);
-            for ($i = ($numRequired - $numCurrent); $i --; $i > 0) {
-                array_push($this->methodArguments, null);
-            }
+            $this->methodArguments = array_merge($this->methodArguments, array_fill(count($this->methodArguments) - 1, $numRequired - $numCurrent, null));
         }
         
         return $this;
