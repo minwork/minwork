@@ -100,14 +100,19 @@ class EventDispatcher implements EventDispatcherInterface
      *
      * @see \Minwork\Event\Interfaces\EventDispatcherInterface::removeListener($event, $listener)
      */
-    public function removeListener(string $event, callable $listener): EventDispatcherInterface
+    public function removeListener(string $event, callable $listener = null): EventDispatcherInterface
     {
         if (array_key_exists($event, $this->listeners)) {
-            foreach ($this->listeners[$event] as $priority => $listeners) {
-                if (($key = array_search($listener, $listeners)) !== false) {
-                    unset($this->listeners[$event][$priority][$key]);
-                }
+            if (!is_null($listener)) {
+                foreach ($this->listeners[$event] as $priority => $listeners) {
+                    if (($key = array_search($listener, $listeners)) !== false) {
+                        unset($this->listeners[$event][$priority][$key]);
+                    }
+                }    
+            } else {
+                unset($this->listeners[$event]);
             }
+            
         }
         return $this;
     }

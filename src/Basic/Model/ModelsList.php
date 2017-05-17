@@ -9,6 +9,8 @@ namespace Minwork\Basic\Model;
 
 use Minwork\Basic\Interfaces\ModelInterface;
 use Minwork\Database\Utility\Query;
+use Minwork\Operation\Basic\Read;
+use Minwork\Operation\Object\OperationEvent;
 
 /**
  * List of models according to supplied prototype
@@ -117,13 +119,18 @@ class ModelsList
                 $onPage
             ]);
         }
+        
         $list = $this->prototype->getStorage()->get($query);
         
         foreach ($list as $data) {
             $model = clone $this->prototype;
             $idField = $this->prototype->getStorage()->getPkField();
             $id = is_array($idField) ? array_intersect_key($data, array_flip($idField)) : $data[$idField];
+            // Emulate read operation
+            /* @var $model \Minwork\Event\Interfaces\EventDispatcherContainerInterface */
+            $model->getEventDispatcher()->dispatch(new OperationEvent(Read::EVENT_BEFORE));
             $this->list[] = $model->setId($id)->setData($data);
+            $model->getEventDispatcher()->dispatch(new OperationEvent(Read::EVENT_AFTER));
         }
         
         return $this;

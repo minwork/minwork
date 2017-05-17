@@ -153,19 +153,19 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     public function format(array $data, bool $defaults = false): array
     {
         $return = [];
-        
+        $columns = $this->getColumns();
         foreach ($data as $column => $value) {
-            if (array_key_exists($column, $this->columns)) {
-                $return[$column] = $this->columns[$column]->format($value);
+            if (array_key_exists($column, $columns)) {
+                $return[$column] = $columns[$column]->format($value);
             } else {
                 $return[$column] = $value;
             }
         }
         
         if ($defaults) {
-            $toFill = array_keys(array_diff_key($this->columns, $return));
+            $toFill = array_keys(array_diff_key($columns, $return));
             foreach ($toFill as $column) {
-                $columnObj = $this->columns[$column];
+                $columnObj = $columns[$column];
                 $return[$column] = $columnObj->format($columnObj->getDefaultValue());
             }
         }

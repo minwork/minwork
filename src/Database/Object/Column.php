@@ -281,7 +281,7 @@ class Column implements ColumnInterface
             return null;
         }
         
-        settype($value, $this->internalType);
+        settype($value, $this->getInternalType());
         return $value;
     }
 }

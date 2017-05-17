@@ -148,7 +148,7 @@ class Server
      */
     public static function getDomain(): string
     {
-        $pageUrl = self::getProtocol() . "://";
+        $pageUrl = self::getProtocolName() . "://";
         
         if (self::getPort() != self::DEFAULT_PORT && ! self::isSecure()) {
             $pageUrl .= self::getServerName() . ":" . self::getPort();

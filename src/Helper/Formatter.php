@@ -178,6 +178,7 @@ class Formatter
             }
             return $string;
         }
+        return $string;
     }
 
     /**
@@ -205,14 +206,16 @@ class Formatter
      */
     public static function textId(string $string, string $whitespaceReplacement = self::DEFAULT_WHITESPACE_REPLACEMENT): string
     {
-        $string = preg_replace('/\s+/', $whitespaceReplacement, mb_strtolower(mb_convert_encoding(trim($string), self::STRING_ENCODING), self::STRING_ENCODING));
+        $text = trim($string);
+        $text = preg_replace('/\s+/', $whitespaceReplacement, mb_strtolower($text, self::STRING_ENCODING));
         // Replace all special chars with english chars equivalent
         $curLocaleCType = setlocale(LC_CTYPE, 0);
         setlocale(LC_CTYPE, self::STRING_NORMALIZED_LANG . '.' . self::STRING_ENCODING);
-        $string = iconv('UTF-8', 'ASCII//TRANSLIT', $string);
+        $text = iconv(self::STRING_ENCODING, 'ASCII//TRANSLIT', $text);
         setlocale(LC_CTYPE, $curLocaleCType);
+        $text = self::removeQuotes($text);
         
-        return $string;
+        return $text;
     }
 
     /**

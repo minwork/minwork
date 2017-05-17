@@ -45,8 +45,8 @@ interface EventDispatcherInterface
      * @param string $event
      *            Event name
      * @param callable $listener
-     *            Function that can handle dispatched event object
+     *            Function that can handle dispatched event object, if null it will remove all event listeners
      * @return self
      */
-    public function removeListener(string $event, callable $listener): self;
+    public function removeListener(string $event, callable $listener = null): self;
 }
