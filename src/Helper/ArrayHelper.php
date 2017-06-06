@@ -68,29 +68,6 @@ class ArrayHelper
     }
 
     /**
-     * Make variable an array (unless it's null)
-     *
-     * @param mixed $var            
-     */
-    public static function forceArray($var)
-    {
-        if (! is_array($var)) {
-            if (is_object($var)) {
-                return $var instanceof \ArrayAccess ? $var : [
-                    $var
-                ];
-            } elseif (is_null($var)) {
-                return $var;
-            } else {
-                return [
-                    $var
-                ];
-            }
-        }
-        return $var;
-    }
-
-    /**
      * Handle multidimensional array access using array of keys (get or set depending on $value argument)
      *
      * @see ArrayHelper::getKeysArray
@@ -125,6 +102,29 @@ class ArrayHelper
             return true;
         }
     }
+    
+    /**
+     * Make variable an array (unless it's null)
+     *
+     * @param mixed $var
+     */
+    public static function forceArray($var)
+    {
+        if (! is_array($var)) {
+            if (is_object($var)) {
+                return $var instanceof \ArrayAccess ? $var : [
+                    $var
+                ];
+            } elseif (is_null($var)) {
+                return $var;
+            } else {
+                return [
+                    $var
+                ];
+            }
+        }
+        return $var;
+    }
 
     /**
      * Recursively check if all of array values match empty condition
@@ -145,6 +145,56 @@ class ArrayHelper
         }
         
         return true;
+    }
+    
+    /**
+     * Check if array is associative
+     *
+     * @param array $array
+     * @param bool $strict
+     *            If false then this function will match any array that doesn't contain integer keys
+     * @return boolean
+     */
+    public static function isAssoc(array $array, bool $strict = false): bool
+    {
+        if ($strict) {
+            return array_keys($array) !== range(0, count($array) - 1);
+        } else {
+            foreach (array_keys($array) as $key) {
+                if (! is_int($key)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    
+    /**
+     * Check if every array element is array
+     *
+     * @param array $array
+     * @return bool
+     */
+    public static function isArrayOfArrays(array $array): bool
+    {
+        foreach ($array as $el) {
+            if (! is_array($el)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    /**
+     * Filter array by preserving only those which keys are present in $keys expression
+     * @param array $array
+     * @param mixed $keys Look at getKeysArray function
+     * @see \Minwork\Helper\ArrayHelper::getKeysArray()
+     * @return array
+     */
+    public static function filterByKeys(array $array, array $keys): array
+    {
+        return array_intersect_key($array, array_flip(self::getKeysArray($keys)));
     }
 
     /**
@@ -179,43 +229,5 @@ class ArrayHelper
             }
         }
         return $values;
-    }
-
-    /**
-     * Check if array is associative
-     *
-     * @param array $array            
-     * @param bool $strict
-     *            If false then this function will match any array that doesn't contain integer keys
-     * @return boolean
-     */
-    public static function isAssoc(array $array, bool $strict = false): bool
-    {
-        if ($strict) {
-            return array_keys($array) !== range(0, count($array) - 1);
-        } else {
-            foreach (array_keys($array) as $key) {
-                if (! is_int($key)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
-    /**
-     * Check if every array element is array
-     *
-     * @param array $array            
-     * @return bool
-     */
-    public static function isArrayOfArrays(array $array): bool
-    {
-        foreach ($array as $el) {
-            if (! is_array($el)) {
-                return false;
-            }
-        }
-        return true;
     }
 }

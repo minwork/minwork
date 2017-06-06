@@ -108,8 +108,9 @@ class Rule implements ValidatorInterface
         $arguments = $this->arguments;
         array_unshift($arguments, $data);
         $this->valid = call_user_func_array($this->callback, $arguments) === $this->expect;
-        if (! $this->valid) {
-            $this->addError(empty($this->error) ? 'Rule check failed at ' . (is_array($this->callback) ? implode('::', $this->callback) : (is_object($this->callback) && $this->callback instanceof \Closure ? 'anonymous_function' : strval($this->callback))) . '(' . implode(', ', array_map(['\Minwork\Helper\Formatter', 'toString'], $arguments)) . ')' : $this->error);
+        // If is invalid but has no errors, set default one
+        if (! $this->valid && !$this->hasErrors()) {
+            $this->addError(empty($this->error) ? 'Rule check failed at ' . (is_array($this->callback) ? get_class($this->callback[0]).'::'.$this->callback[1] : (is_object($this->callback) && $this->callback instanceof \Closure ? 'anonymous_function' : strval($this->callback))) . '(' . implode(', ', array_map(['\Minwork\Helper\Formatter', 'toString'], $arguments)) . ')' : $this->error);
         }
         return $this;
     }

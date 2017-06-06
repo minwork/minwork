@@ -7,7 +7,7 @@
  */
 namespace Minwork\Operation\Basic;
 
-use Minwork\Operation\Object\AbstractOperation;
+use Minwork\Operation\Object\Operation;
 use Minwork\Event\Interfaces\EventDispatcherInterface;
 
 /**
@@ -16,7 +16,7 @@ use Minwork\Event\Interfaces\EventDispatcherInterface;
  * @author Christopher Kalkhoff
  *        
  */
-class Read extends AbstractOperation
+class Read extends Operation
 {
 
     const OPERATION_NAME = "read";

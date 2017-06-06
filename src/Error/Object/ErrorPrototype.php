@@ -15,7 +15,7 @@ use Minwork\Error\Interfaces\ErrorInterface;
  * @author Christopher Kalkhoff
  *        
  */
-abstract class ErrorPrototype implements ErrorInterface
+abstract class ErrorPrototype implements ErrorInterface, \JsonSerializable
 {
 
     /**
@@ -72,6 +72,13 @@ abstract class ErrorPrototype implements ErrorInterface
      */
     public function __toString(): string
     {
+        return $this->getMessage();
+    }
+    
+    /**
+     * Specify data which should be serialized to JSON
+     */
+    public function jsonSerialize() {
         return $this->getMessage();
     }
 

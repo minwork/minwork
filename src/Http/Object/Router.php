@@ -106,10 +106,9 @@ class Router implements RouterInterface
      * @see \Minwork\Http\Object\Router::setRouting()
      * @param array|string $routing            
      */
-    public function __construct($routing, string $defaultLanguage = LangCode::ENGLISH)
+    public function __construct($routing)
     {
-        $this->setDefaultLanguage($defaultLanguage)
-            ->reset()
+        $this->reset()
             ->setRouting(ArrayHelper::forceArray($routing));
     }
 
@@ -121,7 +120,7 @@ class Router implements RouterInterface
     public function reset(): self
     {
         $this->url = '';
-        $this->lang = $this->defaultLang;
+        $this->lang = '';
         $this->controller = self::DEFAULT_CONTROLLER_ROUTE_NAME;
         $this->controllerObject = null;
         $this->method = self::DEFAULT_CONTROLLER_METHOD;
@@ -153,18 +152,6 @@ class Router implements RouterInterface
                 $this->debug("Routing entry at {$key} in file {$route} is not array - skipping this file");
             }
         }
-        return $this;
-    }
-
-    /**
-     * Set default language code which is used if no language is specified in url
-     * 
-     * @param string $lang            
-     * @return self
-     */
-    public function setDefaultLanguage(string $lang): self
-    {
-        $this->defaultLang = $lang;
         return $this;
     }
 

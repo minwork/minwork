@@ -36,9 +36,21 @@ trait Errors
     public function getErrors(): ErrorsStorageInterface
     {
         if (is_null($this->errors)) {
-            $this->errors = new ErrorsStorage();
+            $this->setErrors(new ErrorsStorage());
         }
         return $this->errors;
+    }
+
+    /**
+     * Set errors storage object
+     * 
+     * @param ErrorsStorageInterface $errors            
+     * @return self
+     */
+    public function setErrors(ErrorsStorageInterface $errors): self
+    {
+        $this->errors = $errors;
+        return $this;
     }
 
     /**

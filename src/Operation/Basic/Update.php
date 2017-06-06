@@ -7,7 +7,7 @@
  */
 namespace Minwork\Operation\Basic;
 
-use Minwork\Operation\Object\AbstractOperation;
+use Minwork\Operation\Object\Operation;
 use Minwork\Operation\Interfaces\RevertableOperationInterface;
 use Minwork\Event\Interfaces\EventDispatcherInterface;
 use Minwork\Operation\Interfaces\ObjectOperationInterface;
@@ -20,7 +20,7 @@ use Minwork\Basic\Interfaces\ModelInterface;
  * @author Christopher Kalkhoff
  *        
  */
-class Update extends AbstractOperation implements RevertableOperationInterface
+class Update extends Operation implements RevertableOperationInterface
 {
 
     const OPERATION_NAME = "update";

@@ -21,13 +21,13 @@ use Minwork\Operation\Interfaces\RevertableOperationInterface;
  * @author Christopher Kalkhoff
  *        
  */
-abstract class AbstractOperation implements OperationInterface, EventDispatcherContainerInterface
+abstract class Operation implements OperationInterface, EventDispatcherContainerInterface
 {
     use Events;
 
-    const BEFORE_EVENT_PREFIX = "before";
+    const EVENT_BEFORE_PREFIX = "before";
 
-    const AFTER_EVENT_PREFIX = "after";
+    const EVENT_AFTER_PREFIX = "after";
 
     /**
      * Operation name
@@ -70,7 +70,7 @@ abstract class AbstractOperation implements OperationInterface, EventDispatcherC
      *            Event dispatcher for before and after execution events
      * @see \Minwork\Operation\Interfaces\RevertableOperationInterface
      */
-    public function __construct(string $name, bool $canQueue = true, bool $canRevert = false, EventDispatcherInterface $eventDispatcher = null)
+    public function __construct(string $name, bool $canQueue = false, bool $canRevert = false, EventDispatcherInterface $eventDispatcher = null)
     {
         $this->setName($name)
             ->setCanQueue($canQueue)
@@ -173,15 +173,15 @@ abstract class AbstractOperation implements OperationInterface, EventDispatcherC
     public function execute(ObjectOperationInterface $object, array $arguments)
     {
         $methodName = mb_strtolower($this->getName());
-        $eventBefore = new OperationEvent(self::BEFORE_EVENT_PREFIX . ucfirst($methodName), $arguments);
+        $eventBefore = new OperationEvent(self::EVENT_BEFORE_PREFIX . ucfirst($methodName), $arguments);
         
         $this->getEventDispatcher()->dispatch($eventBefore);
         if (! $this->hasResult() && $eventBefore->hasResult()) {
             $this->result = $eventBefore->getResult();
         }
-        
         // Use eventBefore arguments cause they may changed in before method
         $arguments = $eventBefore->getArguments();
+        
         if (! $this->hasResult() && method_exists($object, $methodName)) {
             $this->result = call_user_func_array([
                 $object,
@@ -189,7 +189,7 @@ abstract class AbstractOperation implements OperationInterface, EventDispatcherC
             ], $arguments);
         }
         
-        $eventAfter = new OperationEvent(self::AFTER_EVENT_PREFIX . ucfirst($methodName), $arguments);
+        $eventAfter = new OperationEvent(self::EVENT_AFTER_PREFIX . ucfirst($methodName), $arguments);
         $this->getEventDispatcher()->dispatch($eventAfter);
         if (! $this->hasResult() && $eventAfter->hasResult()) {
             $this->result = $eventAfter->getResult();

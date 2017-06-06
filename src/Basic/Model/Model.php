@@ -179,7 +179,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Basic\Interfaces\ModelInterface::getStorage()
+     * @return \Minwork\Storage\Interfaces\DatabaseStorageInterface
      */
     public function getStorage(): DatabaseStorageInterface
     {
@@ -358,11 +358,10 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
         if (! is_null($validator) && ! $validator->setContext($this)
             ->validate(count($arguments) == 1 ? reset($arguments) : $arguments)
             ->isValid()) {
-                var_dump($validator->getErrors()->getErrors());
             $this->getErrors()->merge($validator->getErrors());
             return false;
         }
-        $result = $this->executeOperation($operation, $arguments);
+        $result = $this->executeOperation($operation->setEventDispatcher($this->getEventDispatcher()), $arguments);
         
         if (! $this->buffering) {
             $this->executeActions();

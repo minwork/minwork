@@ -65,8 +65,17 @@ class Field implements ValidatorInterface
     {
         $this->name = $name;
         $this->mandatory = $mandatory;
-        $this->error = empty($error) ? "Field {$name} is mandatory" : $error;
+        $this->error = empty($error) ? 'This field is mandatory' : $error;
         $this->setRules($rules);
+    }
+    
+    /**
+     * Get field string representation
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return $this->getName();
     }
 
     /**
@@ -86,7 +95,7 @@ class Field implements ValidatorInterface
         $this->rules = $rules;
         return $this;
     }
-
+    
     /**
      * Get field name corresponding to input form name
      *

@@ -18,19 +18,19 @@ use Minwork\Http\Utility\HttpCode;
 interface ResponseInterface
 {
 
-    const CONTENT_TYPE_JAVASCRIPT = 'text/javascript';
+    const CONTENT_TYPE_JAVASCRIPT = 'application/javascript';
 
     const CONTENT_TYPE_PDF = 'application/pdf';
 
     const CONTENT_TYPE_RSS = 'application/rss+xml';
 
+    const CONTENT_TYPE_JSON = 'application/json';
+    
     const CONTENT_TYPE_TEXT = 'text/plain';
 
     const CONTENT_TYPE_XML = 'text/xml';
 
     const CONTENT_TYPE_HTML = 'text/html';
-
-    const CONTENT_TYPE_JSON = 'application/json';
 
     const CONTENT_TYPE_CSS = 'text/css';
     

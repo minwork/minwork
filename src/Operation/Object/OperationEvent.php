@@ -67,6 +67,28 @@ class OperationEvent implements EventInterface
     {
         return $this->arguments;
     }
+    
+    /**
+     * Get one of the operation arguments (first by default)
+     * @param integer|string $key Arguments array key
+     * @return null|mixed
+     */
+    public function getArg($key = 0)
+    {
+        return array_key_exists($key, $this->arguments) ? $this->arguments[$key] : null;
+    }
+    
+    /**
+     * Set operation argument (first by default)
+     * @param mixed $value
+     * @param integer|string $key
+     * @return self
+     */
+    public function setArg($value, $key = 0): self
+    {
+        $this->arguments[$key] = $value;
+        return $this;
+    }
 
     /**
      * Set operation arguments
