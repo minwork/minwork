@@ -21,7 +21,7 @@ use Minwork\Operation\Interfaces\RevertableOperationInterface;
  * @author Christopher Kalkhoff
  *        
  */
-abstract class Operation implements OperationInterface, EventDispatcherContainerInterface
+class Operation implements OperationInterface, EventDispatcherContainerInterface
 {
     use Events;
 
