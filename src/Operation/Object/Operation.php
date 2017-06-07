@@ -172,7 +172,7 @@ class Operation implements OperationInterface, EventDispatcherContainerInterface
      */
     public function execute(ObjectOperationInterface $object, array $arguments)
     {
-        $methodName = mb_strtolower($this->getName());
+        $methodName = $this->getName();
         $eventBefore = new OperationEvent(self::EVENT_BEFORE_PREFIX . ucfirst($methodName), $arguments);
         
         $this->getEventDispatcher()->dispatch($eventBefore);
