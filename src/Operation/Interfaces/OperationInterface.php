@@ -22,7 +22,7 @@ interface OperationInterface
      * @param array $arguments            
      * @return mixed
      */
-    public function execute(ObjectOperationInterface $object, array $arguments);
+    public function execute(ObjectOperationInterface $object, array $arguments = []);
 
     /**
      * Get operation name

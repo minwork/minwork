@@ -107,7 +107,7 @@ class OperationEvent implements EventInterface
      *
      * {@inheritdoc}
      *
-     * @see \Framework\Event\Interfaces\EventInterface::getName()
+     * @see \Minwork\Event\Interfaces\EventInterface::getName()
      */
     public function getName(): string
     {
@@ -118,7 +118,7 @@ class OperationEvent implements EventInterface
      *
      * {@inheritdoc}
      *
-     * @see \Framework\Event\Interfaces\EventInterface::setActive()
+     * @see \Minwork\Event\Interfaces\EventInterface::setActive()
      */
     public function setActive(bool $active): EventInterface
     {
@@ -130,7 +130,7 @@ class OperationEvent implements EventInterface
      *
      * {@inheritdoc}
      *
-     * @see \Framework\Event\Interfaces\EventInterface::isActive()
+     * @see \Minwork\Event\Interfaces\EventInterface::isActive()
      */
     public function isActive(): bool
     {
@@ -141,7 +141,7 @@ class OperationEvent implements EventInterface
      *
      * {@inheritdoc}
      *
-     * @see \Framework\Event\Interfaces\EventInterface::__toString()
+     * @see \Minwork\Event\Interfaces\EventInterface::__toString()
      */
     public function __toString(): string
     {

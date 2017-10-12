@@ -13,7 +13,6 @@ use Minwork\Event\Interfaces\EventDispatcherInterface;
 use Minwork\Event\Object\EventDispatcher;
 use Minwork\Operation\Interfaces\ObjectOperationInterface;
 use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
-use Minwork\Operation\Interfaces\RevertableOperationInterface;
 
 /**
  * Abstract operation for handling CRUD
@@ -170,7 +169,7 @@ class Operation implements OperationInterface, EventDispatcherContainerInterface
      *
      * @see \Minwork\Operation\Interfaces\OperationInterface::execute()
      */
-    public function execute(ObjectOperationInterface $object, array $arguments)
+    public function execute(ObjectOperationInterface $object, array $arguments = [])
     {
         $methodName = $this->getName();
         $eventBefore = new OperationEvent(self::EVENT_BEFORE_PREFIX . ucfirst($methodName), $arguments);
@@ -183,10 +182,7 @@ class Operation implements OperationInterface, EventDispatcherContainerInterface
         $arguments = $eventBefore->getArguments();
         
         if (! $this->hasResult() && method_exists($object, $methodName)) {
-            $this->result = call_user_func_array([
-                $object,
-                $methodName
-            ], $arguments);
+            $this->result = $object->$methodName(...$arguments);
         }
         
         $eventAfter = new OperationEvent(self::EVENT_AFTER_PREFIX . ucfirst($methodName), $arguments);

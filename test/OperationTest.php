@@ -3,7 +3,7 @@ namespace Test;
 
 require "vendor/autoload.php";
 
-use Minwork\Operation\Object\AbstractOperation;
+use Minwork\Operation\Object\Operation;
 use Minwork\Event\Object\EventDispatcher;
 use Minwork\Operation\Interfaces\RevertableObjectOperationInterface;
 use Minwork\Operation\Traits\Operations;
@@ -56,9 +56,11 @@ class OperationTest extends \PHPUnit_Framework_TestCase
                 $revert = $event->getArguments()[0];
                 $this->counter = $revert ? $this->counter - 20 : $this->counter + 20;
             }
+            
+        
         };
         
-        $operation1 = new class('operation_1', $dispatcher) extends AbstractOperation implements RevertableOperationInterface {
+        $operation1 = new class('operation_1', $dispatcher) extends Operation implements RevertableOperationInterface {
 
             public function __construct($name, $dispatcher)
             {
@@ -73,7 +75,7 @@ class OperationTest extends \PHPUnit_Framework_TestCase
             }
         };
         
-        $operation2 = new class('operation_2', $dispatcher) extends AbstractOperation {
+        $operation2 = new class('operation_2', $dispatcher) extends Operation {
 
             public function __construct($name, $dispatcher)
             {

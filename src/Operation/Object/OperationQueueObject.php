@@ -48,10 +48,10 @@ class OperationQueueObject
 
     /**
      *
-     * @param AbstractOperation $operation            
+     * @param Operation $operation            
      * @param array $arguments            
      */
-    public function __construct(AbstractOperation $operation, array $arguments)
+    public function __construct(Operation $operation, array $arguments)
     {
         $this->operation = $operation;
         $this->arguments = $arguments;
