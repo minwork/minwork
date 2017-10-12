@@ -46,12 +46,12 @@ trait Operations
      *
      * @see \Minwork\Operation\Interfaces\ObjectOperationInterface::executeOperation()
      * @param OperationInterface $operation            
-     * @param array $arguments            
+     * @param mixed ...$arguments            
      * @return mixed
      */
-    public function executeOperation(OperationInterface $operation, array $arguments)
+    public function executeOperation(OperationInterface $operation, ...$arguments)
     {
-        $return = $operation->execute($this, $arguments);
+        $return = $operation->execute($this, ...$arguments);
         array_push($this->operationHistory, $operation);
         return $return;
     }
@@ -60,10 +60,10 @@ trait Operations
      * Add operation to the queue
      *
      * @param OperationInterface $operation            
-     * @param array $arguments            
+     * @param mixed ...$arguments
      * @return QueueableObjectOperationInterface
      */
-    public function addToQueue(OperationInterface $operation, array $arguments): QueueableObjectOperationInterface
+    public function addToQueue(OperationInterface $operation, ...$arguments): QueueableObjectOperationInterface
     {
         array_push($this->operationQueue, new OperationQueueObject($operation, $arguments));
         return $this;
@@ -73,10 +73,10 @@ trait Operations
      * Prepend operation to the revert queue
      *
      * @param OperationInterface $operation            
-     * @param array $arguments            
+     * @param mixed ...$arguments            
      * @return RevertableObjectOperationInterface
      */
-    public function addToRevertQueue(OperationInterface $operation, array $arguments): RevertableObjectOperationInterface
+    public function addToRevertQueue(OperationInterface $operation, ...$arguments): RevertableObjectOperationInterface
     {
         array_unshift($this->revertOperationQueue, new OperationQueueObject($operation, $arguments));
         return $this;
@@ -96,7 +96,7 @@ trait Operations
             /* @var $operation AbstractOperation */
             $operation = $operationQueueObject->getOperation();
             $arguments = $operationQueueObject->getArguments();
-            $operationQueueObject->setResult($this->executeOperation($operation, $arguments));
+            $operationQueueObject->setResult($this->executeOperation($operation, ...$arguments));
             if ($operation->canRevert()) {
                 array_unshift($this->revertOperationQueue, $operationQueueObject);
             }
@@ -123,7 +123,7 @@ trait Operations
             $operation = $operationQueueObject->getOperation();
             $arguments = $operationQueueObject->getArguments();
             if ($operation->canRevert()) {
-                $operationQueueObject->setResult($operation->revert($this, $arguments));
+                $operationQueueObject->setResult($operation->revert($this, ...$arguments));
             }
         }
         $result = $this->revertOperationQueue;

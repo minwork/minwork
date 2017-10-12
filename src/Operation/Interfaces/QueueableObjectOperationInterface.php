@@ -20,10 +20,10 @@ interface QueueableObjectOperationInterface extends ObjectOperationInterface
      * Append operation to the queue
      *
      * @param OperationInterface $operation            
-     * @param array $arguments            
+     * @param mixed ...$arguments            
      * @return self
      */
-    public function addToQueue(OperationInterface $operation, array $arguments): self;
+    public function addToQueue(OperationInterface $operation, ...$arguments): self;
 
     /**
      * Execute operations queue

@@ -52,7 +52,7 @@ class Condition
      * @param callable $valueEscapeFunction            
      * @param callable $columnEscapeFunction            
      */
-    public function __construct(callable $valueEscapeFunction = null, callable $columnEscapeFunction = null): void
+    public function __construct(callable $valueEscapeFunction = null, callable $columnEscapeFunction = null)
     {
         $valueEscapeFunction = is_null($valueEscapeFunction) ? function ($value) {
             return "'" . Formatter::cleanData(Formatter::removeQuotes($value)) . "'";

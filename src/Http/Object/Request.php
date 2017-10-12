@@ -73,7 +73,7 @@ class Request implements RequestInterface
      *            Headers to send
      *            
      */
-    public function __construct(array $query = [], $body = null, array $headers = [], string $method = cUrl::METHOD_POST): void
+    public function __construct(array $query = [], $body = null, array $headers = [], string $method = cUrl::METHOD_POST)
     {
         $this->setMethod($method)
             ->setQuery($query)

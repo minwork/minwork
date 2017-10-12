@@ -33,7 +33,7 @@ class Validator implements ValidatorInterface
      * @param ValidatorInterface[] $config            
      * @throws \InvalidArgumentException
      */
-    public function __construct(array $config = []): void
+    public function __construct(array $config = [])
     {
         $this->setConfig($config);
     }

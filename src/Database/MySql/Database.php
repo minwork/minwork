@@ -8,6 +8,7 @@
 namespace Minwork\Database\MySql;
 
 use Minwork\Database\Object\AbstractDatabase;
+use Minwork\Database\Interfaces\DatabaseInterface;
 
 /**
  * MySQL implementation of database
@@ -24,7 +25,7 @@ class Database extends AbstractDatabase
      *
      * @see \Minwork\Database\Object\AbstractDatabase::init()
      */
-    protected function init(string $user, string $password): self
+    protected function init(string $user, string $password): DatabaseInterface
     {
         $this->setOptions([
             \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->getCharset()}"

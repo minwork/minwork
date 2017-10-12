@@ -37,7 +37,7 @@ abstract class ErrorPrototype implements ErrorInterface, \JsonSerializable
      *
      * @param string $message
      */
-    public function __construct(string $message): void
+    public function __construct(string $message)
     {
         $this->message = $message;
     }

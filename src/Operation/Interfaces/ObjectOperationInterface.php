@@ -20,7 +20,7 @@ interface ObjectOperationInterface
      * Execute given operation
      * 
      * @param OperationInterface $operation            
-     * @param array $arguments            
+     * @param mixed ...$arguments            
      */
-    public function executeOperation(OperationInterface $operation, array $arguments);
+    public function executeOperation(OperationInterface $operation, ...$arguments);
 }

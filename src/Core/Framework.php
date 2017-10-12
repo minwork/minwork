@@ -68,7 +68,7 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
      * @param EnvironmentInterface $environment            
      * @param EventDispatcherInterface $eventDisptacher            
      */
-    public function __construct(RouterInterface $router, EnvironmentInterface $environment, EventDispatcherInterface $eventDisptacher = null): void
+    public function __construct(RouterInterface $router, EnvironmentInterface $environment, EventDispatcherInterface $eventDisptacher = null)
     {
         $this->setRouter($router)
             ->setEnvironment($environment)
@@ -194,7 +194,8 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
         }
         
         // Get content
-        $content = $controller->$method(...$arguments);
+        $args = array_values($arguments);
+        $content = $controller->$method(...$args);
         
         $controller->getEventDispatcher()->dispatch(new Event(self::EVENT_AFTER_METHOD_RUN));
         

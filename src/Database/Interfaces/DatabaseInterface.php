@@ -23,7 +23,7 @@ interface DatabaseInterface
      *            The SQL statement to prepare and execute.<br>Data inside the query should be properly escaped.
      * @return mixed
      */
-    public function exec(string $statement);
+    public function exec($statement);
 
     /**
      * Executes an SQL statement, returning a result specific to database implementation
@@ -32,7 +32,7 @@ interface DatabaseInterface
      *            The SQL statement to prepare and execute.<br>Data inside the query should be properly escaped.
      * @return mixed           
      */
-    public function query(string $statement);
+    public function query($statement);
 
     /**
      * Cross-platform string escaping for preventing SQL injection (usually by sanitizing data and surrounding it with quotes)

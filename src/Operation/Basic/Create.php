@@ -40,7 +40,7 @@ class Create extends Operation implements RevertableOperationInterface
      *            Event dispatcher for before and after execution events
      * @see \Minwork\Operation\Interfaces\RevertableOperationInterface
      */
-    public function __construct(string $name = self::OPERATION_NAME, bool $canQueue = true, bool $canRevert = true, EventDispatcherInterface $eventDispatcher = null): void
+    public function __construct(string $name = self::OPERATION_NAME, bool $canQueue = true, bool $canRevert = true, EventDispatcherInterface $eventDispatcher = null)
     {
         parent::__construct($name, $canQueue, $canRevert, $eventDispatcher);
     }
@@ -51,10 +51,10 @@ class Create extends Operation implements RevertableOperationInterface
      *
      * @see \Minwork\Operation\Interfaces\RevertableOperationInterface::revert()
      */
-    public function revert(RevertableObjectOperationInterface $object, array $arguments)
+    public function revert(RevertableObjectOperationInterface $object, ...$arguments)
     {
         if (method_exists($object, Delete::OPERATION_NAME)) {
-            return $object->executeOperation(new Delete($this->getEventDispatcher()), $arguments);
+            return $object->executeOperation(new Delete($this->getEventDispatcher()), ...$arguments);
         }
         return false;
     }

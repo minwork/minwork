@@ -61,7 +61,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * @param string $name            
      * @param ColumnInterface[] $columns            
      */
-    public function __construct(DatabaseInterface $database, string $name, array $columns = []): void
+    public function __construct(DatabaseInterface $database, string $name, array $columns = [])
     {
         $this->setDatabase($database)
             ->setName($name)

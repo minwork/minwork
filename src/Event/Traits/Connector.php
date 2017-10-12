@@ -48,7 +48,7 @@ trait Connector {
      *            
      * @return self
      */
-    protected function connect($connector = null, EventDispatcherInterface $eventDispatcher = null): self
+    protected function connect($connector = null, EventDispatcherInterface $eventDispatcher = null)
     {
         $eventDispatcher = $eventDispatcher ?? ($this instanceof EventDispatcherContainerInterface ? $this->getEventDispatcher() : EventDispatcher::getGlobal());
         $methods = get_class_methods($this);
@@ -82,7 +82,7 @@ trait Connector {
             $constants = $reflection->getConstants();
             
             foreach ($constants as $const => $event) {
-                if (Formatter::startsWith($const, 'event') && (($method = array_search($normalizedEventName($event), $methodsMap)) !== false || ($method = array_search($normalizedEventName($const), $methodsMap)) !== false)) {
+                if (is_string($event) && Formatter::startsWith($const, 'event') && (($method = array_search($normalizedEventName($event), $methodsMap)) !== false || ($method = array_search($normalizedEventName($const), $methodsMap)) !== false)) {
                     $mapper[$event][] = $method;
                 }
             }

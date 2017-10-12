@@ -19,10 +19,10 @@ interface OperationInterface
     /**
      * Execute operation
      *
-     * @param array $arguments            
+     * @param mixed ...$arguments            
      * @return mixed
      */
-    public function execute(ObjectOperationInterface $object, array $arguments = []);
+    public function execute(ObjectOperationInterface $object, ...$arguments);
 
     /**
      * Get operation name

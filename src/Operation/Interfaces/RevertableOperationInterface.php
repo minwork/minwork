@@ -20,7 +20,7 @@ interface RevertableOperationInterface extends OperationInterface
      * Revert operation changes to the object
      *
      * @param RevertableObjectOperationInterface $object            
-     * @param array $arguments            
+     * @param mixed ...$arguments            
      */
-    public function revert(RevertableObjectOperationInterface $object, array $arguments);
+    public function revert(RevertableObjectOperationInterface $object, ...$arguments);
 }

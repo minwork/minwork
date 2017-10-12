@@ -18,7 +18,7 @@ use Minwork\Storage\Object\AbstractArrayStorage;
 class Get extends AbstractArrayStorage
 {
 
-    public function __construct(): void
+    public function __construct()
     {
         parent::__construct($_GET);
     }

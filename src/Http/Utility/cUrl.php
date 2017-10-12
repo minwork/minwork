@@ -79,7 +79,7 @@ class cUrl
      * @param UrlInterface $url            
      * @param array $fields            
      */
-    public function __construct(UrlInterface $url, array $fields = []): void
+    public function __construct(UrlInterface $url, array $fields = [])
     {
         if (! extension_loaded("curl")) {
             throw new \Exception("You must enable cURL library first");

@@ -55,7 +55,7 @@ class Controller implements ControllerInterface
      * @param RequestInterface $request            
      * @param ResponseInterface $response            
      */
-    public function __construct(RequestInterface $request = null, ResponseInterface $response = null, EventDispatcherInterface $eventDispatcher = null): void
+    public function __construct(RequestInterface $request = null, ResponseInterface $response = null, EventDispatcherInterface $eventDispatcher = null)
     {
         $this->setRequest($request ?? Request::createFromGlobals())
             ->setResponse($response ?? new Response())

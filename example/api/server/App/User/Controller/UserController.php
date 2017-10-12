@@ -21,7 +21,7 @@ use Minwork\Http\Utility\cUrl;
 
 /**
  * Controller responsible for user CRUD operations
- * 
+ *
  * @author Christopher Kalkhoff
  *        
  */
@@ -42,9 +42,7 @@ class UserController extends MainController
         }
         $data = Formatter::cleanData($this->getRequest()->getBody());
         $user = new User();
-        if ($user->execute(new Create(), [
-            $data
-        ], new UserCreateValidator())) {
+        if ($user->validateThenExecute(new Create(), new UserCreateValidator(), $data)) {
             return $this->respond(new JSON([
                 'user' => [
                     'id' => $user->getId()
@@ -57,7 +55,7 @@ class UserController extends MainController
     /**
      * Read user data
      *
-     * @param int $id            
+     * @param int $id
      * @return ResponseInterface
      */
     public function read(int $id): ResponseInterface
@@ -79,7 +77,7 @@ class UserController extends MainController
      * Update user data (email, first_name, last_name, new_email -> email)<br>
      * First email field is used for verification purposes
      *
-     * @param int $id            
+     * @param int $id
      * @return ResponseInterface
      */
     public function update(int $id): ResponseInterface
@@ -92,9 +90,7 @@ class UserController extends MainController
         if (! $user->exists()) {
             return $this->triggerError(self::ERROR_USER_NOT_FOUND);
         }
-        if ($user->execute(new UpdateUserData(), [
-            $data
-        ], new UserUpdateValidator())) {
+        if ($user->validateThenExecute(new UpdateUserData(), new UserUpdateValidator(), $data)) {
             return $this->respond(new JSON([
                 'user' => $user->getData()
             ]));
@@ -105,7 +101,7 @@ class UserController extends MainController
     /**
      * Delete user
      *
-     * @param int $id            
+     * @param int $id
      * @return ResponseInterface
      */
     public function delete(int $id): ResponseInterface
@@ -116,7 +112,7 @@ class UserController extends MainController
         $id = Formatter::cleanData($id);
         $user = new User($id);
         if ($user->exists()) {
-            return $this->respond(new JSON([], $user->executeOperation(new Delete(), [])));
+            return $this->respond(new JSON([], $user->execute(new Delete())));
         }
         return $this->triggerError(self::ERROR_USER_NOT_FOUND);
     }

@@ -48,7 +48,7 @@ class Update extends Operation implements RevertableOperationInterface
      *            Event dispatcher for before and after execution events
      * @see \Minwork\Operation\Interfaces\RevertableOperationInterface
      */
-    public function __construct(string $name = self::OPERATION_NAME, bool $canQueue = true, bool $canRevert = false, EventDispatcherInterface $eventDispatcher = null): void
+    public function __construct(string $name = self::OPERATION_NAME, bool $canQueue = true, bool $canRevert = false, EventDispatcherInterface $eventDispatcher = null)
     {
         parent::__construct($name, $canQueue, $canRevert, $eventDispatcher);
     }
@@ -59,7 +59,7 @@ class Update extends Operation implements RevertableOperationInterface
      *
      * @see \Minwork\Operation\Interfaces\OperationInterface::execute()
      */
-    public function execute(ObjectOperationInterface $object, array $arguments)
+    public function execute(ObjectOperationInterface $object, ...$arguments)
     {
         // If object implements ModelInterface it is possible to be reverted otherwise disable it
         if ($object instanceof ModelInterface && $this->canRevert()) {
@@ -71,7 +71,7 @@ class Update extends Operation implements RevertableOperationInterface
                 $this->setCanRevert(false);
             }
         }
-        return parent::execute($object, $arguments);
+        return parent::execute($object, ...$arguments);
     }
 
     /**
@@ -80,11 +80,12 @@ class Update extends Operation implements RevertableOperationInterface
      *
      * @see \Minwork\Operation\Interfaces\RevertableOperationInterface::revert()
      */
-    public function revert(RevertableObjectOperationInterface $object, array $arguments)
+    public function revert(RevertableObjectOperationInterface $object, ...$arguments)
     {
         if ($this->canRevert() && ! is_null($this->previousData)) {
-            $arguments[0] = $this->previousData;
-            return $object->executeOperation(new Update($this->getEventDispatcher()), $arguments);
+            array_unshift($arguments, $this->previousData);
+            $operation = new self();
+            return $object->executeOperation($operation->setEventDispatcher($this->getEventDispatcher()), ...$arguments);
         }
         return false;
     }

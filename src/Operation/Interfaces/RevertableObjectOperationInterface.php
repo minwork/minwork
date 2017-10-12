@@ -20,10 +20,10 @@ interface RevertableObjectOperationInterface extends QueueableObjectOperationInt
      * Prepend operation to revert queue
      *
      * @param OperationInterface $operation            
-     * @param array $arguments            
+     * @param mixed ...$arguments            
      * @return self
      */
-    public function addToRevertQueue(OperationInterface $operation, array $arguments): self;
+    public function addToRevertQueue(OperationInterface $operation, ...$arguments): self;
 
     /**
      * Execute revert operations queue

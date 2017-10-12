@@ -11,54 +11,15 @@ use Minwork\Operation\Interfaces\RevertableOperationInterface;
 use Minwork\Event\Traits\Connector;
 use Minwork\Operation\Object\OperationEvent;
 
-
 class OperationTest extends \PHPUnit_Framework_TestCase
 {
 
     public function test()
     {
-        /* @var $this self */
         $counter = 0;
         $dispatcher = new EventDispatcher();
         
-        $object = new class($counter, $dispatcher) implements RevertableObjectOperationInterface {
-            use Operations, Connector;
-
-            public $counter;
-
-            public function __construct($counter, $dispatcher)
-            {
-                $this->counter = $counter;
-                $this->connect([
-                    'beforeOperation_1',
-                    'afterOperation_2'
-                ], $dispatcher);
-            }
-
-            public function beforeOperation_1(OperationEvent $event)
-            {
-                $revert = $event->getArguments()[0];
-                $this->counter = $revert ? $this->counter - 10 : $this->counter + 10;
-            }
-
-            public function operation_1($revert)
-            {
-                $this->counter = $revert ? $this->counter - 1 : $this->counter + 1;
-            }
-
-            public function operation_2($revert)
-            {
-                $this->counter = $revert ? $this->counter - 2 : $this->counter + 2;
-            }
-
-            public function afterOperation_2(OperationEvent $event)
-            {
-                $revert = $event->getArguments()[0];
-                $this->counter = $revert ? $this->counter - 20 : $this->counter + 20;
-            }
-            
-        
-        };
+        $object = new ClassWithQueue($counter, $dispatcher);
         
         $operation1 = new class('operation_1', $dispatcher) extends Operation implements RevertableOperationInterface {
 
@@ -67,9 +28,9 @@ class OperationTest extends \PHPUnit_Framework_TestCase
                 parent::__construct($name, true, true, $dispatcher);
             }
 
-            public function revert(RevertableObjectOperationInterface $object, array $arguments)
+            public function revert(RevertableObjectOperationInterface $object, ...$arguments)
             {
-                return $this->execute($object, array_map(function ($arg) {
+                return $this->execute($object, ...array_map(function ($arg) {
                     return ! $arg;
                 }, $arguments));
             }
@@ -82,23 +43,57 @@ class OperationTest extends \PHPUnit_Framework_TestCase
                 parent::__construct($name, true, true, $dispatcher);
             }
 
-            public function revert(RevertableObjectOperationInterface $object, array $arguments)
+            public function revert(RevertableObjectOperationInterface $object, ...$arguments)
             {
-                return $this->execute($object, array_map(function ($arg) {
+                return $this->execute($object, ...array_map(function ($arg) {
                     return ! $arg;
                 }, $arguments));
             }
         };
         
-        $object->addToQueue($operation1, [
-            false
-        ]);
-        $object->addToQueue($operation2, [
-            false
-        ]);
+        $object->addToQueue($operation1, false);
+        $object->addToQueue($operation2, false);
         $object->executeQueue();
         $this->assertEquals($counter + 33, $object->counter);
         $object->revertQueue();
         $this->assertEquals($counter, $object->counter);
+    }
+}
+
+class ClassWithQueue implements RevertableObjectOperationInterface
+{
+    use Operations, Connector;
+
+    public $counter;
+
+    public function __construct($counter, $dispatcher)
+    {
+        $this->counter = $counter;
+        $this->connect([
+            'beforeOperation_1',
+            'afterOperation_2'
+        ], $dispatcher);
+    }
+
+    public function beforeOperation_1(OperationEvent $event)
+    {
+        $revert = $event->getArguments()[0];
+        $this->counter = $revert ? $this->counter - 10 : $this->counter + 10;
+    }
+
+    public function operation_1($revert)
+    {
+        $this->counter = $revert ? $this->counter - 1 : $this->counter + 1;
+    }
+
+    public function operation_2($revert)
+    {
+        $this->counter = $revert ? $this->counter - 2 : $this->counter + 2;
+    }
+
+    public function afterOperation_2(OperationEvent $event)
+    {
+        $revert = $event->getArguments()[0];
+        $this->counter = $revert ? $this->counter - 20 : $this->counter + 20;
     }
 }

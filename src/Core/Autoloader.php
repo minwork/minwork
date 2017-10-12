@@ -59,7 +59,7 @@ class MinworkAutoloader
      * @param string|null $path
      *            Basic path to search for classes files
      */
-    public function __construct(?string $namespace = null, ?string $path = null): void
+    public function __construct(?string $namespace = null, ?string $path = null)
     {
         $this->basicNamespace = $namespace ?? 'Minwork';
         $this->basicPath = $path == self::DEFAULT_DIR_SEPARATOR ? '' : ($path ?? preg_replace('/' . DIRECTORY_SEPARATOR . 'Core$/', '', __DIR__));

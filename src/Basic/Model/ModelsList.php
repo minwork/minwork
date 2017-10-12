@@ -11,6 +11,7 @@ use Minwork\Basic\Interfaces\ModelInterface;
 use Minwork\Database\Utility\Query;
 use Minwork\Operation\Basic\Read;
 use Minwork\Operation\Object\OperationEvent;
+use Minwork\Helper\ArrayHelper;
 
 /**
  * List of models according to supplied prototype
@@ -68,7 +69,7 @@ class ModelsList
      * @param ModelInterface $prototype            
      * @param Query $query            
      */
-    public function __construct(ModelInterface $prototype, Query $query): void
+    public function __construct(ModelInterface $prototype, Query $query)
     {
         $this->reset()->setQuery($query)->prototype = $prototype;
     }
@@ -128,8 +129,16 @@ class ModelsList
         
         foreach ($list as $data) {
             $model = clone $this->prototype;
+            /* @var $model \Minwork\Basic\Interfaces\ModelInterface */
+
+            // If we have id in data then set it
+            $ids = ArrayHelper::filterByKeys($data, ArrayHelper::forceArray($this->prototype->getStorage()->getPkField()));
+            if (! empty($ids)) {
+                $model->setId($ids);
+                $data = array_diff_key($data, $ids);
+            }
+            
             // Emulate read operation
-            /* @var $model \Minwork\Basic\Model\Model */
             $model->getEventDispatcher()->dispatch(new OperationEvent(Read::EVENT_BEFORE));
             $this->list[] = $model->setData($data, false);
             $model->getEventDispatcher()->dispatch(new OperationEvent(Read::EVENT_AFTER));

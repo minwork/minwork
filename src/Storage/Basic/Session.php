@@ -22,7 +22,7 @@ class Session extends AbstractArrayStorage
      * If cannot access $_SESSION array manually initialize it
      * @throws \Exception
      */
-    public function __construct(): void
+    public function __construct()
     {
         if (! isset($_SESSION)) {
             if (PHP_SAPI === 'cli') {

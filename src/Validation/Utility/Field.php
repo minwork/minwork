@@ -62,7 +62,7 @@ class Field implements ValidatorInterface
      * @param string $error
      *            Global error when field is mandatory but didn't found key corresponding to its name during validation on $data array
      */
-    public function __construct(string $name, array $rules = [], bool $mandatory = true, string $error = ''): void
+    public function __construct(string $name, array $rules = [], bool $mandatory = true, string $error = '')
     {
         $this->name = $name;
         $this->mandatory = $mandatory;

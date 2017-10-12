@@ -79,7 +79,7 @@ class Rule implements ValidatorInterface
      * @param bool $expect
      *            Expected function result
      */
-    public function __construct($callback, ?string $error = '', array $arguments = [], string $importance = self::IMPORTANCE_NORMAL, bool $expect = true): void
+    public function __construct($callback, ?string $error = '', array $arguments = [], string $importance = self::IMPORTANCE_NORMAL, bool $expect = true)
     {
         if (is_string($callback) && ! is_callable($callback) && method_exists("\Minwork\Helper\Validation", $callback)) {
             $callback = "\Minwork\Helper\Validation::{$callback}";

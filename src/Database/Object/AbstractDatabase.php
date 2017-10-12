@@ -61,7 +61,7 @@ abstract class AbstractDatabase extends \PDO implements DatabaseInterface
      * @param array $options
      *            Additional database options used in init method
      */
-    public function __construct(string $host, string $name = '', string $user = '', string $password = '', string $charset = self::DEFAULT_CHARSET, array $options = []): void
+    public function __construct(string $host, string $name = '', string $user = '', string $password = '', string $charset = self::DEFAULT_CHARSET, array $options = [])
     {
         $this->setHost($host)
             ->setName($name)
@@ -120,7 +120,7 @@ abstract class AbstractDatabase extends \PDO implements DatabaseInterface
      *
      * @see \PDO::exec()
      */
-    public function exec(string $statement)
+    public function exec($statement)
     {
         return parent::exec($statement);
     }
@@ -131,7 +131,7 @@ abstract class AbstractDatabase extends \PDO implements DatabaseInterface
      *
      * @see \Minwork\Database\Interfaces\DatabaseInterface::query()
      */
-    public function query(string $statement)
+    public function query($statement)
     {
         return parent::query($statement);
     }
@@ -180,7 +180,7 @@ abstract class AbstractDatabase extends \PDO implements DatabaseInterface
      * @param string $user            
      * @param string $password            
      */
-    abstract protected function init(string $user, string $password): self;
+    abstract protected function init(string $user, string $password): DatabaseInterface;
 
     /**
      * Set database host

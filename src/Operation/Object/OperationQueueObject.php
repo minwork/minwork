@@ -51,7 +51,7 @@ class OperationQueueObject
      * @param Operation $operation            
      * @param array $arguments            
      */
-    public function __construct(Operation $operation, array $arguments): void
+    public function __construct(Operation $operation, array $arguments)
     {
         $this->operation = $operation;
         $this->arguments = $arguments;

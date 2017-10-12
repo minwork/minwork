@@ -31,7 +31,7 @@ class Json implements ViewInterface
      *
      * @param array $data            
      */
-    public function __construct(array $data = []): void
+    public function __construct(array $data = [])
     {
         $this->setData($data);
     }

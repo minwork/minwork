@@ -7,9 +7,9 @@
  */
 namespace Minwork\Basic\Interfaces;
 
-use Minwork\Operation\Interfaces\OperationInterface;
-use Minwork\Validation\Interfaces\ValidatorInterface;
 use Minwork\Storage\Interfaces\DatabaseStorageInterface;
+use Minwork\Operation\Interfaces\ObjectOperationInterface;
+use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
 
 /**
  * Every model which represent single row in database must implement that interface
@@ -17,21 +17,8 @@ use Minwork\Storage\Interfaces\DatabaseStorageInterface;
  * @author Christopher Kalkhoff
  *        
  */
-interface ModelInterface
+interface ModelInterface extends ObjectOperationInterface, EventDispatcherContainerInterface
 {
-
-    /**
-     * Run supplied operation with optional validator check which should be made before execution
-     *
-     * @param OperationInterface $operation
-     *            Operation object
-     * @param array $arguments
-     *            Operation arguments
-     * @param ValidatorInterface $validator
-     *            Validator object
-     */
-    public function execute(OperationInterface $operation, array $arguments = [], ValidatorInterface $validator = null);
-
     /**
      * Check if model with given id exists
      *

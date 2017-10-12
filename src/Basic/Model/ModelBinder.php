@@ -33,7 +33,7 @@ class ModelBinder extends Model
      * @param BindableModelInterface[] $models            
      * @param EventDispatcherInterface $eventDispatcher            
      */
-    public function __construct(DatabaseStorageInterface $storage, array $models, EventDispatcherInterface $eventDispatcher = null): void
+    public function __construct(DatabaseStorageInterface $storage, array $models, EventDispatcherInterface $eventDispatcher = null)
     {
         $this->reset()
             ->setStorage($storage)
@@ -99,7 +99,7 @@ class ModelBinder extends Model
      *
      * @return bool
      */
-    public function executeActions(): bool
+    public function synchronize(): bool
     {
         if ($this->requireAction()) {
             $state = $this->state;

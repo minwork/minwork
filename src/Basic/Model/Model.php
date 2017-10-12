@@ -19,9 +19,7 @@ use Minwork\Operation\Interfaces\OperationInterface;
 use Minwork\Validation\Interfaces\ValidatorInterface;
 use Minwork\Basic\Interfaces\ModelInterface;
 use Minwork\Storage\Traits\Storage;
-use Minwork\Operation\Interfaces\ObjectOperationInterface;
 use Minwork\Basic\Interfaces\BindableModelInterface;
-use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
 use Minwork\Basic\Traits\Debugger;
 use Minwork\Database\Interfaces\TableInterface;
 use Minwork\Helper\Formatter;
@@ -34,7 +32,7 @@ use Minwork\Event\Traits\Connector;
  * @author Christopher Kalkhoff
  *        
  */
-class Model implements ModelInterface, ObjectOperationInterface, BindableModelInterface, EventDispatcherContainerInterface
+class Model implements ModelInterface, BindableModelInterface
 {
     use Connector, Errors, Events, Debugger, Operations, Storage {
       getStorage as getStorageTrait;
@@ -103,7 +101,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
      * @param bool $buffering            
      * @param EventDispatcherInterface $eventDispatcher            
      */
-    public function __construct(DatabaseStorageInterface $storage, $id = null, bool $buffering = true, EventDispatcherInterface $eventDispatcher = null): void
+    public function __construct(DatabaseStorageInterface $storage, $id = null, bool $buffering = true, EventDispatcherInterface $eventDispatcher = null)
     {
         $this->reset()
             ->setStorage($storage)
@@ -117,7 +115,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
      * Clone model and all objects set through dependency injection
      * Reset event dispatcher and reconnect all events to newly created model
      */
-    public function __clone(): void
+    public function __clone()
     {
         $this->setStorage(clone $this->getStorage())
             ->setEventDispatcher((clone $this->getEventDispatcher())->reset())
@@ -127,10 +125,10 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
     /**
      * Executes storage actions if necessary
      */
-    public function __destruct(): void
+    public function __destruct()
     {
         if ($this->requireAction()) {
-            $this->executeActions();
+            $this->synchronize();
         }
     }
 
@@ -226,7 +224,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
     public function getId()
     {
         if (is_null($this->id) && $this->state === self::STATE_CREATE && ! empty($this->data)) {
-            $this->executeActions();
+            $this->synchronize();
         }
         return $this->id;
     }
@@ -278,7 +276,12 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
             $this->exists = false;
         } else {
             if (is_array($id)) {
-                $this->id = ArrayHelper::isAssoc($id, true) ? ArrayHelper::filterByKeys($id, ArrayHelper::forceArray($this->getStorage()->getPkField())) : (count($id) === 1 ? reset($id) : $id);
+                $idField = $this->getStorage()->getPkField();
+                if (is_string($idField) && (array_key_exists($idField, $id) || count($id) === 1)) {
+                    $this->id = reset($id);
+                } else {
+                    $this->id = ArrayHelper::isAssoc($id, true) ? ArrayHelper::filterByKeys($id, ArrayHelper::forceArray($idField)) : $id;
+                }
             } else {
                 $this->id = $id;
             }
@@ -322,7 +325,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
      *
      * @return bool
      */
-    public function executeActions(): bool
+    public function synchronize(): bool
     {
         if ($this->requireAction()) {
             $state = $this->state;
@@ -332,6 +335,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
                     $insertData = $this->getChangedData();
                     // Get id without executing same method again
                     $idArray = $this->getNormalizedId();
+                    
                     if (empty($idArray)) {
                         $this->getStorage()->set(new Query([], array_keys($insertData)), array_values($insertData));
                         $id = $this->getStorage()
@@ -363,26 +367,43 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
     }
 
     /**
+     * Execute supplied operation
      *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Basic\Interfaces\ModelInterface::execute($operation, $arguments, $validator)
+     * @param OperationInterface $operation
+     *            Operation object
+     * @param mixed ...$arguments
+     *            Operation arguments
      */
-    public function execute(OperationInterface $operation, array $arguments = [], ValidatorInterface $validator = null)
+    public function execute(OperationInterface $operation, ...$arguments)
     {
-        if (! is_null($validator) && ! $validator->setContext($this)
-            ->validate(count($arguments) === 1 ? reset($arguments) : $arguments)
-            ->isValid()) {
-            $this->getErrors()->merge($validator->getErrors());
-            return false;
-        }
-        $result = $this->executeOperation($operation->setEventDispatcher($this->getEventDispatcher()), $arguments);
+        $result = $this->executeOperation($operation->setEventDispatcher($this->getEventDispatcher()), ...$arguments);
         
         if (! $this->buffering) {
-            $this->executeActions();
+            $this->synchronize();
         }
         
         return $result;
+    }
+    
+    /**
+     * Validate using supplied validator then execute operation if validation was successful
+     * @param OperationInterface $operation
+     *            Operation object
+     * @param ValidatorInterface $validator
+     *            Validator object
+     * @param mixed ...$arguments
+     *            Operation arguments
+     */
+    public function validateThenExecute(OperationInterface $operation, ValidatorInterface $validator, ...$arguments)
+    {
+        if (! $validator->setContext($this)
+            ->validate(count($arguments) === 1 ? reset($arguments) : $arguments)
+            ->isValid()) {
+                $this->getErrors()->merge($validator->getErrors());
+                return false;
+        }
+        
+        return $this->execute($operation, ...$arguments);
     }
 
     /**
@@ -481,7 +502,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
         
         // If model doesn't contain all needed data then get it from storage by executing read operation
         if ($getData) {
-            $this->execute(new Read(), [$filterArray]);
+            $this->execute(new Read(), $filterArray);
         }
         
         return ! is_null($filter) && (is_string($filter) || is_int($filter)) ? $this->data[$filter] : (is_null($filter) ? $this->data : array_intersect_key($this->data, array_flip($filter)));
@@ -497,15 +518,11 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
     {
         if ($merge && ! is_null($this->data)) {
             foreach ($data as $key => $value) {
-                if (! isset($this->data[$key]) || $this->data[$key] !== $value) {
+                if (! array_key_exists($key, $this->data) || $this->data[$key] !== $value) {
                     $this->data[$key] = $value;
                 }
             }
         } else {
-            // If we doesn't merge data then search for id column inside data
-            if (($count = count($ids = ArrayHelper::filterByKeys($data, ArrayHelper::forceArray($this->getStorage()->getPkField())))) > 0) {
-                $this->setId($count === 1 ? reset($ids) : $ids);
-            }
             $this->data = $data;
         }
         if ($this->state === self::STATE_EMPTY && ! empty($this->data)) {
@@ -522,7 +539,14 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
      */
     public function create(array $data = []): bool
     {
+        // When creating search for ids
+        $ids = ArrayHelper::filterByKeys($data, ArrayHelper::forceArray($this->getStorage()->getPkField()));
         $data = ArrayHelper::filterByKeys($data, $this->getStorage()->getFields());
+        
+        if (! empty($ids)) {
+            $this->setId($ids);
+        }
+        
         $this->setState(self::STATE_CREATE)
             ->setData($data, false)
             ->markAsChanged($data);

@@ -76,7 +76,7 @@ class Column implements ColumnInterface
      * @param bool $primaryKey            
      * @param bool $autoIncrement            
      */
-    public function __construct(string $name, string $type, $defaultValue = null, bool $nullable = false, bool $primaryKey = false, bool $autoIncrement = false): void
+    public function __construct(string $name, string $type, $defaultValue = null, bool $nullable = false, bool $primaryKey = false, bool $autoIncrement = false)
     {
         $this->setName($name)
             ->setType($type)

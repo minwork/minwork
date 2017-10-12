@@ -51,7 +51,7 @@ class OperationEvent implements EventInterface
      * @param string $name            
      * @param array $arguments            
      */
-    public function __construct(string $name, array $arguments = []): void
+    public function __construct(string $name, array $arguments = [])
     {
         $this->name = $name;
         $this->arguments = $arguments;

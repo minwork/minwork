@@ -23,7 +23,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 {
 
     protected static $database, $table;
-    
+
     public static function setUpBeforeClass()
     {
         global $argv, $argc;
@@ -33,19 +33,19 @@ class ModelTest extends \PHPUnit_Framework_TestCase
                 case 6:
                     self::$database = new MySqlDatabase($argv[2], $argv[3], $argv[4], $argv[5]);
                     break;
-                    // Database host, user and password specified in arguments
+                // Database host, user and password specified in arguments
                 case 5:
                     self::$database = new MySqlDatabase($argv[2], 'test', $argv[3], $argv[4]);
                     break;
-                    // Database host and name specified in arguments
+                // Database host and name specified in arguments
                 case 4:
                     self::$database = new MySqlDatabase($argv[2], $argv[3], 'root', '');
                     break;
-                    // Database name specified in arguments
+                // Database name specified in arguments
                 case 3:
                     self::$database = new MySqlDatabase('localhost', $argv[2], 'root', '');
                     break;
-                    // If no database configuration arguments specified then fallback to default settings
+                // If no database configuration arguments specified then fallback to default settings
                 case 2:
                 default:
                     self::$database = new MySqlDatabase('localhost', 'test', 'root', '');
@@ -59,7 +59,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             self::$table = 'Minwork\Database\Sqlite\Table';
         }
     }
-    
+
     public function testModelFlow()
     {
         $validatorFunction = function ($value, $arg1, $arg2) {
@@ -92,20 +92,23 @@ class ModelTest extends \PHPUnit_Framework_TestCase
                 new Rule('isInt', '', [], Rule::IMPORTANCE_NORMAL, false)
             ]),
             new Field('email', [
-                new Rule('isEmail', '', [false]),
+                new Rule('isEmail', '', [
+                    false
+                ]),
                 new Rule($validatorFunction, '', [
                     true,
                     false
                 ])
             ])
         ]);
-        $this->assertSame($data, $model->setData($data)->getData());
-        $this->assertTrue($model->execute(new Create(), [
-            $data
-        ], $validator));
+        $this->assertSame($data, $model->setData($data)
+            ->getData());
+        $this->assertTrue($model->validateThenExecute(new Create(), $validator, $data));
         $this->assertTrue($model->exists());
         $this->assertNotNull($model->getId());
-        $this->assertEquals(['id' => 1], $model->getNormalizedId());
+        $this->assertEquals([
+            'id' => 1
+        ], $model->getNormalizedId());
         $this->assertEquals(1, $model->getId());
         $this->assertEquals($data, $model->getData());
         $this->assertEquals($data['name'], $model->getData('name'));
@@ -117,12 +120,10 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             'email'
         ]));
         
-        $model->execute(new Update(), [
-            $newData
-        ]);
+        $model->execute(new Update(), $newData);
         $this->assertTrue($model->exists());
         $this->assertEquals(array_merge($data, $newData), $model->getData());
-        $model->executeActions();
+        $model->synchronize();
         $id = $model->getId();
         
         $model->setId($newId);
@@ -154,23 +155,24 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             'id_1' => Random::int(),
             'id_2' => Random::string(255),
             'id_3' => boolval(Random::int(0, 1)),
-            'data' => Random::string(2000),
+            'data' => Random::string(2000)
         ];
         
-        $this->assertTrue($model->execute(new Create(), [$data]));
+        $this->assertTrue($model->execute(new Create(), $data));
         $this->assertTrue($model->exists());
         $this->assertNotNull($model->getId());
-        $ids = array_diff_key($data, array_flip(['data']));
+        $ids = array_diff_key($data, array_flip([
+            'data'
+        ]));
         $this->assertSame($ids, $model->getNormalizedId());
         $this->assertSame($ids, $model->getId());
         
         $data['data'] = Random::string(2000);
-        $this->assertTrue($model->execute(new Update(), [$data]));
+        $this->assertTrue($model->execute(new Update(), $data));
         $this->assertSame($data['data'], $model->getData('data'));
         
         $model = new Model($table, $ids);
         $this->assertEquals($data['data'], $model->getData('data'));
-        
         
         // Clean up table
         $table->remove();
@@ -228,7 +230,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         
         // Clean up
         foreach ($list as $model) {
-            $model->executeActions();
+            $model->synchronize();
         }
         $table->remove();
     }
@@ -245,14 +247,10 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $model2 = new Model($table);
         
         $model1->execute(new Create(), [
-            [
-                'name' => 'Test 1'
-            ]
+            'name' => 'Test 1'
         ]);
         $model2->execute(new Create(), [
-            [
-                'name' => 'Test 2'
-            ]
+            'name' => 'Test 2'
         ]);
         
         $table2 = new self::$table(self::$database, 'test3', [
@@ -273,18 +271,14 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             $model2
         ]);
         
-        $this->assertTrue($modelBinder->execute(new Create(), [
-            $data
-        ]));
+        $this->assertTrue($modelBinder->execute(new Create(), $data));
         $this->assertTrue($modelBinder->exists());
         $this->assertEquals([
-            $model1->getBindingFieldName().'_1' => $model1->getId(),
-            $model2->getBindingFieldName().'_2' => $model2->getId()
+            $model1->getBindingFieldName() . '_1' => $model1->getId(),
+            $model2->getBindingFieldName() . '_2' => $model2->getId()
         ], $modelBinder->getId());
         $this->assertEquals($data, $modelBinder->getData());
-        $modelBinder->execute(new Update(), [
-            $newData
-        ]);
+        $modelBinder->execute(new Update(), $newData);
         $this->assertTrue($modelBinder->exists());
         $this->assertEquals(array_merge($data, $newData), $modelBinder->getData());
         $modelBinder->execute(new Delete());
