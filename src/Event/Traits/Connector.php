@@ -11,6 +11,8 @@ use Minwork\Event\Interfaces\EventDispatcherInterface;
 use Minwork\Helper\ArrayHelper;
 use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
 use Minwork\Event\Object\EventDispatcher;
+use Minwork\Helper\Formatter;
+use Minwork\Operation\Object\Operation;
 
 /**
  * Trait used for automatic event listeners binding
@@ -24,21 +26,30 @@ trait Connector {
      * Connect events to dispatcher
      *
      * @param EventDispatcherInterface $dispatcher            
-     * @param object|array $connector
-     *            <br><u>Available formats</u>:<br>
-     *            Associative array: event to methods
-     *            <p><pre>[{event_name} => {method_name}, ...]</pre></p>
-     *            List of events
-     *            <p><pre>[{event_name1}, {event_name2}, ...]</pre></p>
-     *            Object with constants containing 'event' keyword
-     *            <p>Search list of class constants and matches any name or value that contains 'event' keyword<br>
-     *            If value is matched it will be trimmed from 'event' keyword otherwise raw value is used</p>
+     * @param null|string|object|array $connector
+     *            <br><br><u>Available formats</u>:<br><br>
+     *            <i>null</i>
+     *            <p>Automatically connect operation events with class methods which name starts with 'before' or 'after' phrase</p>
+     *            <i>array</i>
+     *            <ul>
+     *              <li>
+     *                  Associative array: event to methods
+     *                  <p><pre>[{event_name} => {method_name}, ...]</pre></p>
+     *              </li>
+     *              <li>
+     *                  List of events
+     *                  <p><pre>[{event_name1}, {event_name2}, ...]</pre></p>
+     *              </li>
+     *            </ul>
+     *            <i>string|object</i>
+     *            Object or string representing class name
+     *            <p>Search list of class constants and match any constant name that starts with 'event' keyword<br>
+     *            If constant is matched its value will be trimmed from 'event' keyword otherwise raw value is used</p>
      *            
      * @return self
      */
     protected function connect($connector = null, EventDispatcherInterface $eventDispatcher = null): self
     {
-        $connector = $connector ?? $this;
         $eventDispatcher = $eventDispatcher ?? ($this instanceof EventDispatcherContainerInterface ? $this->getEventDispatcher() : EventDispatcher::getGlobal());
         $methods = get_class_methods($this);
         $methodsMap = [];
@@ -59,12 +70,19 @@ trait Connector {
         }
         
         // If connector is object or class name string search its constants to match with current object methods
-        if (is_object($connector) || is_string($connector)) {
+        if (is_null($connector)) {
+            // Automatically map object operations
+            foreach ($methods as $method) {
+                if (Formatter::startsWith($method, Operation::EVENT_BEFORE_PREFIX) || Formatter::startsWith($method, Operation::EVENT_AFTER_PREFIX)) {
+                    $mapper[$method][] = $method;
+                }
+            }
+        } elseif (is_object($connector) || is_string($connector)) {
             $reflection = new \ReflectionClass($connector);
             $constants = $reflection->getConstants();
             
             foreach ($constants as $const => $event) {
-                if (($method = array_search($normalizedEventName($event), $methodsMap)) !== false || ($method = array_search($normalizedEventName($const), $methodsMap)) !== false) {
+                if (Formatter::startsWith($const, 'event') && (($method = array_search($normalizedEventName($event), $methodsMap)) !== false || ($method = array_search($normalizedEventName($const), $methodsMap)) !== false)) {
                     $mapper[$event][] = $method;
                 }
             }

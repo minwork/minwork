@@ -56,6 +56,17 @@ class EventDispatcher implements EventDispatcherInterface
         self::$global = $this;
         return $this;
     }
+    
+    /**
+     * 
+     * {@inheritDoc}
+     * @see \Minwork\Event\Interfaces\EventDispatcherInterface::reset()
+     */
+    public function reset(): EventDispatcherInterface
+    {
+        $this->listeners = [];
+        return $this;
+    }
 
     /**
      * Trigger given event

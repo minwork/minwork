@@ -49,4 +49,11 @@ interface EventDispatcherInterface
      * @return self
      */
     public function removeListener(string $event, callable $listener = null): self;
+
+    /**
+     * Clear listeners array and reset it to the previous state
+     *
+     * @return self
+     */
+    public function reset(): self;
 }

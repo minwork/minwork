@@ -9,6 +9,7 @@ namespace Minwork\Basic\Interfaces;
 
 use Minwork\Http\Interfaces\ResponseInterface;
 use Minwork\Http\Interfaces\RequestInterface;
+use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
 
 /**
  * Every controller must implement that interface
@@ -16,7 +17,7 @@ use Minwork\Http\Interfaces\RequestInterface;
  * @author Christopher Kalkhoff
  *        
  */
-interface ControllerInterface
+interface ControllerInterface extends EventDispatcherContainerInterface
 {
 
     /**
@@ -61,7 +62,7 @@ interface ControllerInterface
      * Set response object
      * 
      * @param RequestInterface $request            
-     * @return Controller
+     * @return self
      */
     public function setRequest(RequestInterface $request): self;
 }

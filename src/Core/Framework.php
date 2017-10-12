@@ -7,7 +7,6 @@
  */
 namespace Minwork\Core;
 
-use Minwork\Basic\Controller\Controller;
 use Minwork\Event\Object\EventDispatcher;
 use Minwork\Event\Object\Event;
 use Minwork\Event\Traits\Events;
@@ -15,7 +14,6 @@ use Minwork\Http\Interfaces\RouterInterface;
 use Minwork\Event\Interfaces\EventDispatcherInterface;
 use Minwork\Http\Object\Response;
 use Minwork\Http\Interfaces\ResponseInterface;
-use Minwork\Http\Object\Router;
 use Minwork\Basic\Interfaces\ViewInterface;
 use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
 use Minwork\Basic\Interfaces\FrameworkInterface;
@@ -33,19 +31,29 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
 {
     use Events;
 
-    const EVENT_BEFORE_REDIRECT = 'EventBeforeRedirect';
+    const EVENT_AFTER_URL_TRANSLATION = 'afterUrlTranslation';
 
-    const EVENT_AFTER_URL_TRANSLATION = 'EventAfterUrlTranslation';
+    const EVENT_BEFORE_METHOD_RUN = 'beforeMethodRun';
 
-    const EVENT_BEFORE_METHOD_RUN = 'EventBeforeMethodRun';
+    const EVENT_AFTER_METHOD_RUN = 'afterMethodRun';
 
-    const EVENT_AFTER_METHOD_RUN = 'EventAfterMethodRun';
+    const EVENT_BEFORE_CONTROLLER_RUN = 'beforeRun';
 
-    const EVENT_BEFORE_CONTROLLER_RUN = 'EventBeforeRun';
+    const EVENT_AFTER_CONTROLLER_RUN = 'afterRun';
 
-    const EVENT_AFTER_CONTROLLER_RUN = 'EventAfterRun';
+    const EVENT_BEFORE_OUTPUT_CONTENT = 'beforeOutputContent';
 
-    const EVENT_BEFORE_OUTPUT_CONTENT = 'EventBeforeOutputContent';
+    const EVENT_BEFORE_REDIRECT = 'beforeRedirect';
+
+    const EVENTS = [
+        self::EVENT_AFTER_URL_TRANSLATION,
+        self::EVENT_BEFORE_METHOD_RUN,
+        self::EVENT_AFTER_METHOD_RUN,
+        self::EVENT_BEFORE_CONTROLLER_RUN,
+        self::EVENT_AFTER_CONTROLLER_RUN,
+        self::EVENT_BEFORE_OUTPUT_CONTENT,
+        self::EVENT_BEFORE_REDIRECT
+    ];
 
     /**
      * Router object
@@ -170,11 +178,11 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
         // All events should start here so controller can intercept them
         $this->getEventDispatcher()->dispatch(new Event(self::EVENT_AFTER_URL_TRANSLATION));
         
-        $this->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_CONTROLLER_RUN));
+        $controller->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_CONTROLLER_RUN));
         
         $method = $this->getRouter()->getMethod();
         
-        $this->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_METHOD_RUN));
+        $controller->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_METHOD_RUN));
         
         $arguments = $this->getRouter()->getMethodArguments();
         
@@ -186,14 +194,11 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
         }
         
         // Get content
-        $content = call_user_func_array([
-            $controller,
-            $method
-        ], array_values($arguments));
+        $content = $controller->$method(...$arguments);
         
-        $this->getEventDispatcher()->dispatch(new Event(self::EVENT_AFTER_METHOD_RUN));
+        $controller->getEventDispatcher()->dispatch(new Event(self::EVENT_AFTER_METHOD_RUN));
         
-        $this->getEventDispatcher()->dispatch(new Event(self::EVENT_AFTER_CONTROLLER_RUN));
+        $controller->getEventDispatcher()->dispatch(new Event(self::EVENT_AFTER_CONTROLLER_RUN));
         
         $this->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_OUTPUT_CONTENT));
         
