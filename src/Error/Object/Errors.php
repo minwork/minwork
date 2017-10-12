@@ -10,7 +10,6 @@ namespace Minwork\Error\Object;
 use Minwork\Error\Interfaces\ErrorInterface;
 use Minwork\Helper\ArrayHelper;
 use Minwork\Error\Interfaces\ErrorsStorageInterface;
-use Minwork\Error\Object\ErrorPrototype;
 
 /**
  * Basic class for error handling
