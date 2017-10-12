@@ -4,6 +4,7 @@ namespace Minwork\Validation\Utility;
 use Minwork\Validation\Interfaces\ValidatorInterface;
 use Minwork\Validation\Traits\Validator;
 use Minwork\Error\Basic\ErrorGlobal;
+use Minwork\Helper\Validation;
 
 /**
  *
@@ -81,7 +82,7 @@ class Field implements ValidatorInterface
     /**
      * Set field rules
      *
-     * @param RuleInterface[] $rules            
+     * @param ValidatorInterface[] $rules            
      * @throws \InvalidArgumentException
      * @return self
      */
@@ -132,9 +133,9 @@ class Field implements ValidatorInterface
             throw new \InvalidArgumentException('Field validation data must be an array representing form data');
         }
         
-        if (! array_key_exists($this->getName(), $data)) {
+        if (! (array_key_exists($this->getName(), $data) && Validation::isNotEmpty($data[$this->getName()]))) {
             if ($this->isMandatory()) {
-                $this->addError($this->error);
+                $this->addError($this->getName(), $this->error);
             }
             $this->valid = ! $this->hasErrors();
             return $this;
@@ -145,7 +146,6 @@ class Field implements ValidatorInterface
             if ($this->hasContext()) {
                 $rule->setContext($this->getContext());
             }
-            
             if (! $rule->validate($fieldData)->isValid()) {
                 foreach ($rule->getErrors()->getErrors(ErrorGlobal::TYPE) as $error) {
                     $this->addError($this->getName(), $error->getMessage());

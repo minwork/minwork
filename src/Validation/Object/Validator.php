@@ -60,7 +60,7 @@ class Validator implements ValidatorInterface
      *
      * {@inheritdoc}
      *
-     * @see \Framework\Validation\Interfaces\ValidatorInterface::validate()
+     * @see \Minwork\Validation\Interfaces\ValidatorInterface::validate()
      */
     public function validate($data): ValidatorInterface
     {
