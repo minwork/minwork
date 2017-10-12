@@ -1,14 +1,16 @@
 {
 	"name" : "minwork/minwork",
-	"description" : "Minwork - PHP 7 framework",
+	"description" : "Minwork - Simple yet powerful PHP 7.1 framework",
 	"type" : "library",
 	"keywords" : [
 		"framework",
 		"api",
 		"micro",
 		"php",
-		"7",
-		"7.1"
+		"minimal",
+		"simple",
+		"php 7",
+		"php 7.1"
 	],
 	"license" : "MIT",
 	"authors" : [{
