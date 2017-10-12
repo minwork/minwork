@@ -51,7 +51,7 @@ interface ModelInterface
      *
      * @param mixed $filter
      *            Which part of data should be returned (everything on null)
-     * @return array
+     * @return mixed
      */
     public function getData($filter = null);
 

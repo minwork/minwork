@@ -13,9 +13,15 @@ namespace Minwork\Basic\Interfaces;
  * @author Christopher Kalkhoff
  *        
  */
-interface BindableModelInterface extends ModelInterface
+interface BindableModelInterface
 {
-
+    /**
+     * Get model id which can be either single value or an array in form of [{id_name} => {id_value}, ...]
+     *
+     * @return string|int|array
+     */
+    public function getId();
+    
     /**
      * Get name of the database field which will store model id
      *

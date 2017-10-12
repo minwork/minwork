@@ -8,7 +8,6 @@
 namespace Minwork\Basic\Model;
 
 use Minwork\Storage\Interfaces\DatabaseStorageInterface;
-use Minwork\Storage\Traits\Storage;
 use Minwork\Database\Utility\Query;
 use Minwork\Event\Object\EventDispatcher;
 use Minwork\Basic\Interfaces\BindableModelInterface;
@@ -55,6 +54,9 @@ class ModelBinder extends Model
         $id = [];
         
         foreach ($models as $model) {
+            if (!$model instanceof BindableModelInterface) {
+                throw new \InvalidArgumentException('Models must implement BindableModelInterface');
+            }
             $idFields[spl_object_hash($model)] = $model->getBindingFieldName();
         }
         
@@ -104,12 +106,11 @@ class ModelBinder extends Model
             $this->state = self::STATE_NOP;
             switch ($state) {
                 case self::STATE_CREATE:
-                    if ($insertData = $this->getChangedData($this->data)) {
-                        $insertData = array_merge($insertData, $this->getId());
-                        $this->getStorage()->set(new Query([], array_keys($insertData)), array_values($insertData));
-                        $this->exists = true;
-                        return true;
-                    }
+                    $insertData = $this->getChangedData($this->data);
+                    $insertData = array_merge($insertData, $this->getId());
+                    $this->getStorage()->set(new Query([], array_keys($insertData)), array_values($insertData));
+                    $this->exists = true;
+                    return true;
                     break;
                 case self::STATE_UPDATE:
                     if ($updateData = $this->getChangedData($this->data)) {

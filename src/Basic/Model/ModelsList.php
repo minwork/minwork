@@ -111,25 +111,27 @@ class ModelsList
         $this->page = $page;
         $this->onPage = $onPage;
         $query = $this->query;
-        $this->total = $this->prototype->getStorage()->count($query);
         
         if (! is_null($onPage)) {
             $query->setLimit([
                 ($page - 1) * $onPage,
                 $onPage
             ]);
+            $this->total = $this->prototype->getStorage()->count($query);
         }
         
         $list = $this->prototype->getStorage()->get($query);
         
+        if (is_null($onPage)) {
+            $this->total = count($list);
+        }
+        
         foreach ($list as $data) {
             $model = clone $this->prototype;
-            $idField = $this->prototype->getStorage()->getPkField();
-            $id = is_array($idField) ? array_intersect_key($data, array_flip($idField)) : $data[$idField];
             // Emulate read operation
-            /* @var $model \Minwork\Event\Interfaces\EventDispatcherContainerInterface */
+            /* @var $model \Minwork\Basic\Model\Model */
             $model->getEventDispatcher()->dispatch(new OperationEvent(Read::EVENT_BEFORE));
-            $this->list[] = $model->setId($id)->setData($data);
+            $this->list[] = $model->setData($data, false);
             $model->getEventDispatcher()->dispatch(new OperationEvent(Read::EVENT_AFTER));
         }
         

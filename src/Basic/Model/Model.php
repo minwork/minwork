@@ -8,9 +8,6 @@
 namespace Minwork\Basic\Model;
 
 use Minwork\Error\Traits\Errors;
-use Minwork\Operation\Basic\Update;
-use Minwork\Operation\Basic\Create;
-use Minwork\Operation\Basic\Delete;
 use Minwork\Operation\Basic\Read;
 use Minwork\Storage\Interfaces\DatabaseStorageInterface;
 use Minwork\Database\Utility\Query;
@@ -29,6 +26,7 @@ use Minwork\Basic\Traits\Debugger;
 use Minwork\Database\Interfaces\TableInterface;
 use Minwork\Helper\Formatter;
 use Minwork\Event\Interfaces\EventDispatcherInterface;
+use Minwork\Event\Traits\Connector;
 
 /**
  * Basic implementation of ModelInterface
@@ -38,7 +36,7 @@ use Minwork\Event\Interfaces\EventDispatcherInterface;
  */
 class Model implements ModelInterface, ObjectOperationInterface, BindableModelInterface, EventDispatcherContainerInterface
 {
-    use Errors, Events, Debugger, Operations, Storage {
+    use Connector, Errors, Events, Debugger, Operations, Storage {
       getStorage as getStorageTrait;
       setStorage as setStorageTrait;
     }
@@ -111,16 +109,19 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
             ->setStorage($storage)
             ->setId($id)
             ->setEventDispatcher($eventDispatcher ?? new EventDispatcher())
-            ->setBuffering($buffering);
+            ->setBuffering($buffering)
+            ->connect();
     }
 
     /**
      * Clone model and all objects set through dependency injection
+     * Reset event dispatcher and reconnect all events to newly created model
      */
     public function __clone()
     {
-        $this->setStorage(clone $this->getStorage());
-        $this->setEventDispatcher(clone $this->getEventDispatcher());
+        $this->setStorage(clone $this->getStorage())
+            ->setEventDispatcher((clone $this->getEventDispatcher())->reset())
+            ->connect();
     }
 
     /**
@@ -172,7 +173,12 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
         if (! is_string($idField)) {
             throw new \Exception('Cannot bind model with multiple id fields');
         }
-        return $this->getStorage() instanceof TableInterface ? "{$this->getStorage()->getName(false)}_{$idField}" : get_class($this) . "_{$idField}";
+        if ($this->getStorage() instanceof TableInterface) {
+            $name = $this->getStorage()->getName(false);
+        } else {
+            $name = mb_strtolower(get_class($this));
+        }
+        return "{$name}_{$idField}";
     }
 
     /**
@@ -267,8 +273,17 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
      */
     public function setId($id): ModelInterface
     {
-        $this->id = $id;
-        $this->exists = is_null($id) ? false : null;
+        if (is_null($id)) {
+            $this->id = $id;
+            $this->exists = false;
+        } else {
+            if (is_array($id)) {
+                $this->id = ArrayHelper::isAssoc($id, true) ? ArrayHelper::filterByKeys($id, ArrayHelper::forceArray($this->getStorage()->getPkField())) : (count($id) === 1 ? reset($id) : $id);
+            } else {
+                $this->id = $id;
+            }
+            $this->exists = null;
+        }
         return $this;
     }
 
@@ -314,7 +329,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
             $this->state = self::STATE_NOP;
             switch ($state) {
                 case self::STATE_CREATE:
-                    $insertData = $this->getChangedData($this->data);
+                    $insertData = $this->getChangedData();
                     // Get id without executing same method again
                     $idArray = $this->getNormalizedId();
                     if (empty($idArray)) {
@@ -336,7 +351,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
                     }
                     break;
                 case self::STATE_UPDATE:
-                    if ($updateData = $this->getChangedData($this->data)) {
+                    if ($updateData = $this->getChangedData()) {
                         $this->getStorage()->set(new Query($this->getQueryConditionsWithId()), $updateData);
                     }
                     return true;
@@ -379,12 +394,9 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
     {
         $changed = [];
         
-        if (is_array($this->changedData)) {
-            foreach ($this->changedData as $key) {
-                $changed[$key] = $this->data[$key];
-            }
+        foreach ($this->changedData as $key) {
+            $changed[$key] = $this->data[$key];
         }
-        
         return $changed;
     }
 
@@ -428,6 +440,8 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
      * {@inheritdoc}
      *
      * @see \Minwork\Basic\Interfaces\ModelInterface::getData($filter)
+     * @param array|string|null $filter
+     *            If filter is string then single data element is returned otherwise filtered data array
      */
     public function getData($filter = null)
     {
@@ -438,66 +452,6 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
             }
         }
         
-        $operation = new Read();
-        return $this->execute($operation->setEventDispatcher($this->getEventDispatcher()), [
-            $filter
-        ]);
-    }
-
-    /**
-     *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Basic\Interfaces\ModelInterface::setData($data, $merge)
-     */
-    public function setData(array $data, bool $merge = true): ModelInterface
-    {
-        $ids = array_intersect_key($data, array_flip(ArrayHelper::forceArray($this->getStorage()->getPkField())));
-        $data = array_intersect_key($data, array_flip($this->getStorage()->getFields()));
-        
-        if ($merge && ! is_null($this->data)) {
-            $changed = [];
-            foreach ($data as $key => $value) {
-                if (! isset($this->data[$key]) || $this->data[$key] !== $value) {
-                    $changed[$key] = $value;
-                }
-            }
-            if (! empty($changed)) {
-                $this->data = array_merge($this->data, $changed);
-                $this->markAsChanged($changed);
-            }
-        } else {
-            // Set id only if we doesn't merge data
-            if (! empty($ids)) {
-                $this->setId(count($ids) === 1 ? reset($ids) : $ids);
-            }
-            $this->data = $data;
-            $this->markAsChanged($data);
-        }
-        return $this;
-    }
-
-    /**
-     * Create operation
-     *
-     * @param array $data            
-     * @return bool
-     */
-    public function create(array $data): bool
-    {
-        $this->setState(self::STATE_CREATE)->setData($data, false);
-        return true;
-    }
-
-    /**
-     * Read operation
-     *
-     * @param array|string|null $filter
-     *            If filter is string then single data element is returned otherwise filtered data array
-     * @return mixed
-     */
-    public function read($filter = null)
-    {
         $fields = $this->getStorage()->getFields();
         $getData = true;
         
@@ -506,7 +460,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
         }
         
         if (is_null($filter)) {
-            // If we have partialy data and need full
+            // If we have partial data and need full
             if (! empty($this->data) && count($this->data) < count($fields)) {
                 $filterArray = array_diff($fields, array_keys($this->data));
             } else {
@@ -525,20 +479,63 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
             $getData = false;
         }
         
+        // If model doesn't contain all needed data then get it from storage by executing read operation
         if ($getData) {
-            $this->getDataFromStorage($filterArray);
+            $this->execute(new Read(), [$filterArray]);
         }
         
         return ! is_null($filter) && (is_string($filter) || is_int($filter)) ? $this->data[$filter] : (is_null($filter) ? $this->data : array_intersect_key($this->data, array_flip($filter)));
     }
 
     /**
-     * Get data from storage then set data to model
      *
-     * @param array $filter            
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Basic\Interfaces\ModelInterface::setData($data, $merge)
+     */
+    public function setData(array $data, bool $merge = true): ModelInterface
+    {
+        if ($merge && ! is_null($this->data)) {
+            foreach ($data as $key => $value) {
+                if (! isset($this->data[$key]) || $this->data[$key] !== $value) {
+                    $this->data[$key] = $value;
+                }
+            }
+        } else {
+            // If we doesn't merge data then search for id column inside data
+            if (($count = count($ids = ArrayHelper::filterByKeys($data, ArrayHelper::forceArray($this->getStorage()->getPkField())))) > 0) {
+                $this->setId($count === 1 ? reset($ids) : $ids);
+            }
+            $this->data = $data;
+        }
+        if ($this->state === self::STATE_EMPTY && ! empty($this->data)) {
+            $this->setState(self::STATE_NOP);
+        }
+        return $this;
+    }
+
+    /**
+     * Create operation
+     *
+     * @param array $data            
+     * @return bool
+     */
+    public function create(array $data = []): bool
+    {
+        $data = ArrayHelper::filterByKeys($data, $this->getStorage()->getFields());
+        $this->setState(self::STATE_CREATE)
+            ->setData($data, false)
+            ->markAsChanged($data);
+        return true;
+    }
+
+    /**
+     * Read operation (get data from storage then set it to model)
+     *
+     * @param array $filter   
      * @return self
      */
-    protected function getDataFromStorage(array $filter): self
+    public function read(array $filter = []): self
     {
         $data = $this->getStorage()->get(new Query($this->getQueryConditionsWithId(), $filter, 1));
         // If data from storage is same as current data and current data is in changed list then remove it from that list
@@ -561,7 +558,10 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
      */
     public function update(array $data): bool
     {
-        $this->setState(self::STATE_UPDATE)->setData($data);
+        $data = ArrayHelper::filterByKeys($data, $this->getStorage()->getFields());
+        $this->setState(self::STATE_UPDATE)
+            ->setData($data)
+            ->markAsChanged($data);
         return true;
     }
 
