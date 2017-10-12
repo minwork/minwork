@@ -37,28 +37,27 @@ class ArrayHelper
         if (is_string($keys)) {
             return explode('.', $keys);
         }
-        return array_values(self::forceArray($keys));
+        return is_null($keys) ? [] : array_values(self::forceArray($keys));
     }
 
     /**
-     * Get nested element of an array without triggering warning
+     * Get nested element of an array or object implementing array access without triggering warning
      *
-     * @param array $array
-     *            Array to get element from
+     * @param array|\ArrayAccess $array
+     *            Array or object implementing array access to get element from
      * @param mixed $keys
      *            Keys indicator
      * @see ArrayHelper::getKeysArray
      * @return null|mixed
      */
-    public static function getNestedElement(array $array, $keys)
+    public static function getNestedElement($array, $keys)
     {
         $keys = self::getKeysArray($keys);
         foreach ($keys as $key) {
-            if (! is_array($array)) {
+            if (! is_array($array) && ! $array instanceof \ArrayAccess) {
                 return null;
             }
-            
-            if (array_key_exists($key, $array)) {
+            if (($array instanceof \ArrayAccess && $array->offsetExists($key)) || array_key_exists($key, $array)) {
                 $array = $array[$key];
             } else {
                 return null;
@@ -102,21 +101,20 @@ class ArrayHelper
             return true;
         }
     }
-    
+
     /**
-     * Make variable an array (unless it's null)
+     * Make variable an array
      *
-     * @param mixed $var
+     * @param mixed $var            
+     * @return array
      */
-    public static function forceArray($var)
+    public static function forceArray($var): array
     {
         if (! is_array($var)) {
             if (is_object($var)) {
                 return $var instanceof \ArrayAccess ? $var : [
                     $var
                 ];
-            } elseif (is_null($var)) {
-                return $var;
             } else {
                 return [
                     $var
@@ -124,6 +122,41 @@ class ArrayHelper
             }
         }
         return $var;
+    }
+
+    /**
+     * Clone array with every object inside it
+     * 
+     * @param array $array            
+     * @return array
+     */
+    public static function clone(array $array): array
+    {
+        $cloned = [];
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                $cloned[$key] = self::clone($value);
+            } elseif (is_object($value)) {
+                $cloned[$key] = clone $value;
+            } else {
+                $cloned[$key] = $value;
+            }
+        }
+        return $cloned;
+    }
+
+    /**
+     * Get random array value
+     *
+     * @param array $array            
+     * @return mixed
+     */
+    public static function random(array $array, int $count = 1)
+    {
+        if (empty($array)) {
+            return null;
+        }
+        return $count == 1 ? $array[array_rand($array)] : array_intersect_key($array, array_flip(array_rand($array, $count) ?? []));
     }
 
     /**
@@ -146,11 +179,11 @@ class ArrayHelper
         
         return true;
     }
-    
+
     /**
      * Check if array is associative
      *
-     * @param array $array
+     * @param array $array            
      * @param bool $strict
      *            If false then this function will match any array that doesn't contain integer keys
      * @return boolean
@@ -168,11 +201,33 @@ class ArrayHelper
             return false;
         }
     }
-    
+
+    /**
+     * Check if array contain only numeric values
+     *
+     * @param array $array            
+     * @return bool
+     */
+    public static function isNumeric(array $array): bool
+    {
+        return ctype_digit(implode('', $array));
+    }
+
+    /**
+     * Check if array values are unique
+     *
+     * @param array $array            
+     * @return bool
+     */
+    public static function isUnique(array $array): bool
+    {
+        return array_unique(array_values($array)) === array_values($array);
+    }
+
     /**
      * Check if every array element is array
      *
-     * @param array $array
+     * @param array $array            
      * @return bool
      */
     public static function isArrayOfArrays(array $array): bool
@@ -184,17 +239,49 @@ class ArrayHelper
         }
         return true;
     }
-    
+
     /**
      * Filter array by preserving only those which keys are present in $keys expression
-     * @param array $array
-     * @param mixed $keys Look at getKeysArray function
+     *
+     * @param array $array            
+     * @param mixed $keys
+     *            Look at getKeysArray function
      * @see \Minwork\Helper\ArrayHelper::getKeysArray()
      * @return array
      */
-    public static function filterByKeys(array $array, array $keys): array
+    public static function filterByKeys(array $array, $keys, bool $exclude = false): array
     {
-        return array_intersect_key($array, array_flip(self::getKeysArray($keys)));
+        if (is_null($keys)) {
+            return $array;
+        }
+        $keysArray = self::getKeysArray($keys);
+        if (empty($keysArray)) {
+            return $exclude ? $array : [];
+        }
+        return $exclude ? array_diff_key($array, array_flip($keysArray)) : array_intersect_key($array, array_flip($keysArray));
+    }
+
+    /**
+     * Check if array has specified keys
+     *
+     * @param array $array            
+     * @param mixed $keys
+     *            Look at getKeysArray function
+     * @see \Minwork\Helper\ArrayHelper::getKeysArray()
+     * @param bool $strict
+     *            If array must have every key
+     * @return bool
+     */
+    public static function hasKeys(array $array, $keys, bool $strict = false): bool
+    {
+        foreach (self::getKeysArray($keys) as $key) {
+            if (array_key_exists($key, $array) && ! $strict) {
+                return true;
+            } elseif (! array_key_exists($key, $array) && $strict) {
+                return false;
+            }
+        }
+        return $strict ? true : false;
     }
 
     /**
@@ -229,5 +316,58 @@ class ArrayHelper
             }
         }
         return $values;
+    }
+
+    /**
+     * Group list of objects by value returned from supplied method.<br><br>
+     * <u>Example</u><br>
+     * Let's say we have a list of Foo objects [Foo1, Foo2, Foo3] and all of them have method bar which return string.<br>
+     * If every object return different string from method bar we will get array grouped like:<br>
+     * <pre>
+     * ['string1' => Foo1, 'string2' => Foo2, 'string3' => Foo3]
+     * </pre>
+     * If method bar return duplicate strings then all keys will containt list of corresponding objects like this:<br>
+     * <pre>
+     * ['string1' => [Foo1], 'string2' => [Foo2, Foo3]]
+     * </pre>
+     * 
+     * @param array $objects            
+     * @param string $method            
+     * @param mixed ...$args            
+     * @return array
+     */
+    public static function groupObjectsBy(array $objects, string $method, ...$args): array
+    {
+        $array = [];
+        $forceArrays = false;
+        
+        foreach ($objects as $object) {
+            $key = $object->$method(...$args);
+            if (! array_key_exists($key, $array)) {
+                $array[$key] = $object;
+            } else {
+                $forceArrays = true;
+                if (is_array($array[$key])) {
+                    $array[$key][] = $object;
+                } else {
+                    $array[$key] = [
+                        $array[$key],
+                        $object
+                    ];
+                }
+            }
+        }
+        
+        if ($forceArrays) {
+            foreach ($array as $key => $value) {
+                if (! is_array($value)) {
+                    $array[$key] = [
+                        $value
+                    ];
+                }
+            }
+        }
+        
+        return $array;
     }
 }

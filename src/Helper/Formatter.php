@@ -17,23 +17,29 @@ use Minwork\Http\Utility\Server;
  */
 class Formatter
 {
-
-    const STRING_ENDING = "...";
-
     const STRING_ENCODING = "utf-8";
 
     const STRING_NORMALIZED_LANG = "en_GB";
 
-    const HTML_TAG_START = "<";
-
-    const HTML_TAG_END = ">";
-
-    const HTML_ENDING = "/";
-
-    const HTML_STYLE_ATTRIBUTE = "style";
-
-    const DEFAULT_WHITESPACE_REPLACEMENT = "-";
-
+    /**
+     * Get number sign in form of '1' / '-1' or '+' / '' if $text is true 
+     * @param float $number
+     * @param bool $text
+     * @return int|string
+     */
+    public static function sign(float $number, bool $text = false)
+    {
+        if ($text) {
+            if ($number > 0) {
+                return '+';
+            } elseif ($number < 0) {
+                return '-';
+            }
+            return '';
+        }
+        return ($number > 0) - ($number < 0);
+    }
+    
     /**
      * Make string float replacing any commas with dots
      *
@@ -96,118 +102,16 @@ class Formatter
     }
 
     /**
-     * Cut string to given length
-     *
-     * @param string $string            
-     * @param int $length            
-     * @return string
-     */
-    public static function cutString(string $string, int $length): string
-    {
-        return substr($string, 0, $length) . (strlen($string) > $length ? self::STRING_ENDING : "");
-    }
-
-    /**
-     * Cut string to specified length considering whole words.<br>
-     * Afterwards append '...' which can link to address specified by $linkAddress
-     *
-     * @param string $string            
-     * @param int $length            
-     * @param string $linkAddress            
-     */
-    public static function smartCutString(string $string, int $length, string $linkAddress = ''): string
-    {
-        $len = mb_strlen($string, self::STRING_ENCODING);
-        if ($len <= $length) {
-            return $string;
-        }
-        $pos = strpos($string, ' ', $length);
-        $string = mb_substr($string, 0, $pos, self::STRING_ENCODING);
-        
-        for ($i = $pos - 1; $i > 0; $i --) {
-            $chr = mb_substr($string, $i, 1, self::STRING_ENCODING);
-            if ($chr == self::HTML_TAG_END) {
-                break;
-            } else {
-                if ($chr == self::HTML_TAG_START) {
-                    $string = mb_substr($string, 0, $i, self::STRING_ENCODING);
-                }
-            }
-            if ($len > $pos) {
-                $string .= empty($linkAddress) ? self::STRING_ENDING : self::makeHtmlLink($linkAddress, self::STRING_ENDING);
-            }
-            
-            // array for missing HTML tags
-            $tags = [];
-            
-            if (($i = mb_strpos($string, self::HTML_TAG_START)) === false) {
-                return $string;
-            }
-            
-            while ($i >= 0 && $i < mb_strlen($string) && $i !== false) {
-                if (($j = mb_strpos($string, self::HTML_TAG_END, $i)) === false) {
-                    break;
-                }
-                $k = mb_strpos($string, ' ', $i);
-                if ($k > $i && $k < $j) {
-                    $tag = mb_substr($string, $i + 1, $k - $i - 1);
-                } else {
-                    $tag = mb_substr($string, $i + 1, $j - $i - 1);
-                }
-                $tag = strtolower($tag);
-                
-                if ((mb_strpos($tag, self::HTML_ENDING)) === 0) {
-                    
-                    $tag = mb_substr($tag, 1);
-                    
-                    if ($tags[count($tags) - 1] == $tag) {
-                        unset($tags[count($tags) - 1]);
-                    }
-                } else {
-                    $tags[count($tags)] = $tag;
-                }
-                
-                $i = mb_strpos($string, self::HTML_TAG_START, $j);
-            }
-            
-            // Add closing tags
-            if (count($tags) > 0) {
-                for ($i = count($tags) - 1; $i >= 0; $i --) {
-                    $string .= self::HTML_TAG_START . self::HTML_ENDING . $tags[$i] . self::HTML_TAG_END;
-                }
-            }
-            return $string;
-        }
-        return $string;
-    }
-
-    /**
-     * Create html <a> tag
-     *
-     * @param string $address
-     *            Link address
-     * @param string $text
-     *            Link text
-     * @param array $attributes
-     *            <a> tag attributes
-     * @return string
-     */
-    public static function makeHtmlLink(string $address, string $text, array $attributes = []): string
-    {
-        return "<a href=\"{$address}\" " . (! empty($attributes) ? self::htmlAttributes($attributes) : "") . ">{$text}</a>";
-    }
-
-    /**
      * Normalize string to English alphabet removing all special characters and whitespaces
      *
      * @param string $string            
      * @param string $whitespaceReplacement            
      * @return string
      */
-    public static function textId(string $string, string $whitespaceReplacement = self::DEFAULT_WHITESPACE_REPLACEMENT): string
+    public static function textId(string $string, string $whitespaceReplacement = '-'): string
     {
         $text = trim($string);
-        $text = preg_replace('/\s+/', $whitespaceReplacement, mb_strtolower($text, self::STRING_ENCODING));
+        $text = preg_replace('/[\s_]+/', $whitespaceReplacement, mb_strtolower($text, self::STRING_ENCODING));
         // Replace all special chars with english chars equivalent
         $curLocaleCType = setlocale(LC_CTYPE, 0);
         setlocale(LC_CTYPE, self::STRING_NORMALIZED_LANG . '.' . self::STRING_ENCODING);
@@ -216,6 +120,26 @@ class Formatter
         $text = self::removeQuotes($text);
         
         return $text;
+    }
+    
+    /**
+     * Format string to proper class name (UpperCamelCase)
+     * @param string $string
+     * @return string
+     */
+    public static function className(string $string): string
+    {
+        return ucfirst(self::functionName($string));
+    }
+    
+    /**
+     * Format string to proper function name (camelCase)
+     * @param string $string
+     * @return string
+     */
+    public static function functionName(string $string): string
+    {
+        return lcfirst(str_replace('_', '', ucwords(preg_replace('/[\s\-]+/', '_', mb_strtolower($string, self::STRING_ENCODING)), '_')));
     }
 
     /**
@@ -317,7 +241,7 @@ class Formatter
      * @param array|string $data            
      * @param string $allowedTags            
      */
-    public static function decodeHTMLData($data, string $allowedTags = ''): string
+    public static function decodeHTMLData($data, string $allowedTags = '')
     {
         $return = $data;
         if (is_array($return)) {
@@ -342,15 +266,15 @@ class Formatter
     /**
      * Check if string starts with given phrase
      *
-     * @param string $haystack            
-     * @param string $needle            
+     * @param string $source            
+     * @param string $phrase            
      * @param bool $caseSensitive            
      * @return bool
      */
-    public static function startsWith(string $haystack, string $needle, bool $caseSensitive = false): bool
+    public static function startsWith(string $source, string $phrase, bool $caseSensitive = false): bool
     {
-        $length = strlen($needle);
-        return ($caseSensitive ? (substr($haystack, 0, $length) === $needle) : (mb_strtolower(substr($haystack, 0, $length)) === mb_strtolower($needle)));
+        $length = strlen($phrase);
+        return ($caseSensitive ? (substr($source, 0, $length) === $phrase) : (mb_strtolower(substr($source, 0, $length)) === mb_strtolower($phrase)));
     }
 
     /**
@@ -361,14 +285,14 @@ class Formatter
      * @param bool $caseSensitive            
      * @return bool
      */
-    public static function endsWith(string $haystack, string $needle, bool $caseSensitive = false): bool
+    public static function endsWith(string $source, string $phrase, bool $caseSensitive = false): bool
     {
-        $length = strlen($needle);
+        $length = strlen($phrase);
         if ($length == 0) {
             return true;
         }
         
-        return ($caseSensitive ? (substr($haystack, - $length) === $needle) : (mb_strtolower(substr($haystack, - $length)) === mb_strtolower($needle)));
+        return ($caseSensitive ? (substr($source, - $length) === $phrase) : (mb_strtolower(substr($source, - $length)) === mb_strtolower($phrase)));
     }
 
     /**
@@ -434,49 +358,19 @@ class Formatter
      * @param array $filter            
      * @return array
      */
-    public static function cleanData($data, array $filter = [])
+    public static function cleanData($data, $filter = [])
     {
         $return = $data;
         if (is_array($return)) {
             foreach ($return as $i => &$w) {
                 if (is_array($w)) {
-                    $w = self::cleanData($return[$i]);
-                } elseif (! array_key_exists($i, $filter)) {
+                    $w = self::cleanData($return[$i], $filter);
+                } elseif (! in_array($i, ArrayHelper::forceArray($filter))) {
                     $w = self::cleanString($return[$i]);
                 }
             }
         } elseif (is_string($return)) {
             $return = self::cleanString($return);
-        }
-        return $return;
-    }
-
-    /**
-     * Create HTML attributes from given array.<br>
-     * This function doesn't check if given attribute names are correct.
-     *
-     * @param array $array            
-     * @return string
-     */
-    public static function htmlAttributes(array $array): string
-    {
-        $return = '';
-        if (is_array($array)) {
-            foreach ($array as $key => $value) {
-                if (is_bool($value)) {
-                    if ($value === true) {
-                        $return .= ' ' . $key;
-                    }
-                } elseif ($key == self::HTML_STYLE_ATTRIBUTE && is_array($value)) {
-                    $return .= ' ' . $key . '="';
-                    foreach ($value as $k => $v) {
-                        $return .= $k . ':' . $v . '; ';
-                    }
-                    $return .= '"';
-                } else {
-                    $return .= ' ' . $key . '="' . $value . '"';
-                }
-            }
         }
         return $return;
     }

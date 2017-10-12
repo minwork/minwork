@@ -63,7 +63,9 @@ class Random
     public static function int(int $min = PHP_INT_MIN, int $max = PHP_INT_MAX)
     {
         if ($min > $max) {
-            throw new \InvalidArgumentException('Minimum cannot be bigger than maximum');
+            $tmp = $min;
+            $min = $max;
+            $max = $tmp;
         }
         return random_int($min, $max);
     }
@@ -77,6 +79,6 @@ class Random
      */
     public static function float(float $min = 0.0, float $max = 1.0)
     {
-        return $min + self::int() / PHP_INT_MAX * ($max - $min);
+        return $min + self::int($min) / PHP_INT_MAX * ($max - $min);
     }
 }

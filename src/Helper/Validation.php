@@ -183,9 +183,9 @@ class Validation
      */
     public static function isInt($value, $min = null, $max = null): bool
     {
-        $options = array(
-            'options' => array()
-        );
+        $options = [
+            'options' => []
+        ];
         if (! is_null($min)) {
             $options['options']['min_range'] = intval($min);
         }
