@@ -118,7 +118,7 @@ abstract class AbstractDatabase extends \PDO implements DatabaseInterface
      *
      * {@inheritdoc}
      *
-     * @see PDO::exec()
+     * @see \PDO::exec()
      */
     public function exec($statement)
     {

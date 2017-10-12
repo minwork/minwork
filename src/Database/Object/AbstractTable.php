@@ -506,7 +506,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * {@inheritdoc}
      *
      * @param $key Query            
-     * @see \Framework\Storage\Interfaces\DatabaseStorageInterface::set()
+     * @see \Minwork\Storage\Interfaces\DatabaseStorageInterface::set()
      */
     public function set($key, $value): StorageInterface
     {
@@ -532,7 +532,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * {@inheritdoc}
      *
      * @param $key Query            
-     * @see \Framework\Storage\Interfaces\DatabaseStorageInterface::isset()
+     * @see \Minwork\Storage\Interfaces\DatabaseStorageInterface::isset()
      */
     public function isset($key): bool
     {
@@ -544,7 +544,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * {@inheritdoc}
      *
      * @param $key Query            
-     * @see \Framework\Storage\Interfaces\DatabaseStorageInterface::unset()
+     * @see \Minwork\Storage\Interfaces\DatabaseStorageInterface::unset()
      */
     public function unset($key): StorageInterface
     {
@@ -652,7 +652,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
             }
             return 'ORDER BY ' . implode(', ', $query);
         } elseif (is_string($order)) {
-            return 'ORDER BY ' . (ctype_alnum($order) ? $this->escapeColumn($value) : $order);
+            return 'ORDER BY ' . (ctype_alnum($order) ? $this->escapeColumn($order) : $order);
         }
         return 'ORDER BY ' . strval($order);
     }

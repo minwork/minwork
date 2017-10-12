@@ -58,7 +58,7 @@ class Query
      */
     protected $group;
 
-    public function __construct($conditions = [], $columns = TableInterface::COLUMNS_ALL, $limit = null, $order = null, $group = null)
+    public function __construct($conditions = [], $columns = null, $limit = null, $order = null, $group = null)
     {
         $this->conditions = $conditions ?? [];
         $this->columns = $columns ?? TableInterface::COLUMNS_ALL;
