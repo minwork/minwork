@@ -11,12 +11,10 @@ use Minwork\Basic\Controller\Controller;
 use Minwork\Http\Interfaces\ResponseInterface;
 use Minwork\Helper\Formatter;
 use Minwork\Http\Utility\Url;
-use Minwork\Http\Object\Request;
 use Minwork\Http\Interfaces\RequestInterface;
 use Minwork\Http\Object\Response;
 use Minwork\Http\Utility\HttpCode;
 use Example\ApiClient\App\Main\Utility\JsonResponse;
-use Minwork\Basic\View\View;
 use Minwork\Basic\Interfaces\ViewInterface;
 use Example\ApiClient\App\Main\View\Webpage;
 

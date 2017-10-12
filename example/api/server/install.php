@@ -1,5 +1,4 @@
 <?php
-use Minwork\Database\MySql\Table;
 use Minwork\Database\Object\Column;
 use Example\ApiServer\App\Main\Utility\Factory;
 

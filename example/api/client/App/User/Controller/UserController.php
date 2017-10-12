@@ -9,7 +9,6 @@ namespace Example\ApiClient\App\User\Controller;
 
 use Example\ApiClient\App\Main\Controller\MainController;
 use Minwork\Http\Object\Request;
-use Minwork\Basic\Controller\Controller;
 use Example\ApiClient\App\Main\Utility\JsonResponse;
 use Minwork\Helper\ArrayHelper;
 use Minwork\Http\Utility\cUrl;

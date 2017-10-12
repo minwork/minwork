@@ -14,7 +14,6 @@ use Minwork\Operation\Basic\Create;
 use Example\ApiServer\App\User\Validator\UserCreateValidator;
 use Example\ApiServer\App\Main\Utility\JSON;
 use Example\ApiServer\App\User\Validator\UserUpdateValidator;
-use Minwork\Operation\Basic\Update;
 use Minwork\Operation\Basic\Delete;
 use Minwork\Http\Interfaces\ResponseInterface;
 use Example\ApiServer\App\User\Operation\UpdateUserData;

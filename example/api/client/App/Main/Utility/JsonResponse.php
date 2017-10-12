@@ -7,7 +7,6 @@
  */
 namespace Example\ApiClient\App\Main\Utility;
 
-use Minwork\Http\Object\Response;
 use Minwork\Http\Interfaces\ResponseInterface;
 use Minwork\Error\Traits\Errors;
 use Minwork\Helper\Formatter;
