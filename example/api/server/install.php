@@ -15,7 +15,7 @@ $table->setColumns([
     new Column('first_name', 'VARCHAR(255)'),
     new Column('last_name', 'VARCHAR(255)'),
     new Column('created', 'DATETIME'),
-    new Column('last_modified', 'DATETIME'),
+    new Column('last_modified', 'DATETIME', null, true),
 ]);
 if ($table->create()) {
     echo 'User table successfully created';

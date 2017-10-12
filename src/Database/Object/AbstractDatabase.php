@@ -61,13 +61,13 @@ abstract class AbstractDatabase extends \PDO implements DatabaseInterface
      * @param array $options
      *            Additional database options used in init method
      */
-    public function __construct(string $host, string $name = '', string $user = '', string $password = '', string $charset = self::DEFAULT_CHARSET, array $options = [])
+    public function __construct(string $host, ?string $name = null, ?string $user = null, ?string $password = null, ?string $charset = null, array $options = [])
     {
         $this->setHost($host)
-            ->setName($name)
-            ->setCharset($charset)
+            ->setName($name ?? '')
+            ->setCharset($charset ?? self::DEFAULT_CHARSET)
             ->setOptions($options)
-            ->init($user, $password);
+            ->init($user ?? '', $password ?? '');
     }
 
     /**

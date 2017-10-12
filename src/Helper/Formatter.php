@@ -339,7 +339,7 @@ class Formatter
                 if (is_array($w)) {
                     $w = self::cleanData($return[$i], $filter);
                 } elseif (! in_array($i, ArrayHelper::forceArray($filter))) {
-                    $w = self::cleanString($return[$i]);
+                    $w = self::cleanString(strval($return[$i]));
                 }
             }
         } elseif (is_string($return)) {

@@ -21,7 +21,9 @@ use Minwork\Error\Basic\ErrorForm;
  */
 class JSON extends JSONView
 {
-    use Errors;
+    use Errors {
+        setErrors as setErrorsTrait;
+    }
 
     const DATA_SUCCESS = "success";
 
@@ -64,6 +66,7 @@ class JSON extends JSONView
      */
     public function setErrors(ErrorsStorageInterface $errors): self
     {
+        $this->setErrorsTrait($errors);
         $errorsList = $errors->getErrors();
         if (array_key_exists(ErrorGlobal::TYPE, $errorsList)) {
             $this->data[self::DATA_ERROR][self::DATA_ERROR_GLOBAL] = array_map('strval', $errorsList[ErrorGlobal::TYPE]);
