@@ -137,6 +137,7 @@ class Response implements ResponseInterface
                 $this->headers = $header;
             }
         }
+        $this->empty = false;
         return $this;
     }
 
@@ -172,6 +173,9 @@ class Response implements ResponseInterface
      */
     public function setHttpCode(int $code): ResponseInterface
     {
+        if ($code !== HttpCode::OK) {
+            $this->empty = false;
+        }
         $this->httpCode = $code;
         return $this;
     }

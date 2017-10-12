@@ -47,6 +47,13 @@ interface RouterInterface
     public function getController(): ControllerInterface;
 
     /**
+     * Get controller name extracted from url
+     * 
+     * @return string
+     */
+    public function getControllerName(): string;
+
+    /**
      * Get controller method name extracted from url
      *
      * @return string

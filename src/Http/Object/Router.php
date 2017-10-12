@@ -13,6 +13,7 @@ use Minwork\Basic\Interfaces\ControllerInterface;
 use Minwork\Http\Utility\LangCode;
 use Minwork\Basic\Traits\Debugger;
 use Minwork\Helper\ArrayHelper;
+use Minwork\Core\Framework;
 
 /**
  * Basic implementation of router interface
@@ -54,7 +55,7 @@ class Router implements RouterInterface
 
     /**
      * Default language code if none is present in url
-     * 
+     *
      * @var string
      */
     protected $defaultLang;
@@ -108,8 +109,7 @@ class Router implements RouterInterface
      */
     public function __construct($routing)
     {
-        $this->reset()
-            ->setRouting(ArrayHelper::forceArray($routing));
+        $this->reset()->setRouting(ArrayHelper::forceArray($routing));
     }
 
     /**
@@ -234,6 +234,17 @@ class Router implements RouterInterface
      *
      * {@inheritdoc}
      *
+     * @see \Minwork\Http\Interfaces\RouterInterface::getControllerName()
+     */
+    public function getControllerName(): string
+    {
+        return $this->controller;
+    }
+
+    /**
+     *
+     * {@inheritdoc}
+     *
      * @see \MinWork\Http\Interfaces\RouterInterface::getMethod()
      */
     public function getMethod(): string
@@ -307,9 +318,10 @@ class Router implements RouterInterface
         
         $controller = $this->getController();
         $method = $this->getMethod();
+        $methodNormalized = strtr($method, '-', '_');
         
         // Process method name
-        if (method_exists($controller, $methodNormalized = strtr($method, '-', '_'))) {
+        if (! in_array($methodNormalized, Framework::EVENTS) && method_exists($controller, $methodNormalized)) {
             $this->method = $methodNormalized;
         } elseif (method_exists($controller, self::DEFAULT_CONTROLLER_METHOD)) {
             $this->addMethodArgument($this->methodArguments, $method);

@@ -8,7 +8,6 @@
 namespace Minwork\Http\Utility;
 
 use Minwork\Http\Interfaces\EnvironmentInterface;
-use Minwork\Http\Utility\Server;
 use Minwork\Helper\Formatter;
 
 /**
@@ -43,7 +42,7 @@ class Environment implements EnvironmentInterface
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Basic\Interfaces\EnvironmentInterface::getType()
+     * @see \Minwork\Http\Interfaces\EnvironmentInterface::getType()
      */
     public function getType(): string
     {
@@ -54,7 +53,7 @@ class Environment implements EnvironmentInterface
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Basic\Interfaces\EnvironmentInterface::setType()
+     * @see \Minwork\Http\Interfaces\EnvironmentInterface::setType()
      */
     public function setType(string $type): EnvironmentInterface
     {
@@ -66,7 +65,7 @@ class Environment implements EnvironmentInterface
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Basic\Interfaces\EnvironmentInterface::getDomain()
+     * @see \Minwork\Http\Interfaces\EnvironmentInterface::getDomain()
      */
     public function getDomain(): string
     {
@@ -77,7 +76,7 @@ class Environment implements EnvironmentInterface
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Basic\Interfaces\EnvironmentInterface::setDomain()
+     * @see \Minwork\Http\Interfaces\EnvironmentInterface::setDomain()
      */
     public function setDomain(string $domain): EnvironmentInterface
     {

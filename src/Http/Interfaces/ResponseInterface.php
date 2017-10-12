@@ -7,8 +7,6 @@
  */
 namespace Minwork\Http\Interfaces;
 
-use Minwork\Http\Utility\HttpCode;
-
 /**
  * Interface for HTTP response object
  *
