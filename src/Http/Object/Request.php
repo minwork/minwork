@@ -67,13 +67,13 @@ class Request implements RequestInterface
      *
      * @param array $query
      *            By default it should be data from $_GET
-     * @param array $body
+     * @param mixed $body
      *            By default it should be data from $_POST
      * @param array $headers
      *            Headers to send
      *            
      */
-    public function __construct(array $query = [], $body = null, array $headers = [], string $method = cUrl::METHOD_POST)
+    public function __construct(array $query = [], $body = null, array $headers = [], string $method = cUrl::METHOD_POST): void
     {
         $this->setMethod($method)
             ->setQuery($query)
@@ -86,7 +86,7 @@ class Request implements RequestInterface
      *
      * @return Request
      */
-    public static function createFromGlobals()
+    public static function createFromGlobals(): self
     {
         $body = $_POST;
         // If body is empty try getting data from input
@@ -94,46 +94,6 @@ class Request implements RequestInterface
             parse_str(file_get_contents('php://input'), $body);
         }
         return new self($_GET, $body, Server::getHeaders(), Server::getRequestMethod());
-    }
-
-    /**
-     * Trims array by keys
-     *
-     * @param array $array            
-     * @param array $keys            
-     * @return array
-     */
-    protected function trim(array $array, array $keys)
-    {
-        if (! is_array($array) || empty($array)) {
-            $this->debug('Variable passed to trim isn\'t array or is empty');
-        }
-        if (! is_array($keys) || empty($keys)) {
-            $this->debug('Can\'t trim to empty array');
-        }
-        return array_intersect_key($array, array_flip($keys));
-    }
-
-    /**
-     * Trim GET data to passed array of keys
-     *
-     * @param array $keys            
-     * @return array
-     */
-    public function trimQuery(array $keys)
-    {
-        return $this->trim($this->query, $keys);
-    }
-
-    /**
-     * Trim POST data to passed array of keys
-     *
-     * @param array $keys            
-     * @return array
-     */
-    public function trimRequest(array $keys)
-    {
-        return $this->trim($this->body, $keys);
     }
 
     /**

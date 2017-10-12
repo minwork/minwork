@@ -46,7 +46,7 @@ class View implements ViewInterface
      * @param string $filepath            
      * @param array $data            
      */
-    public function __construct(string $filepath, array $data = [])
+    public function __construct(string $filepath, array $data = []): void
     {
         $this->filepath = $filepath;
         $this->data = $data;

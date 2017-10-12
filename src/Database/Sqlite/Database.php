@@ -24,9 +24,10 @@ class Database extends AbstractDatabase
      *
      * @see \Minwork\Database\Object\AbstractDatabase::init()
      */
-    protected function init(string $user, string $password)
+    protected function init(string $user, string $password): self
     {
         \PDO::__construct("sqlite:{$this->getHost()}", $user, $password, $this->getOptions());
         $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        return $this;
     }
 }

@@ -107,7 +107,7 @@ class Router implements RouterInterface
      * @see \Minwork\Http\Object\Router::setRouting()
      * @param array|string $routing            
      */
-    public function __construct($routing)
+    public function __construct($routing): void
     {
         $this->reset()->setRouting(ArrayHelper::forceArray($routing));
     }

@@ -79,7 +79,7 @@ class Rule implements ValidatorInterface
      * @param bool $expect
      *            Expected function result
      */
-    public function __construct($callback, $error = '', array $arguments = [], string $importance = self::IMPORTANCE_NORMAL, bool $expect = true)
+    public function __construct($callback, ?string $error = '', array $arguments = [], string $importance = self::IMPORTANCE_NORMAL, bool $expect = true): void
     {
         if (is_string($callback) && ! is_callable($callback) && method_exists("\Minwork\Helper\Validation", $callback)) {
             $callback = "\Minwork\Helper\Validation::{$callback}";
@@ -115,7 +115,7 @@ class Rule implements ValidatorInterface
         return $this;
     }
     
-    protected function getRuleError($error)
+    protected function getRuleError($error): ?string
     {
         return $error === '' ?
         'Rule check failed at ' . (

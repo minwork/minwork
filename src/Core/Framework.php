@@ -68,7 +68,7 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
      * @param EnvironmentInterface $environment            
      * @param EventDispatcherInterface $eventDisptacher            
      */
-    public function __construct(RouterInterface $router, EnvironmentInterface $environment, EventDispatcherInterface $eventDisptacher = null)
+    public function __construct(RouterInterface $router, EnvironmentInterface $environment, EventDispatcherInterface $eventDisptacher = null): void
     {
         $this->setRouter($router)
             ->setEnvironment($environment)

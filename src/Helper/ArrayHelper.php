@@ -47,20 +47,22 @@ class ArrayHelper
      *            Array or object implementing array access to get element from
      * @param mixed $keys
      *            Keys indicator
+     * @param mixed $default
+     *            Default value if element was not found
      * @see ArrayHelper::getKeysArray
      * @return null|mixed
      */
-    public static function getNestedElement($array, $keys)
+    public static function getNestedElement($array, $keys, $default = null)
     {
         $keys = self::getKeysArray($keys);
         foreach ($keys as $key) {
             if (! is_array($array) && ! $array instanceof \ArrayAccess) {
-                return null;
+                return $default;
             }
             if (($array instanceof \ArrayAccess && $array->offsetExists($key)) || array_key_exists($key, $array)) {
                 $array = $array[$key];
             } else {
-                return null;
+                return $default;
             }
         }
         return $array;
@@ -70,7 +72,7 @@ class ArrayHelper
      * Handle multidimensional array access using array of keys (get or set depending on $value argument)
      *
      * @see ArrayHelper::getKeysArray
-     * @param array $array            
+     * @param array $array
      * @param mixed $keys
      *            Keys needed to access desired array element (for possible formats look at getKeysArray method)
      * @param mixed $value
@@ -105,7 +107,7 @@ class ArrayHelper
     /**
      * Make variable an array
      *
-     * @param mixed $var            
+     * @param mixed $var
      * @return array
      */
     public static function forceArray($var): array
@@ -126,8 +128,8 @@ class ArrayHelper
 
     /**
      * Clone array with every object inside it
-     * 
-     * @param array $array            
+     *
+     * @param array $array
      * @return array
      */
     public static function clone(array $array): array
@@ -148,7 +150,7 @@ class ArrayHelper
     /**
      * Get random array value
      *
-     * @param array $array            
+     * @param array $array
      * @return mixed
      */
     public static function random(array $array, int $count = 1)
@@ -162,7 +164,7 @@ class ArrayHelper
     /**
      * Recursively check if all of array values match empty condition
      *
-     * @param array $array            
+     * @param array $array
      * @return boolean
      */
     public static function isEmpty($array): bool
@@ -183,7 +185,7 @@ class ArrayHelper
     /**
      * Check if array is associative
      *
-     * @param array $array            
+     * @param array $array
      * @param bool $strict
      *            If false then this function will match any array that doesn't contain integer keys
      * @return boolean
@@ -205,7 +207,7 @@ class ArrayHelper
     /**
      * Check if array contain only numeric values
      *
-     * @param array $array            
+     * @param array $array
      * @return bool
      */
     public static function isNumeric(array $array): bool
@@ -216,7 +218,7 @@ class ArrayHelper
     /**
      * Check if array values are unique
      *
-     * @param array $array            
+     * @param array $array
      * @return bool
      */
     public static function isUnique(array $array): bool
@@ -227,7 +229,7 @@ class ArrayHelper
     /**
      * Check if every array element is array
      *
-     * @param array $array            
+     * @param array $array
      * @return bool
      */
     public static function isArrayOfArrays(array $array): bool
@@ -243,7 +245,7 @@ class ArrayHelper
     /**
      * Filter array by preserving only those which keys are present in $keys expression
      *
-     * @param array $array            
+     * @param array $array
      * @param mixed $keys
      *            Look at getKeysArray function
      * @see \Minwork\Helper\ArrayHelper::getKeysArray()
@@ -264,7 +266,7 @@ class ArrayHelper
     /**
      * Check if array has specified keys
      *
-     * @param array $array            
+     * @param array $array
      * @param mixed $keys
      *            Look at getKeysArray function
      * @see \Minwork\Helper\ArrayHelper::getKeysArray()
@@ -287,7 +289,7 @@ class ArrayHelper
     /**
      * Get even array values
      *
-     * @param array $array            
+     * @param array $array
      * @return array
      */
     public static function evenValues(array $array): array
@@ -303,7 +305,7 @@ class ArrayHelper
     /**
      * Get odd array values
      *
-     * @param array $array            
+     * @param array $array
      * @return array
      */
     public static function oddValues(array $array): array
@@ -330,10 +332,10 @@ class ArrayHelper
      * <pre>
      * ['string1' => [Foo1], 'string2' => [Foo2, Foo3]]
      * </pre>
-     * 
-     * @param array $objects            
-     * @param string $method            
-     * @param mixed ...$args            
+     *
+     * @param array $objects
+     * @param string $method
+     * @param mixed ...$args
      * @return array
      */
     public static function groupObjectsBy(array $objects, string $method, ...$args): array

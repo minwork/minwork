@@ -56,7 +56,7 @@ class Errors implements ErrorsStorageInterface
      * @param ErrorPrototype $error            
      * @return self
      */
-    public static function addAndReturn(ErrorInterface $error)
+    public static function addAndReturn(ErrorInterface $error): self
     {
         $error = new self();
         return $error->addError($error);

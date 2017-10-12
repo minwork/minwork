@@ -61,7 +61,7 @@ class Response implements ResponseInterface
      * @param string $contentType            
      * @param int $httpCode            
      */
-    public function __construct($content = '', string $contentType = self::CONTENT_TYPE_TEXT, int $httpCode = HttpCode::OK)
+    public function __construct($content = '', string $contentType = self::CONTENT_TYPE_TEXT, int $httpCode = HttpCode::OK): void
     {
         $this->setContent($content)
             ->setContentType($contentType)

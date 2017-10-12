@@ -33,7 +33,7 @@ class Environment implements EnvironmentInterface
      */
     protected $type;
 
-    public function __construct(string $domain = '', string $type = EnvironmentInterface::TYPE_DEVELOPMENT)
+    public function __construct(string $domain = '', string $type = EnvironmentInterface::TYPE_DEVELOPMENT): void
     {
         $this->setDomain(empty($domain) ? Server::getDomain() : $domain)->setType($type);
     }

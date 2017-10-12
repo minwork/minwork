@@ -60,7 +60,7 @@ class Random
      * @throws \InvalidArgumentException
      * @return int
      */
-    public static function int(int $min = PHP_INT_MIN, int $max = PHP_INT_MAX)
+    public static function int(int $min = PHP_INT_MIN, int $max = PHP_INT_MAX): int
     {
         if ($min > $max) {
             $tmp = $min;
@@ -77,7 +77,7 @@ class Random
      * @param float $max            
      * @return float
      */
-    public static function float(float $min = 0.0, float $max = 1.0)
+    public static function float(float $min = 0.0, float $max = 1.0): float
     {
         return $min + self::int($min) / PHP_INT_MAX * ($max - $min);
     }

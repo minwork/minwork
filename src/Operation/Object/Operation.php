@@ -69,7 +69,7 @@ class Operation implements OperationInterface, EventDispatcherContainerInterface
      *            Event dispatcher for before and after execution events
      * @see \Minwork\Operation\Interfaces\RevertableOperationInterface
      */
-    public function __construct(string $name, bool $canQueue = false, bool $canRevert = false, EventDispatcherInterface $eventDispatcher = null)
+    public function __construct(string $name, bool $canQueue = false, bool $canRevert = false, EventDispatcherInterface $eventDispatcher = null): void
     {
         $this->setName($name)
             ->setCanQueue($canQueue)

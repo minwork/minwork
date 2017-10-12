@@ -61,7 +61,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * @param string $name            
      * @param ColumnInterface[] $columns            
      */
-    public function __construct(DatabaseInterface $database, string $name, array $columns = [])
+    public function __construct(DatabaseInterface $database, string $name, array $columns = []): void
     {
         $this->setDatabase($database)
             ->setName($name)
@@ -709,9 +709,9 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      *
      * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
      * @param mixed $value            
-     * @return mixed
+     * @return string
      */
-    protected function prepareValue($value)
+    protected function prepareValue($value): string
     {
         if (is_string($value) || is_numeric($value) || is_bool($value)) {
             return "= {$this->getDatabase()->escape($value)}";
@@ -725,7 +725,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         } elseif (is_null($value)) {
             return "IS NULL";
         }
-        return $value;
+        return strval($value);
     }
 
     /**
@@ -734,8 +734,9 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      *
      * @param array|string $columns
      *            It can also be an object that is convertable to string
+     * @return string           
      */
-    protected function prepareColumnsList($columns)
+    protected function prepareColumnsList($columns): string
     {
         if (is_array($columns)) {
             if (ArrayHelper::isAssoc($columns)) {

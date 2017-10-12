@@ -24,7 +24,7 @@ class Database extends AbstractDatabase
      *
      * @see \Minwork\Database\Object\AbstractDatabase::init()
      */
-    protected function init(string $user, string $password)
+    protected function init(string $user, string $password): self
     {
         $this->setOptions([
             \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->getCharset()}"
@@ -42,5 +42,7 @@ class Database extends AbstractDatabase
         $this->setAttribute(\PDO::ATTR_AUTOCOMMIT, 1);
         $this->exec("SET SQL_MODE=ANSI_QUOTES;");
         $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        
+        return $this;
     }
 }

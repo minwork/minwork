@@ -28,7 +28,7 @@ class ErrorForm extends ErrorPrototype
      * @param string $message
      *            Error message
      */
-    public function __construct($name, $message)
+    public function __construct(string $name, string $message): void
     {
         parent::__construct($message);
         $this->setFieldName($name);

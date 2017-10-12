@@ -21,18 +21,18 @@ interface DatabaseInterface
      *
      * @param string $statement
      *            The SQL statement to prepare and execute.<br>Data inside the query should be properly escaped.
-     *            
+     * @return mixed
      */
-    public function exec($statement);
+    public function exec(string $statement);
 
     /**
      * Executes an SQL statement, returning a result specific to database implementation
      *
      * @param string $statement
      *            The SQL statement to prepare and execute.<br>Data inside the query should be properly escaped.
-     *            
+     * @return mixed           
      */
-    public function query($statement);
+    public function query(string $statement);
 
     /**
      * Cross-platform string escaping for preventing SQL injection (usually by sanitizing data and surrounding it with quotes)
@@ -71,6 +71,8 @@ interface DatabaseInterface
 
     /**
      * Get last insert id from automatically incremented column
+     * 
+     * @return mixed
      */
     public function getLastInsertId();
 }

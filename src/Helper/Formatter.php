@@ -62,34 +62,6 @@ class Formatter
     }
 
     /**
-     * Check if nested element of array exists - if it doesn't return default value<br>
-     *
-     * Example of usage:<br>
-     * Get nested id param from $_GET with 0 as default value<br>
-     * <pre>$_GET['search']['offer']['id']</pre>
-     * <pre>Formatter::defaultArrayValue($_GET, ['search', 'offer', 'id'], 0)</pre>
-     *
-     * @see ArrayHelper::getKeysArray()
-     * @param array $array
-     *            Source array
-     * @param mixed $keys
-     *            Array keys in format compatible with ArrayHelper::getKeysArray() method
-     * @param mixed $value            
-     * @return mixed
-     */
-    public static function defaultArrayValue(array $array, $keys, $value)
-    {
-        $return = $array;
-        foreach (ArrayHelper::getKeysArray($keys) as $key) {
-            if (! is_array($return) || ! array_key_exists($key, $return)) {
-                return $value;
-            }
-            $return = $return[$key];
-        }
-        return $return;
-    }
-
-    /**
      * Make string decimal
      *
      * @param string $string            
@@ -239,7 +211,8 @@ class Formatter
      * 
      * @see Formatter::encodeHTMLData()
      * @param array|string $data            
-     * @param string $allowedTags            
+     * @param string $allowedTags    
+     * @return array|string        
      */
     public static function decodeHTMLData($data, string $allowedTags = '')
     {
@@ -356,7 +329,7 @@ class Formatter
      *
      * @param array|string $data            
      * @param array $filter            
-     * @return array
+     * @return array|string
      */
     public static function cleanData($data, $filter = [])
     {

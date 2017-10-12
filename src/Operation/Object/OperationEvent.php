@@ -51,7 +51,7 @@ class OperationEvent implements EventInterface
      * @param string $name            
      * @param array $arguments            
      */
-    public function __construct(string $name, array $arguments = [])
+    public function __construct(string $name, array $arguments = []): void
     {
         $this->name = $name;
         $this->arguments = $arguments;
@@ -71,7 +71,7 @@ class OperationEvent implements EventInterface
     /**
      * Get one of the operation arguments (first by default)
      * @param integer|string $key Arguments array key
-     * @return null|mixed
+     * @return mixed
      */
     public function getArg($key = 0)
     {

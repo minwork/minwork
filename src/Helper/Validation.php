@@ -181,7 +181,7 @@ class Validation
      * @param int $max            
      * @return bool
      */
-    public static function isInt($value, $min = null, $max = null): bool
+    public static function isInt($value, ?int $min = null, ?int $max = null): bool
     {
         $options = [
             'options' => []

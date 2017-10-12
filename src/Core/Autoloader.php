@@ -54,15 +54,15 @@ class MinworkAutoloader
     /**
      * Creates new autoloader
      *
-     * @param string $namespace
+     * @param string|null $namespace
      *            Basic class namespace (ignored in creation of file path)
-     * @param string $path
+     * @param string|null $path
      *            Basic path to search for classes files
      */
-    public function __construct($namespace = null, $path = null)
+    public function __construct(?string $namespace = null, ?string $path = null): void
     {
         $this->basicNamespace = $namespace ?? 'Minwork';
-        $this->basicPath = ($path == self::DEFAULT_DIR_SEPARATOR ? "" : is_null($path) ? preg_replace('/' . DIRECTORY_SEPARATOR . 'Core$/', '', __DIR__) : $path);
+        $this->basicPath = $path == self::DEFAULT_DIR_SEPARATOR ? '' : ($path ?? preg_replace('/' . DIRECTORY_SEPARATOR . 'Core$/', '', __DIR__));
         $this->fileExtension = self::DEFAULT_FILE_EXTENSION;
         $this->namespaceSeparator = self::DEFAULT_NAMESPACE_SEPARATOR;
         $this->namespaceLowercase = self::DEFAULT_NAMESPACE_LOWERCASE;
@@ -74,7 +74,7 @@ class MinworkAutoloader
     /**
      * Automatically register Minwork autoloader
      */
-    public static function registerDefault()
+    public static function registerDefault(): self
     {
         $self = new self();
         return $self->register();
@@ -85,7 +85,7 @@ class MinworkAutoloader
      *
      * @param string $namespace            
      */
-    public function setBasicNamespace($namespace)
+    public function setBasicNamespace(string $namespace): self
     {
         $this->basicNamespace = $namespace;
         return $this;
@@ -96,7 +96,7 @@ class MinworkAutoloader
      *
      * @param string $path            
      */
-    public function setBasicPath($path)
+    public function setBasicPath(string $path): self
     {
         $this->basicPath = $path;
         return $this;
@@ -107,7 +107,7 @@ class MinworkAutoloader
      *
      * @param string $extension            
      */
-    public function setFileExtension($extension)
+    public function setFileExtension(string $extension): self
     {
         $this->fileExtension = $extension;
         return $this;
@@ -118,7 +118,7 @@ class MinworkAutoloader
      *
      * @param string $separator            
      */
-    public function setNamespaceSeparator($separator)
+    public function setNamespaceSeparator(string $separator): self
     {
         $this->namespaceSeparator = $separator;
         return $this;
@@ -127,7 +127,7 @@ class MinworkAutoloader
     /**
      * Add to autoloader queue
      */
-    public function register()
+    public function register(): self
     {
         spl_autoload_register(array(
             $this,
@@ -139,7 +139,7 @@ class MinworkAutoloader
     /**
      * Remove from autoloader queue
      */
-    public function unregister()
+    public function unregister(): self
     {
         spl_autoload_unregister(array(
             $this,
@@ -153,8 +153,9 @@ class MinworkAutoloader
      *
      * @param string $className
      *            Name of the class to load
+     * @return bool
      */
-    public function autoload($className)
+    public function autoload(string $className): bool
     {
         $class = $className;
         $filename = '';

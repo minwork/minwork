@@ -68,7 +68,7 @@ class ModelsList
      * @param ModelInterface $prototype            
      * @param Query $query            
      */
-    public function __construct(ModelInterface $prototype, Query $query)
+    public function __construct(ModelInterface $prototype, Query $query): void
     {
         $this->reset()->setQuery($query)->prototype = $prototype;
     }
@@ -106,7 +106,7 @@ class ModelsList
      * @param int|null $onPage            
      * @return self
      */
-    public function getData(int $page = 1, $onPage = null): self
+    public function getData(int $page = 1, ?int $onPage = null): self
     {
         $this->page = $page;
         $this->onPage = $onPage;
@@ -163,7 +163,7 @@ class ModelsList
      *
      * @return int|null
      */
-    public function getOnPage()
+    public function getOnPage(): ?int
     {
         return $this->onPage;
     }

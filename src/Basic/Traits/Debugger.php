@@ -29,7 +29,7 @@ trait Debugger
      *
      * @param string $message            
      */
-    protected function debug(string $message)
+    protected function debug(string $message): self
     {
         $backtrace = debug_backtrace(0, 2);
         $selfData = $backtrace[0];
@@ -41,6 +41,8 @@ trait Debugger
             'toString'
         ], $args)) . "):{$selfData['line']}";
         $this->debug[$key] = $message;
+        
+        return $this;
     }
 
     /**

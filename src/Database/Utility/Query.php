@@ -30,7 +30,7 @@ class Query
      * Columns list used for INSERT, SELECT and UPDATE statements
      *
      * @see \Minwork\Database\Object\AbstractTable::prepareColumnsList()
-     * @var array|string
+     * @var array|string|null
      */
     protected $columns;
 
@@ -38,7 +38,7 @@ class Query
      * Statement LIMIT clause
      *
      * @see \Minwork\Database\Object\AbstractTable::getLimitQuery()
-     * @var int|array|string
+     * @var int|array|string|null
      */
     protected $limit;
 
@@ -46,7 +46,7 @@ class Query
      * Statement ORDER BY clause
      *
      * @see \Minwork\Database\Object\AbstractTable::getOrderQuery()
-     * @var array|string
+     * @var array|string|null
      */
     protected $order;
 
@@ -54,11 +54,11 @@ class Query
      * Statement GROUP BY clause
      *
      * @see \Minwork\Database\Object\AbstractTable::getGroupQuery()
-     * @var array|string
+     * @var array|string|null
      */
     protected $group;
 
-    public function __construct($conditions = [], $columns = null, $limit = null, $order = null, $group = null)
+    public function __construct($conditions = [], $columns = null, $limit = null, $order = null, $group = null): void
     {
         $this->conditions = $conditions ?? [];
         $this->columns = $columns ?? TableInterface::COLUMNS_ALL;
@@ -93,7 +93,7 @@ class Query
     /**
      * Get query columns list
      *
-     * @return string
+     * @return string|array
      */
     public function getColumns()
     {

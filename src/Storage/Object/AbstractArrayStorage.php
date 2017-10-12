@@ -25,7 +25,7 @@ class AbstractArrayStorage implements StorageInterface
      * @param array $array
      *            Pointer to the array which will be used as a storage
      */
-    public function __construct(array &$array)
+    public function __construct(array &$array): void
     {
         $this->array = &$array;
     }

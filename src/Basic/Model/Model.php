@@ -103,7 +103,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
      * @param bool $buffering            
      * @param EventDispatcherInterface $eventDispatcher            
      */
-    public function __construct(DatabaseStorageInterface $storage, $id = null, bool $buffering = true, EventDispatcherInterface $eventDispatcher = null)
+    public function __construct(DatabaseStorageInterface $storage, $id = null, bool $buffering = true, EventDispatcherInterface $eventDispatcher = null): void
     {
         $this->reset()
             ->setStorage($storage)
@@ -117,7 +117,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
      * Clone model and all objects set through dependency injection
      * Reset event dispatcher and reconnect all events to newly created model
      */
-    public function __clone()
+    public function __clone(): void
     {
         $this->setStorage(clone $this->getStorage())
             ->setEventDispatcher((clone $this->getEventDispatcher())->reset())
@@ -127,7 +127,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
     /**
      * Executes storage actions if necessary
      */
-    public function __destruct()
+    public function __destruct(): void
     {
         if ($this->requireAction()) {
             $this->executeActions();
@@ -371,7 +371,7 @@ class Model implements ModelInterface, ObjectOperationInterface, BindableModelIn
     public function execute(OperationInterface $operation, array $arguments = [], ValidatorInterface $validator = null)
     {
         if (! is_null($validator) && ! $validator->setContext($this)
-            ->validate(count($arguments) == 1 ? reset($arguments) : $arguments)
+            ->validate(count($arguments) === 1 ? reset($arguments) : $arguments)
             ->isValid()) {
             $this->getErrors()->merge($validator->getErrors());
             return false;

@@ -38,7 +38,7 @@ class Read extends Operation
      *            Event dispatcher for before and after execution events
      * @see \Minwork\Operation\Interfaces\RevertableOperationInterface
      */
-    public function __construct(string $name = self::OPERATION_NAME, bool $canQueue = true, bool $canRevert = false, EventDispatcherInterface $eventDispatcher = null)
+    public function __construct(string $name = self::OPERATION_NAME, bool $canQueue = true, bool $canRevert = false, EventDispatcherInterface $eventDispatcher = null): void
     {
         parent::__construct($name, $canQueue, $canRevert, $eventDispatcher);
     }

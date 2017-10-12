@@ -61,7 +61,7 @@ class Url implements UrlInterface
      *
      * @param string $url            
      */
-    public function __construct(string $url)
+    public function __construct(string $url): void
     {
         $this->rawUrl = $url;
         $this->params = $this->parseUrl($url);
