@@ -4,8 +4,11 @@
 	"type" : "library",
 	"keywords" : [
 		"framework",
-		"PHP",
-		"PHP 7"
+		"api",
+		"micro",
+		"php",
+		"7",
+		"7.1"
 	],
 	"license" : "MIT",
 	"authors" : [{
