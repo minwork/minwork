@@ -38,7 +38,7 @@ class Server
      */
     public static function getHttps(): string
     {
-        return array_key_exists('HTTPS', $_SERVER) ? $_SERVER['HTTPS'] : self::HTTPS_DISABLED;
+        return $_SERVER['HTTPS'] ?? self::HTTPS_DISABLED;
     }
 
     /**
@@ -48,7 +48,7 @@ class Server
      */
     public static function getServerName(): string
     {
-        return array_key_exists('SERVER_NAME', $_SERVER) ? $_SERVER['SERVER_NAME'] : self::DEFAULT_SERVER_NAME;
+        return $_SERVER['SERVER_NAME'] ?? self::DEFAULT_SERVER_NAME;
     }
 
     /**
@@ -58,7 +58,7 @@ class Server
      */
     public static function getPort(): string
     {
-        return array_key_exists('SERVER_PORT', $_SERVER) ? $_SERVER['SERVER_PORT'] : self::DEFAULT_PORT;
+        return $_SERVER['SERVER_PORT'] ?? self::DEFAULT_PORT;
     }
 
     /**
@@ -68,7 +68,7 @@ class Server
      */
     public static function getProtocol(): string
     {
-        return array_key_exists('SERVER_PROTOCOL', $_SERVER) ? $_SERVER['SERVER_PROTOCOL'] : self::DEFAULT_PROTOCOL;
+        return $_SERVER['SERVER_PROTOCOL'] ?? self::DEFAULT_PROTOCOL;
     }
 
     /**
@@ -93,7 +93,7 @@ class Server
      */
     public static function getRequestMethod(): string
     {
-        return array_key_exists('REQUEST_METHOD', $_SERVER) ? $_SERVER['REQUEST_METHOD'] : self::DEFAULT_METHOD;
+        return $_SERVER['REQUEST_METHOD'] ?? self::DEFAULT_METHOD;
     }
 
     /**
@@ -103,7 +103,7 @@ class Server
      */
     public static function getClientIP(): string
     {
-        return array_key_exists('REMOTE_ADDR', $_SERVER) ? $_SERVER['REMOTE_ADDR'] : self::DEFAULT_REMOTE_ADDR;
+        return $_SERVER['REMOTE_ADDR'] ?? self::DEFAULT_REMOTE_ADDR;
     }
 
     /**
@@ -128,6 +128,11 @@ class Server
             return 'https';
         }
         return strtolower(substr(self::getProtocol(), 0, strpos(self::getProtocol(), '/')));
+    }
+    
+    public static function getReferer(): string
+    {
+        return $_SERVER['HTTP_REFERER'] ?? '';
     }
 
     /**
