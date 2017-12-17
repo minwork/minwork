@@ -35,7 +35,7 @@ class ArrayHelper
     public static function getKeysArray($keys): array
     {
         if (is_string($keys)) {
-            return explode('.', $keys);
+            return empty($keys) ? [] : explode('.', $keys);
         }
         return is_null($keys) ? [] : array_values(self::forceArray($keys));
     }
@@ -324,52 +324,93 @@ class ArrayHelper
      * Group list of objects by value returned from supplied method.<br><br>
      * <u>Example</u><br>
      * Let's say we have a list of Foo objects [Foo1, Foo2, Foo3] and all of them have method bar which return string.<br>
-     * If every object return different string from method bar we will get array grouped like:<br>
-     * <pre>
-     * ['string1' => Foo1, 'string2' => Foo2, 'string3' => Foo3]
-     * </pre>
-     * If method bar return duplicate strings then all keys will containt list of corresponding objects like this:<br>
+     * If method bar return duplicate strings then all keys will contain list of corresponding objects like this:<br>
      * <pre>
      * ['string1' => [Foo1], 'string2' => [Foo2, Foo3]]
      * </pre>
+     * If flat param is equal to <i>true</i> then every object returning duplicate key will replace previous one, like:<br>
+     * <pre>
+     * ['string1' => Foo1, 'string2' => Foo3]
+     * </pre>
      *
+     * @param array $objects
+     * @param string $method
+     * @param bool $flat
+     * @param mixed ...$args
+     * @return array
+     */
+    public static function groupObjects(array $objects, string $method, ...$args): array
+    {
+        $return = [];
+        
+        foreach ($objects as $object) {
+            if (is_object($object)) {
+                $key = $object->$method(...$args);
+                if (! array_key_exists($key, $return)) {
+                    $return[$key] = [
+                        $object
+                    ];
+                } else {
+                    $return[$key][] = $object;
+                }
+            }
+        }
+        
+        return $return;
+    }
+
+    /**
+     * Filter objects array using supplied method name.<br>
+     * Discard any object which method return value convertable to false
+     * 
      * @param array $objects
      * @param string $method
      * @param mixed ...$args
      * @return array
      */
-    public static function groupObjectsBy(array $objects, string $method, ...$args): array
+    public static function filterObjects(array $objects, string $method, ...$args): array
     {
-        $array = [];
-        $forceArrays = false;
+        $return = [];
         
-        foreach ($objects as $object) {
-            $key = $object->$method(...$args);
-            if (! array_key_exists($key, $array)) {
-                $array[$key] = $object;
-            } else {
-                $forceArrays = true;
-                if (is_array($array[$key])) {
-                    $array[$key][] = $object;
+        foreach ($objects as $key => $object) {
+            if (is_object($object) && $object->$method(...$args)) {
+                $return[$key] = $object;
+            }
+        }
+        
+        return $return;
+    }
+
+    /**
+     * Flatten single element arrays<br>
+     * Let's say we have an array like this:<br>
+     * <pre>
+     * ['foo' => ['bar'], 'foo2' => ['bar2', 'bar3' => ['foo4']]
+     * </pre>
+     * then we have result:<br>
+     * <pre>
+     * ['foo' => 'bar', 'foo2' => ['bar2', 'bar3' => 'foo4']]
+     * </pre>
+     * 
+     * @param array $array
+     * @return array
+     */
+    public static function flattenSingle(array $array): array
+    {
+        $return = [];
+        
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                if (count($value) === 1) {
+                    $return[$key] = reset($value);
                 } else {
-                    $array[$key] = [
-                        $array[$key],
-                        $object
-                    ];
+                    $return[$key] = self::flattenSingle($value);
                 }
+            } else {
+                $return[$key] = $value;
             }
         }
         
-        if ($forceArrays) {
-            foreach ($array as $key => $value) {
-                if (! is_array($value)) {
-                    $array[$key] = [
-                        $value
-                    ];
-                }
-            }
-        }
-        
-        return $array;
+        return $return;
     }
 }

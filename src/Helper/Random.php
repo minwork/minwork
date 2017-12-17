@@ -17,6 +17,20 @@ class Random
 {
 
     /**
+     * Generate random sign (-1 or 1)
+     * 
+     * @return int
+     */
+    public static function sign(): int
+    {
+        do {
+            $random = self::int();
+        } while ($random === 0);
+        
+        return $random > 0 ? 1 : -1;
+    }
+    
+    /**
      * Generate random string
      *
      * @param int $length            

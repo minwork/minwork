@@ -33,9 +33,13 @@ class Validation
      * @param string $email            
      * @return bool
      */
-    public static function isEmail(string $email, bool $checkDomain = true): bool
+    public static function isEmail(string $email, bool $checkDomain = true, bool $allowAlias = false): bool
     {
         if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            return false;
+        }
+        
+        if (! $allowAlias && strpos($email, '+') !== false) {
             return false;
         }
         

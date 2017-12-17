@@ -16,13 +16,17 @@ namespace Minwork\Helper;
 class DateHelper
 {
 
-    const FORMAT_DATETIME = "Y-m-d H:i:s";
+    const FORMAT_DATETIME = 'Y-m-d H:i:s';
 
-    const FORMAT_DATE = "Y-m-d";
+    const FORMAT_DATE = 'Y-m-d';
 
-    const FORMAT_TIME = "H:i:s";
+    const FORMAT_TIME = 'H:i:s';
 
-    const EMPTY_DATE = "0000-00-00";
+    const EMPTY_DATE = '0000-00-00';
+    
+    const EMPTY_TIME = '00:00:00';
+    
+    const EMPTY_DATETIME = self::EMPTY_DATE . ' ' . self::EMPTY_TIME;
 
     /**
      * Returns current date
@@ -48,11 +52,11 @@ class DateHelper
     /**
      * Add specified amount of days to date string
      *
-     * @param string $date            
      * @param int $days            
+     * @param string|null $date Default - current date
      * @return string
      */
-    public static function addDays(string $date, int $days): string
+    public static function addDays(int $days, ?string $date = null): string
     {
         $curDate = new \DateTime($date);
         $curDate->add(new \DateInterval("P{$days}D"));
@@ -62,11 +66,11 @@ class DateHelper
     /**
      * Add specified amount of hours to date string
      *
-     * @param string $date            
      * @param int $hours            
+     * @param string|null $date Default - current date
      * @return string
      */
-    public static function addHours(string $date, int $hours): string
+    public static function addHours(int $hours, ?string $date = null): string
     {
         $curDate = new \DateTime($date);
         $curDate->add(new \DateInterval("PT{$hours}H"));
@@ -76,14 +80,38 @@ class DateHelper
     /**
      * Add specified amount of minutes to date string
      *
-     * @param string $date            
      * @param int $minutes            
+     * @param string|null $date Default - current date
      * @return string
      */
-    public static function addMinutes(string $date, int $minutes): string
+    public static function addMinutes(int $minutes, ?string $date = null): string
     {
         $curDate = new \DateTime($date);
         $curDate->add(new \DateInterval("PT{$minutes}M"));
         return $curDate->format(self::FORMAT_DATETIME);
+    }
+    
+    /**
+     * Add specified amount of seconds to date string
+     *
+     * @param int $seconds
+     * @param string|null $date Default - current date
+     * @return string
+     */
+    public static function addSeconds(int $seconds, ?string $date = null): string
+    {
+        $curDate = new \DateTime($date);
+        $curDate->add(new \DateInterval("PT{$seconds}S"));
+        return $curDate->format(self::FORMAT_DATETIME);
+    }
+    
+    /**
+     * Get amount of seconds until specified date
+     * @param string|null $date Default - current date
+     * @return int
+     */
+    public static function secondsUntil(?string $date = null): int
+    {
+        return (new \DateTime($date))->getTimestamp() - (new \DateTime())->getTimestamp();
     }
 }

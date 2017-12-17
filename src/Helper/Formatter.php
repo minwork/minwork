@@ -22,7 +22,7 @@ class Formatter
     const STRING_NORMALIZED_LANG = "en_GB";
 
     /**
-     * Get number sign in form of '1' / '-1' or '+' / '' if $text is true 
+     * Get number sign in form of '1' / '-1' or '+' / '-' if $text is true 
      * @param float $number
      * @param bool $text
      * @return int|string
@@ -113,7 +113,25 @@ class Formatter
     {
         return lcfirst(str_replace('_', '', ucwords(preg_replace('/[\s\-]+/', '_', mb_strtolower($string, self::STRING_ENCODING)), '_')));
     }
+    
+    /**
+     * Format string to underscored name (UpperCamelCase -> upper_camel_case)
+     * @param string $string
+     * @return string
+     */
+    public static function underscoreName(string $string): string
+    {
+        return preg_replace_callback('/[A-Z]/', function ($match) {
+            return '_' . mb_strtolower($match[0]); 
+        }, lcfirst($string));
+    }
 
+    public static function removeNamespace(string $classname): string
+    {
+        $pos = strrpos($classname, '\\');
+        return $pos === false ? $classname : substr($classname, $pos + 1);
+    }
+    
     /**
      * Make string readable.<br>
      * Replaces '-' and '_' with space and make first letter uppercase
@@ -147,6 +165,8 @@ class Formatter
             return strval($var);
         } elseif (is_bool($var)) {
             return $var ? 'true' : 'false';
+        } elseif (is_callable($var, false, $name)) {
+            return $name;
         } elseif (is_array($var)) {
             $isAssoc = ArrayHelper::isAssoc($var, true);
             $parts = [];
@@ -328,7 +348,7 @@ class Formatter
      * Clean form or request data using strip_tags and trim<br>
      *
      * @param array|string $data            
-     * @param array $filter            
+     * @param array $filter Skip keys present in this array
      * @return array|string
      */
     public static function cleanData($data, $filter = [])
