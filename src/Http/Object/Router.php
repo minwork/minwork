@@ -14,6 +14,7 @@ use Minwork\Http\Utility\LangCode;
 use Minwork\Basic\Traits\Debugger;
 use Minwork\Helper\ArrayHelper;
 use Minwork\Core\Framework;
+use Minwork\Basic\Controller\Controller;
 
 /**
  * Basic implementation of router interface
@@ -221,6 +222,9 @@ class Router implements RouterInterface
             
             if (is_string($controllerClass) && class_exists($controllerClass)) {
                 $this->controllerObject = new $controllerClass();
+                if (! $this->controllerObject instanceof ControllerInterface) {
+                    throw new \DomainException("Controller class ({$controllerClass}) must implement ControllerInterface");
+                }
             } elseif (is_object($controllerClass) && $controllerClass instanceof ControllerInterface) {
                 $this->controllerObject = $controllerClass;
             } else {
@@ -320,8 +324,10 @@ class Router implements RouterInterface
         $method = $this->getMethod();
         $methodNormalized = strtr($method, '-', '_');
         
+        $controllerMethods = $controller instanceof Controller ? get_class_methods('Minwork\Basic\Controller\Controller') : get_class_methods('Minwork\Basic\Interfaces\ControllerInterface');
+        
         // Process method name
-        if (! in_array($methodNormalized, Framework::EVENTS) && method_exists($controller, $methodNormalized)) {
+        if (! in_array($methodNormalized, Framework::EVENTS) && ! in_array($methodNormalized, $controllerMethods) && method_exists($controller, $methodNormalized)) {
             $this->method = $methodNormalized;
         } elseif (method_exists($controller, self::DEFAULT_CONTROLLER_METHOD)) {
             $this->addMethodArgument($this->methodArguments, $method);
