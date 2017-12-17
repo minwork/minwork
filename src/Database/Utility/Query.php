@@ -60,11 +60,7 @@ class Query
 
     public function __construct($conditions = [], $columns = null, $limit = null, $order = null, $group = null)
     {
-        $this->conditions = $conditions ?? [];
-        $this->columns = $columns ?? TableInterface::COLUMNS_ALL;
-        $this->limit = $limit;
-        $this->order = $order;
-        $this->group = $group;
+        $this->setConditions($conditions)->setColumns($columns)->setLimit($limit)->setOrder($order)->setGroup($group);
     }
 
     /**
@@ -86,7 +82,7 @@ class Query
      */
     public function setConditions($conditions): self
     {
-        $this->conditions = $conditions;
+        $this->conditions = $conditions ?? [];
         return $this;
     }
 
@@ -109,7 +105,7 @@ class Query
      */
     public function setColumns($columns): self
     {
-        $this->columns = $columns;
+        $this->columns = $columns ?? TableInterface::COLUMNS_ALL;
         return $this;
     }
 
