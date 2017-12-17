@@ -45,7 +45,7 @@ interface ValidatorInterface
      * @param mixed $data            
      * @return self
      */
-    public function validate($data): self;
+    public function validate(...$data): self;
     
     /**
      * If validation was successful

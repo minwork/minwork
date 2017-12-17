@@ -9,6 +9,7 @@ namespace Minwork\Validation\Object;
 
 use Minwork\Validation\Interfaces\ValidatorInterface;
 use Minwork\Validation\Traits\Validator as ValidatorTrait;
+use Minwork\Validation\Utility\Field;
 
 /**
  * Basic implementation of validator interface
@@ -25,7 +26,7 @@ class Validator implements ValidatorInterface
      *
      * @var ValidatorInterface[]
      */
-    protected $config;
+    protected $validators = [];
 
     /**
      * Initialize validator with array of objects implementing ValidatorInterface
@@ -33,9 +34,9 @@ class Validator implements ValidatorInterface
      * @param ValidatorInterface[] $config            
      * @throws \InvalidArgumentException
      */
-    public function __construct(array $config = [])
+    public function __construct(ValidatorInterface ...$validators)
     {
-        $this->setConfig($config);
+        $this->addValidator(...$validators);
     }
 
     /**
@@ -45,14 +46,12 @@ class Validator implements ValidatorInterface
      * @throws \InvalidArgumentException
      * @return self
      */
-    public function setConfig(array $config): self
+    
+    public function addValidator(ValidatorInterface ...$validator): self
     {
-        foreach ($config as $validator) {
-            if (! is_object($validator) || ! $validator instanceof ValidatorInterface) {
-                throw new \InvalidArgumentException('Config elements must be objects implementing ValidatorInterface');
-            }
+        foreach ($validator as $v) {
+            $this->validators[] = $v;
         }
-        $this->config = $config;
         return $this;
     }
 
@@ -62,28 +61,54 @@ class Validator implements ValidatorInterface
      *
      * @see \Minwork\Validation\Interfaces\ValidatorInterface::validate()
      */
-    public function validate($data): ValidatorInterface
+    public function validate(...$data): ValidatorInterface
     {
         $this->clearErrors();
         
         if (empty($data)) {
             $this->addError('No data provided');
-        } else {
-            foreach ($this->config as $validator) {
-                if ($this->hasContext()) {
-                    $validator->setContext($this->getContext());
+            $this->valid = false;
+            return $this;
+        } 
+        
+        foreach ($this->validators as $validator) {
+            // Set context
+            if ($this->hasContext()) {
+                $validator->setContext($this->getContext());
+            }
+            
+            // Handle fields
+            if ($validator instanceof Field) {
+                $fieldArguments = [];
+                // Extract field data from $data
+                foreach ($data as $argument) {
+                    if (is_array($argument) && array_key_exists($validator->getName(), $argument)) {
+                        $fieldArguments[] = $argument[$validator->getName()];
+                    }
                 }
                 
-                if (! $validator->validate($data)->isValid()) {
-                    $this->getErrors()->merge($validator->getErrors());
-                    if (method_exists($validator, 'hasCriticalError') && $validator->hasCriticalError()) {
-                        break;
+                // If field is mandatory but doesnt have any data supplied, then trigger it's error
+                if (empty($fieldArguments)) {
+                    if ($validator->isMandatory()) {
+                        $validator->addError($validator->getName(), $validator->getError());
                     }
+                } else {
+                    $validator->validate(...$fieldArguments);
+                }
+            } else {
+                $validator->validate(...$data);
+            }
+            
+            if (! $validator->isValid()) {
+                $this->getErrors()->merge($validator->getErrors());
+                if (method_exists($validator, 'hasCriticalError') && $validator->hasCriticalError()) {
+                    break;
                 }
             }
         }
         
         $this->valid = ! $this->hasErrors();
+        
         return $this;
     }
 }

@@ -4,7 +4,6 @@ namespace Minwork\Validation\Utility;
 use Minwork\Validation\Interfaces\ValidatorInterface;
 use Minwork\Validation\Traits\Validator;
 use Minwork\Error\Basic\ErrorGlobal;
-use Minwork\Helper\Validation;
 
 /**
  *
@@ -66,7 +65,7 @@ class Field implements ValidatorInterface
     {
         $this->name = $name;
         $this->mandatory = $mandatory;
-        $this->error = empty($error) ? 'This field is mandatory' : $error;
+        $this->error = $error === '' ? "Field {$name} is mandatory" : $error;
         $this->setRules($rules);
     }
     
@@ -116,50 +115,15 @@ class Field implements ValidatorInterface
     {
         return $this->mandatory;
     }
-
+    
     /**
-     *
-     * {@inheritdoc}
-     *
-     * @param array $data
-     *            Form data
-     * @see \Minwork\Validation\Interfaces\ValidatorInterface::validate()
+     * Get field error to display when it is mandatory but wasn't found
+     * 
+     * @return string
      */
-    public function validate($data): ValidatorInterface
+    public function getError(): string
     {
-        $this->clearErrors();
-        
-        if (! is_array($data)) {
-            throw new \InvalidArgumentException('Field validation data must be an array representing form data');
-        }
-        
-        if (! (array_key_exists($this->getName(), $data) && Validation::isNotEmpty($data[$this->getName()]))) {
-            if ($this->isMandatory()) {
-                $this->addError($this->getName(), $this->error);
-            }
-            $this->valid = ! $this->hasErrors();
-            return $this;
-        }
-        $fieldData = $data[$this->getName()];
-        
-        foreach ($this->rules as $rule) {
-            if ($this->hasContext()) {
-                $rule->setContext($this->getContext());
-            }
-            if (! $rule->validate($fieldData)->isValid()) {
-                foreach ($rule->getErrors()->getErrors(ErrorGlobal::TYPE) as $error) {
-                    $this->addError($this->getName(), $error->getMessage());
-                }
-                // If rule has critical error instantly break further errors validation
-                if ($rule->hasCriticalError()) {
-                    $this->hasCriticalError = true;
-                    break;
-                }
-            }
-        }
-        
-        $this->valid = ! $this->hasErrors();
-        return $this;
+        return $this->error;
     }
 
     /**
@@ -171,5 +135,47 @@ class Field implements ValidatorInterface
     public function hasCriticalError(): bool
     {
         return $this->hasCriticalError;
+    }
+    
+    /**
+     *
+     * {@inheritdoc}
+     *
+     * @param array $data
+     *            Form data
+     * @see \Minwork\Validation\Interfaces\ValidatorInterface::validate()
+     */
+    public function validate(...$data): ValidatorInterface
+    {
+        $this->clearErrors();
+        $this->valid = true;
+        
+        // If field is not mandatory and no data was supplied
+        if (! $this->isMandatory() && count(array_filter($data, function ($arg) { return $arg !== ''; })) === 0) {
+            return $this;
+        }
+        
+        foreach ($this->rules as $rule) {
+            // Set rule context
+            if ($this->hasContext()) {
+                $rule->setContext($this->getContext());
+            }
+            
+            if (! $rule->validate(...$data)->isValid()) {
+                $this->valid = false;
+                // Add rule errors
+                foreach ($rule->getErrors()->getErrors(ErrorGlobal::TYPE) as $error) {
+                    $this->addError($this->getName(), $error->getMessage());
+                }
+                
+                // If rule has critical error instantly break further errors validation
+                if ($rule->hasCriticalError()) {
+                    $this->hasCriticalError = true;
+                    break;
+                }
+            }
+        }
+        
+        return $this;
     }
 }

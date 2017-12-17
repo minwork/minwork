@@ -52,7 +52,7 @@ trait Validator {
     }
 
     /**
-     * Set optional context for validation so any sub-validators can access it (like model object during form data validation)
+     * Set optional context for validation so any sub-validators can access it (i.e. model during form data validation)
      *
      * @param mixed $context            
      * @return self

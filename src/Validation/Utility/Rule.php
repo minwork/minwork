@@ -20,11 +20,12 @@ use Minwork\Helper\Formatter;
 class Rule implements ValidatorInterface
 {
     use Validator;
-    
+
     // Validation will break immidietely after this rule conditions are not met
-    const IMPORTANCE_CRITICAL = 'IMPORTANCE_CRITICAL';
+    const IMPORTANCE_CRITICAL = 'critical';
+
     // Validation will continue after this rule conditions are not met
-    const IMPORTANCE_NORMAL = 'IMPORTANCE_NORMAL';
+    const IMPORTANCE_NORMAL = 'normal';
 
     /**
      * Function for checking data
@@ -48,13 +49,6 @@ class Rule implements ValidatorInterface
     protected $error;
 
     /**
-     * Expected function result
-     *
-     * @var bool
-     */
-    protected $expect;
-
-    /**
      * Imporance of a rule which determines validator behaviour during rule check
      * If rule importance is critical in case of error during check validator should immediately finish validation returning false<br>
      * For normal importance all rules should be checked before returing final result of validation
@@ -66,33 +60,21 @@ class Rule implements ValidatorInterface
     /**
      * Set rule config
      *
-     * @param string|callable $callback
-     *            String if it's a method of Validation helper, callable otherwise
+     * @param callable $callback
+     *            Function to validate supplied data
      * @param string|null $error
-     *            Error to diplay if validation fail. Empty string adds generic message while null doesn't add any message
-     * @param array $arguments
-     *            Additional arguments passed to callback
-     * @param bool $expect
-     *            Expected callback return
+     *            Error to diplay if validation fail. Empty string create generic message while null doesn't create any message
      * @param string $importance
      *            Importance of a rule
-     * @param bool $expect
-     *            Expected function result
+     * @param mixed ...$arguments
+     *            Additional arguments passed to callback (besides arguments passed to validate method)
      */
-    public function __construct($callback, ?string $error = '', array $arguments = [], string $importance = self::IMPORTANCE_NORMAL, bool $expect = true)
+    public function __construct(callable $callback, ?string $error = '', ?string $importance = null, ...$arguments)
     {
-        if (is_string($callback) && ! is_callable($callback) && method_exists("\Minwork\Helper\Validation", $callback)) {
-            $callback = "\Minwork\Helper\Validation::{$callback}";
-        }
-        if (! is_callable($callback)) {
-            throw new \InvalidArgumentException("Callback is neither callable nor Validation method ({$callback})");
-        }
-        
         $this->callback = $callback;
         $this->arguments = $arguments;
-        $this->expect = $expect;
-        $this->error = $this->getRuleError($error);
-        $this->importance = $importance;
+        $this->error = $error === '' ? 'Rule check failed at ' . Formatter::toString($this->callback) . Formatter::toString($this->arguments) : strval($error);
+        $this->importance = $importance ?? self::IMPORTANCE_NORMAL;
     }
 
     /**
@@ -101,34 +83,21 @@ class Rule implements ValidatorInterface
      *
      * @see \Minwork\Validation\Interfaces\ValidatorInterface::validate()
      */
-    public function validate($data): ValidatorInterface
+    public function validate(...$data): ValidatorInterface
     {
         $this->clearErrors();
         
         $arguments = $this->arguments;
-        array_unshift($arguments, $data);
-        $this->valid = call_user_func_array($this->callback, $arguments) === $this->expect;
+        array_unshift($arguments, ...$data);
+        
+        $this->valid = boolval(($this->callback)(...$arguments));
+        
         // If is invalid but has no errors, set default one
-        if (! $this->valid && ! is_null($this->error) && ! $this->hasErrors()) {
-            $this->addError(Formatter::toString($this->error, false));
+        if (! $this->valid && ! empty($this->error) && ! $this->hasErrors()) {
+            $this->addError($this->error);
         }
+        
         return $this;
-    }
-    
-    protected function getRuleError($error): ?string
-    {
-        return $error === '' ?
-        'Rule check failed at ' . (
-            is_array($this->callback) ?
-            get_class($this->callback[0]) . '::' . $this->callback[1] :
-            (
-                is_object($this->callback) && $this->callback instanceof \Closure ?
-                'anonymous_function' :
-                strval($this->callback)
-            )
-        ) .
-        '(' . implode(', ', array_map(['\Minwork\Helper\Formatter', 'toString'], $this->arguments)) . ')' :
-        $error;
     }
 
     /**
