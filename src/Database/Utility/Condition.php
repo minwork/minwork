@@ -133,9 +133,14 @@ class Condition
      */
     public function __toString(): string
     {
+        return $this->parse();
+    }
+    
+    public function parse(): string
+    {
         $stringArray = [];
         foreach ($this->query as $queryPart) {
-            list ($type, $var) = $queryPart;
+            [$type, $var] = $queryPart;
             switch ($type) {
                 case self::TYPE_COLUMN:
                     $stringArray[] = call_user_func($this->columnEscapeFunction, $var);
@@ -337,7 +342,7 @@ class Condition
     }
 
     /**
-     * Append equal to value (column = value) expression to qurey.
+     * Append equal to value (column = value) expression to query.
      * Must be preceded by column method.
      *
      * @see \Minwork\Database\Utility\Condition::column()
@@ -348,6 +353,20 @@ class Condition
     public function equal($value): self
     {
         return $this->addExpression('=')->addValue($value);
+    }
+    
+    /**
+     * Append like value (column LIKE %value%) expression to query.
+     * Must be preceded by column method.
+     *
+     * @see \Minwork\Database\Utility\Condition::column()
+     * @param mixed $value
+     *            Must be valid escape value function argument
+     * @return self
+     */
+    public function like($value): self
+    {
+        return $this->addExpression('LIKE')->addValue("%$value%");
     }
 
     /**
