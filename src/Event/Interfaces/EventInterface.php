@@ -26,7 +26,7 @@ interface EventInterface
     /**
      * Set if event is active and should propagate to awaiting listeners
      *
-     * @param bool $active            
+     * @param bool $active
      * @return self
      */
     public function setActive(bool $active): self;

@@ -28,7 +28,7 @@ class Event implements EventInterface
     /**
      * Event data that will be accessible by listener
      *
-     * @var mixed
+     * @var array
      */
     protected $data;
 
@@ -41,14 +41,12 @@ class Event implements EventInterface
 
     /**
      *
-     * @param string $name            
-     * @param mixed $data            
+     * @param string $name
+     * @param mixed $data
      */
-    public function __construct(string $name, $data = null)
+    public function __construct(string $name, ...$data)
     {
-        $this->name = $name;
-        $this->data = $data;
-        $this->active = true;
+        $this->setData(...$data)->setActive(true)->name = $name;
     }
 
     /**
@@ -65,9 +63,9 @@ class Event implements EventInterface
     /**
      * Get event data
      *
-     * @return mixed
+     * @return array
      */
-    public function getData()
+    public function getData(): array
     {
         return $this->data;
     }
@@ -75,10 +73,10 @@ class Event implements EventInterface
     /**
      * Set event data
      *
-     * @param mixed $data            
+     * @param mixed $data
      * @return self
      */
-    public function setData($data): self
+    public function setData(...$data): EventInterface
     {
         $this->data = $data;
         return $this;
