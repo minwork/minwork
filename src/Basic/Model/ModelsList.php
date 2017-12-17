@@ -12,6 +12,8 @@ use Minwork\Database\Utility\Query;
 use Minwork\Operation\Basic\Read;
 use Minwork\Operation\Object\OperationEvent;
 use Minwork\Helper\ArrayHelper;
+use Minwork\Database\Interfaces\TableInterface;
+use Minwork\Storage\Interfaces\DatabaseStorageInterface;
 
 /**
  * List of models according to supplied prototype
@@ -44,11 +46,15 @@ class ModelsList
     protected $total;
 
     /**
-     * Model prototype used to create list of models
+     * Used to create single model on list.<br>
+     * Can be either Model object, callable which returns Model or array of callable and it's arguments.<br>
+     * In case of callable first argument will be id 
      *
-     * @var ModelInterface
+     * @var ModelInterface|callable|array
      */
     protected $prototype;
+    
+    protected $storage;
 
     /**
      * Query used for selecting models data from storage
@@ -66,12 +72,12 @@ class ModelsList
 
     /**
      *
-     * @param ModelInterface $prototype            
+     * @param ModelInterface|callable|array $prototype            
      * @param Query $query            
      */
-    public function __construct(ModelInterface $prototype, Query $query)
+    public function __construct($prototype, Query $query, DatabaseStorageInterface $storage = null)
     {
-        $this->reset()->setQuery($query)->prototype = $prototype;
+        $this->reset()->setPrototype($prototype)->setQuery($query)->setStorage($storage);
     }
 
     /**
@@ -99,6 +105,43 @@ class ModelsList
         $this->query = $query;
         return $this;
     }
+    
+    public function setStorage(?DatabaseStorageInterface $storage): self
+    {
+        $this->storage = is_null($storage) ? $this->getModel()->getStorage() : $storage;
+        return $this;
+    }
+    
+    public function setPrototype($prototype): self
+    {
+        $this->prototype = $prototype;
+        return $this;
+    }
+    
+    protected function getModel(?array $data = null): ModelInterface
+    {
+        if (is_object($this->prototype) && $this->prototype instanceof ModelInterface) {
+            $model = clone $this->prototype;
+        } elseif (is_callable($this->prototype)) {
+            // As argument pass id if default, full data or null
+            $model = ($this->prototype)($data[TableInterface::DEFAULT_PK_FIELD] ?? $data);
+        } elseif (is_array($this->prototype) && is_callable($this->prototype[0])) {
+            $function = array_shift($this->prototype);
+            $arguments = $this->prototype;
+            if (! is_null($data)) {
+                array_unshift($arguments, $data[TableInterface::DEFAULT_PK_FIELD] ?? $data);
+            }
+            $model = $function(...$arguments);
+        } else {
+            throw new \InvalidArgumentException('Model prototype must be either ModelInterface object, callable or array containing callable and its arguments');
+        }
+        
+        if (! is_null($data)) {
+            $model->initFromData($data);
+        }
+        
+        return $model;
+    }
 
     /**
      * Read models list from storage
@@ -114,34 +157,22 @@ class ModelsList
         $query = $this->query;
         
         if (! is_null($onPage)) {
-            $query->setLimit([
+            $countQuery = clone $query;
+            $countQuery->setColumns(null)->setLimit([
                 ($page - 1) * $onPage,
                 $onPage
             ]);
-            $this->total = $this->prototype->getStorage()->count($query);
+            $this->total = $this->storage->count($countQuery);
         }
         
-        $list = $this->prototype->getStorage()->get($query);
+        $list = $this->storage->get($query);
         
         if (is_null($onPage)) {
             $this->total = count($list);
         }
         
         foreach ($list as $data) {
-            $model = clone $this->prototype;
-            /* @var $model \Minwork\Basic\Interfaces\ModelInterface */
-
-            // If we have id in data then set it
-            $ids = ArrayHelper::filterByKeys($data, ArrayHelper::forceArray($this->prototype->getStorage()->getPkField()));
-            if (! empty($ids)) {
-                $model->setId($ids);
-                $data = array_diff_key($data, $ids);
-            }
-            
-            // Emulate read operation
-            $model->getEventDispatcher()->dispatch(new OperationEvent(Read::EVENT_BEFORE));
-            $this->list[] = $model->setData($data, false);
-            $model->getEventDispatcher()->dispatch(new OperationEvent(Read::EVENT_AFTER));
+            $this->list[] = $this->getModel($data);
         }
         
         return $this;

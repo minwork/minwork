@@ -77,4 +77,12 @@ interface ModelInterface extends ObjectOperationInterface, EventDispatcherContai
      * @return self
      */
     public function setData(array $data, bool $merge = true): self;
+    
+    /**
+     * Load model using data array which can contain id
+     *
+     * @param array $data
+     * @return self
+     */
+    public function initFromData(array $data): self;
 }

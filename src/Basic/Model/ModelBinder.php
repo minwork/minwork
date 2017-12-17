@@ -33,7 +33,7 @@ class ModelBinder extends Model
      * @param BindableModelInterface[] $models            
      * @param EventDispatcherInterface $eventDispatcher            
      */
-    public function __construct(DatabaseStorageInterface $storage, array $models, EventDispatcherInterface $eventDispatcher = null)
+    public function __construct(DatabaseStorageInterface $storage, array $models = [], EventDispatcherInterface $eventDispatcher = null)
     {
         $this->reset()
             ->setStorage($storage)

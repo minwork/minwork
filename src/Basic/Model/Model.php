@@ -7,24 +7,25 @@
  */
 namespace Minwork\Basic\Model;
 
-use Minwork\Error\Traits\Errors;
-use Minwork\Operation\Basic\Read;
-use Minwork\Storage\Interfaces\DatabaseStorageInterface;
-use Minwork\Database\Utility\Query;
-use Minwork\Event\Object\EventDispatcher;
-use Minwork\Event\Traits\Events;
-use Minwork\Operation\Traits\Operations;
-use Minwork\Helper\ArrayHelper;
-use Minwork\Operation\Interfaces\OperationInterface;
-use Minwork\Validation\Interfaces\ValidatorInterface;
-use Minwork\Basic\Interfaces\ModelInterface;
-use Minwork\Storage\Traits\Storage;
 use Minwork\Basic\Interfaces\BindableModelInterface;
+use Minwork\Basic\Interfaces\ModelInterface;
 use Minwork\Basic\Traits\Debugger;
 use Minwork\Database\Interfaces\TableInterface;
-use Minwork\Helper\Formatter;
+use Minwork\Database\Utility\Query;
+use Minwork\Error\Traits\Errors;
 use Minwork\Event\Interfaces\EventDispatcherInterface;
+use Minwork\Event\Object\EventDispatcher;
 use Minwork\Event\Traits\Connector;
+use Minwork\Event\Traits\Events;
+use Minwork\Helper\ArrayHelper;
+use Minwork\Helper\Formatter;
+use Minwork\Operation\Basic\Read;
+use Minwork\Operation\Interfaces\OperationInterface;
+use Minwork\Operation\Object\OperationEvent;
+use Minwork\Operation\Traits\Operations;
+use Minwork\Storage\Interfaces\DatabaseStorageInterface;
+use Minwork\Storage\Traits\Storage;
+use Minwork\Validation\Interfaces\ValidatorInterface;
 
 /**
  * Basic implementation of ModelInterface
@@ -104,10 +105,10 @@ class Model implements ModelInterface, BindableModelInterface
     public function __construct(DatabaseStorageInterface $storage, $id = null, bool $buffering = true, EventDispatcherInterface $eventDispatcher = null)
     {
         $this->reset()
+            ->setBuffering($buffering)
             ->setStorage($storage)
             ->setId($id)
             ->setEventDispatcher($eventDispatcher ?? new EventDispatcher())
-            ->setBuffering($buffering)
             ->connect();
     }
 
@@ -209,7 +210,7 @@ class Model implements ModelInterface, BindableModelInterface
      */
     protected function setState(string $state): self
     {
-        if ($this->state !== $state) {
+        if ($this->state !== $state && ! ($state === self::STATE_UPDATE && $this->state === self::STATE_CREATE)) {
             $this->state = $state;
         }
         return $this;
@@ -290,6 +291,51 @@ class Model implements ModelInterface, BindableModelInterface
         return $this;
     }
 
+    /**
+     * Load model using data array which can contain id
+     *
+     * @param array $data
+     * @return ModelInterface
+     */
+    public function initFromData(array $data): ModelInterface
+    {
+        // If we have id in data then set it
+        $ids = ArrayHelper::filterByKeys($data, ArrayHelper::forceArray($this->getStorage()->getPkField()));
+        if (! empty($ids)) {
+            $this->setId($ids);
+            $data = array_diff_key($data, $ids);
+        }
+        
+        // Set rest of data and emulate read operation
+        $this->getEventDispatcher()->dispatch(new OperationEvent(Read::EVENT_BEFORE));
+        $this->setData($data, false);
+        $this->getEventDispatcher()->dispatch(new OperationEvent(Read::EVENT_AFTER));
+        
+        return $this;
+    }
+    
+    /**
+     * Try to load model data using specified query.
+     * Return if load was successful
+     * 
+     * @param Query $query
+     * @return bool
+     */
+    public function initFromStorage(Query $query): bool
+    {
+        if (is_null($query->getLimit())) {
+            $query->setLimit(1);
+        }
+        
+        $data = $this->getStorage()->get($query);
+        if (! empty($data) && ! ArrayHelper::isArrayOfArrays($data)) {
+            $this->initFromData($data);
+            return true;
+        }
+        
+        return false;
+    }
+    
     /**
      *
      * {@inheritdoc}
@@ -378,10 +424,6 @@ class Model implements ModelInterface, BindableModelInterface
     {
         $result = $this->executeOperation($operation->setEventDispatcher($this->getEventDispatcher()), ...$arguments);
         
-        if (! $this->buffering) {
-            $this->synchronize();
-        }
-        
         return $result;
     }
     
@@ -397,7 +439,7 @@ class Model implements ModelInterface, BindableModelInterface
     public function validateThenExecute(OperationInterface $operation, ValidatorInterface $validator, ...$arguments)
     {
         if (! $validator->setContext($this)
-            ->validate(count($arguments) === 1 ? reset($arguments) : $arguments)
+            ->validate(...$arguments)
             ->isValid()) {
                 $this->getErrors()->merge($validator->getErrors());
                 return false;
@@ -502,10 +544,14 @@ class Model implements ModelInterface, BindableModelInterface
         
         // If model doesn't contain all needed data then get it from storage by executing read operation
         if ($getData) {
-            $this->execute(new Read(), $filterArray);
+            $readFilter = array_intersect($fields, $filterArray);
+            
+            if (! empty($readFilter)) {
+                $this->execute(new Read(), $readFilter);
+            }
         }
         
-        return ! is_null($filter) && (is_string($filter) || is_int($filter)) ? $this->data[$filter] : (is_null($filter) ? $this->data : array_intersect_key($this->data, array_flip($filter)));
+        return ! is_null($filter) && (is_string($filter) || is_int($filter)) ? ($this->data[$filter] ?? null) : (is_null($filter) ? $this->data : ArrayHelper::filterByKeys($this->data, $filter));
     }
 
     /**
@@ -550,6 +596,11 @@ class Model implements ModelInterface, BindableModelInterface
         $this->setState(self::STATE_CREATE)
             ->setData($data, false)
             ->markAsChanged($data);
+        
+        if (! $this->buffering) {
+            $this->synchronize();
+        }
+        
         return true;
     }
 
@@ -586,6 +637,11 @@ class Model implements ModelInterface, BindableModelInterface
         $this->setState(self::STATE_UPDATE)
             ->setData($data)
             ->markAsChanged($data);
+        
+        if (! $this->buffering) {
+            $this->synchronize();
+        }
+            
         return true;
     }
 
@@ -599,6 +655,7 @@ class Model implements ModelInterface, BindableModelInterface
         if ($this->exists()) {
             $this->getStorage()->unset(new Query($this->getQueryConditionsWithId()));
         }
+        
         $this->reset();
         return true;
     }
