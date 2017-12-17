@@ -66,19 +66,27 @@ class View implements ViewInterface
     /**
      * Get content of supplied file in context of data
      *
-     * @return string
+     * @return mixed
      */
-    protected function getFileContent(): string
+    protected function getFileContent()
     {
         if (empty($this->content)) {
             if (! file_exists($this->filepath)) {
-                return 'File does not exists: ' . Formatter::cleanString($this->filepath);
+                trigger_error('File does not exists: ' . Formatter::cleanString($this->filepath), E_USER_WARNING);
+                return '';
             }
-            /* @var $data array */
+            
             $data = $this->data;
             ob_start();
-            include ($this->filepath);
-            $this->content = ob_get_contents();
+            
+            try {
+                include ($this->filepath);
+                $this->content = ob_get_contents();
+            } catch (\Throwable $e) {
+                trigger_error($e->getMessage(), E_USER_ERROR);
+                return '';
+            }
+            
             ob_end_clean();
         }
         
