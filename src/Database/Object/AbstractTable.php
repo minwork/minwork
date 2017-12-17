@@ -561,7 +561,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      */
     public function count($key): int
     {
-        return $this->countRows($key->getConditions(), $key->getColumns());
+        return $this->countRows($key->getConditions(), $key->getColumns(), $key->getGroup());
     }
 
     /**
