@@ -180,6 +180,12 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
         
         $controller->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_CONTROLLER_RUN));
         
+        // If response was set by any event listener then directly output content of the response
+        if (! $controller->getResponse()->isEmpty()) {
+            $this->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_OUTPUT_CONTENT));
+            return ! $returnContent ? $this->outputContent($controller->getResponse()) : $controller->getResponse();
+        }
+        
         $method = $this->getRouter()->getMethod();
         
         $controller->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_METHOD_RUN));
@@ -189,7 +195,6 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
         // If response was set by any event listener then directly output content of the response
         if (! $controller->getResponse()->isEmpty()) {
             $this->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_OUTPUT_CONTENT));
-            
             return ! $returnContent ? $this->outputContent($controller->getResponse()) : $controller->getResponse();
         }
         
