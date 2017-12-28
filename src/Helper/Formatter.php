@@ -165,6 +165,12 @@ class Formatter
             return strval($var);
         } elseif (is_bool($var)) {
             return $var ? 'true' : 'false';
+        } elseif (is_object($var)) {
+            if (method_exists($var, '__toString')) {
+                return strval($var);
+            } else {
+                return 'Object(' . get_class($var) . ')';
+            }
         } elseif (is_callable($var, false, $name)) {
             return $name;
         } elseif (is_array($var)) {
@@ -178,12 +184,6 @@ class Formatter
                 }
             }
             return '[' . implode(', ', $parts) . ']';
-        } elseif (is_object($var)) {
-            if (method_exists($var, '__toString')) {
-                return strval($var);
-            } else {
-                return 'Object(' . get_class($var) . ')';
-            }
         }
         return '';
     }
