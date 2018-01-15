@@ -44,6 +44,25 @@ class Random
         }
         return $string;
     }
+    
+    /**
+     * Generate random text which consists of English alphabet letters and digits
+     *
+     * @param int $length
+     * @return string
+     */
+    public static function text(int $length): string
+    {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $maxIndex = strlen($characters) - 1;
+        $string = '';
+        
+        for ($i = 1; $i <= $length; $i++) {
+            $string .= $characters[self::int(0, $maxIndex)];
+        }
+        
+        return $string;
+    }
 
     /**
      * Challenge given percentage chance of event against random number generator
