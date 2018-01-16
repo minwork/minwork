@@ -26,6 +26,13 @@ interface RouterInterface
     public function getUrl(): string;
 
     /**
+     * If url has page param in it
+     *
+     * @return bool
+     */
+    public function hasPage(): bool;
+    
+    /**
      * Get page number from url params
      *
      * @return int

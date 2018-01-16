@@ -169,6 +169,17 @@ class Router implements RouterInterface
 
     /**
      *
+     * {@inheritDoc}
+     *
+     * @see \Minwork\Http\Interfaces\RouterInterface::hasPage()
+     */
+    public function hasPage(): bool
+    {
+        return ! is_null($this->page);
+    }
+    
+    /**
+     *
      * {@inheritdoc}
      *
      * @see \MinWork\Http\Interfaces\RouterInterface::getPage()
