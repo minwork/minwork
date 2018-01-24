@@ -50,16 +50,9 @@ class Router implements RouterInterface
     /**
      * Language code
      *
-     * @var string
+     * @var string|null
      */
     protected $lang;
-
-    /**
-     * Default language code if none is present in url
-     *
-     * @var string
-     */
-    protected $defaultLang;
 
     /**
      * Controller name
@@ -92,7 +85,7 @@ class Router implements RouterInterface
     /**
      * Page number (by default 1)
      *
-     * @var int
+     * @var int|null
      */
     protected $page;
 
@@ -126,7 +119,7 @@ class Router implements RouterInterface
         $this->controllerObject = null;
         $this->method = self::DEFAULT_CONTROLLER_METHOD;
         $this->methodArguments = [];
-        $this->page = 1;
+        $this->page = null;
         $this->routing = [];
         return $this;
     }
@@ -168,9 +161,9 @@ class Router implements RouterInterface
     }
 
     /**
-     *
+     * 
      * {@inheritDoc}
-     *
+     * 
      * @see \Minwork\Http\Interfaces\RouterInterface::hasPage()
      */
     public function hasPage(): bool
@@ -186,7 +179,7 @@ class Router implements RouterInterface
      */
     public function getPage(): int
     {
-        return $this->page;
+        return $this->page ?? 1;
     }
 
     /**

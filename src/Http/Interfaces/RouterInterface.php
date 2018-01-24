@@ -27,7 +27,7 @@ interface RouterInterface
 
     /**
      * If url has page param in it
-     *
+     * 
      * @return bool
      */
     public function hasPage(): bool;
