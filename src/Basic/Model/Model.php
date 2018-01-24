@@ -634,12 +634,15 @@ class Model implements ModelInterface, BindableModelInterface
     public function update(array $data): bool
     {
         $data = ArrayHelper::filterByKeys($data, $this->getStorage()->getFields());
-        $this->setState(self::STATE_UPDATE)
+        
+        if (! empty($data)) {
+            $this->setState(self::STATE_UPDATE)
             ->setData($data)
             ->markAsChanged($data);
-        
-        if (! $this->buffering) {
-            $this->synchronize();
+            
+            if (! $this->buffering) {
+                $this->synchronize();
+            }
         }
             
         return true;
