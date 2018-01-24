@@ -115,6 +115,26 @@ class Formatter
     }
     
     /**
+     * Create getter method name for specified var name 
+     * @param string $name
+     * @return string
+     */
+    public static function getter(string $name): string
+    {
+        return 'get' . ucfirst(self::functionName($name));
+    }
+    
+    /**
+     * Create setter method name for specified var name
+     * @param string $name
+     * @return string
+     */
+    public static function setter(string $name): string
+    {
+        return 'set' . ucfirst(self::functionName($name));
+    }
+    
+    /**
      * Format string to underscored name (UpperCamelCase -> upper_camel_case)
      * @param string $string
      * @return string
