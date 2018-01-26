@@ -69,7 +69,9 @@ class Validator implements ValidatorInterface
             $this->addError('No data provided');
             $this->valid = false;
             return $this;
-        } 
+        }
+
+        $this->valid = true;
         
         foreach ($this->validators as $validator) {
             // Set context
@@ -100,6 +102,7 @@ class Validator implements ValidatorInterface
             }
             
             if (! $validator->isValid()) {
+                $this->valid = false;
                 $this->getErrors()->merge($validator->getErrors());
                 if (method_exists($validator, 'hasCriticalError') && $validator->hasCriticalError()) {
                     break;
@@ -107,7 +110,7 @@ class Validator implements ValidatorInterface
             }
         }
         
-        $this->valid = ! $this->hasErrors();
+        $this->valid = $this->valid && ! $this->hasErrors();
         
         return $this;
     }
