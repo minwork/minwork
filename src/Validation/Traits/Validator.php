@@ -14,11 +14,11 @@ trait Validator {
     use Errors;
 
     /**
-     * If validation was successful (null if it wasn't validated yet)
+     * If validation was successful
      * 
-     * @var bool|null
+     * @var bool
      */
-    protected $valid = null;
+    protected $valid = true;
 
     /**
      * Validation context (usually object where validation is called)
