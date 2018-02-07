@@ -380,6 +380,23 @@ class ArrayHelper
         
         return $return;
     }
+    
+    /**
+     * Differentiate two or more arrays of objects
+     * 
+     * @param array ...$objects
+     * @return array
+     */
+    public static function diffObjects(array $array1, array $array2, array ...$arrays): array
+    {
+        $arguments = $arrays;
+        array_unshift($arguments, $array1, $array2);
+        array_push($arguments, function ($obj1, $obj2) {
+            return strcmp(spl_object_hash($obj1), spl_object_hash($obj2));
+        });
+        
+        return array_udiff(...$arguments);
+    }
 
     /**
      * Flatten single element arrays<br>
