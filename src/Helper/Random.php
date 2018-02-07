@@ -76,12 +76,18 @@ class Random
      */
     public static function chance(float $percent, int $precision = 2): bool
     {
-        if ($percent < 0 || $percent > 100) {
-            throw new \InvalidArgumentException('Percent chance must be within range <0, 100>');
+        if ($percent <= 0) {
+            return false;
         }
+        
+        if ($percent >= 100) {
+            return true;
+        }
+        
         if ($precision < 0) {
-            throw new \InvalidArgumentException('Precision must be greater or equal to zero');
+            $precision = 0;
         }
+        
         return round(self::float(0, 100), $precision) <= round($percent, $precision);
     }
 
