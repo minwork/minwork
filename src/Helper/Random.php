@@ -15,7 +15,33 @@ namespace Minwork\Helper;
  */
 class Random
 {
+    /**
+     * Sort chance from minimum to maximum and reverse array if no match found
+     * 
+     * @var string
+     */
+    const ALGORITHM_ASC_BOUNCE = 'ascending_bounce';
 
+    /**
+     * Sort chance from maximum to minimum and reverse array if no match found
+     *
+     * @var string
+     */
+    const ALGORITHM_DESC_BOUNCE = 'descending_bounce';
+    
+    /**
+     * Sort chance from minimum to maximum and start from the beginning if no match found
+     *
+     * @var string
+     */
+    const ALGORITHM_ASC_REPEAT = 'ascending_repeat';
+    
+    /**
+     * Sort chance from maximum to minimum and start from the beginning if no match found
+     *
+     * @var string
+     */
+    const ALGORITHM_DESC_REPEAT = 'descending_repeat';
     /**
      * Generate random sign (-1 or 1)
      * 
@@ -89,6 +115,50 @@ class Random
         }
         
         return round(self::float(0, 100), $precision) <= round($percent, $precision);
+    }
+    
+    /**
+     * Random one of $options key (values are chances to pick corresponding key)<br>
+     * Algorithm defines method of iterating $options array (see class constants for more info)
+     * 
+     * @param array $options
+     * @param string $algorithm
+     * @param int $precision
+     * @return NULL|unknown
+     */
+    public static function option(array $options, string $algorithm = self::ALGORITHM_ASC_BOUNCE, int $precision = 2)
+    {
+        switch ($algorithm) {
+            case self::ALGORITHM_ASC_BOUNCE:
+            case self::ALGORITHM_ASC_REPEAT:
+                asort($options);
+                break;
+                
+            case self::ALGORITHM_DESC_BOUNCE:
+            case self::ALGORITHM_DESC_REPEAT:
+                arsort($options);
+                break;
+        }
+        
+        $return = null;
+        
+        while (is_null($return)) {
+            foreach ($options as $option => $chance) {
+                if (self::chance(floatval($chance), $precision)) {
+                    $return = $option;
+                    break 2;
+                }
+            }
+            
+            switch ($algorithm) {
+                case self::ALGORITHM_ASC_BOUNCE:
+                case self::ALGORITHM_DESC_BOUNCE:
+                    $options = array_reverse($options, true);
+                    break;
+            }
+        }
+        
+        return $return;
     }
 
     /**
