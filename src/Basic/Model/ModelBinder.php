@@ -33,12 +33,14 @@ class ModelBinder extends Model
      * @param BindableModelInterface[] $models            
      * @param EventDispatcherInterface $eventDispatcher            
      */
-    public function __construct(DatabaseStorageInterface $storage, array $models = [], EventDispatcherInterface $eventDispatcher = null)
+    public function __construct(DatabaseStorageInterface $storage, array $models = [], bool $buffering = true, EventDispatcherInterface $eventDispatcher = null)
     {
         $this->reset()
+            ->setBuffering($buffering)
             ->setStorage($storage)
             ->setModels($models)
-            ->setEventDispatcher($eventDispatcher ?? EventDispatcher::getGlobal());
+            ->setEventDispatcher($eventDispatcher ?? new EventDispatcher())
+            ->connect();
     }
 
     /**
