@@ -52,6 +52,11 @@ class ModelBinder extends Model
     public function setModels(array $models): self
     {
         $this->models = $models;
+        return $this->setId(self::getModelBinderId($models));
+    }
+    
+    public static function getModelBinderId(array $models): array
+    {
         $idFields = [];
         $id = [];
         
@@ -81,8 +86,7 @@ class ModelBinder extends Model
             $id[$idFields[spl_object_hash($model)]] = $modelId;
         }
         
-        $this->setId($id);
-        return $this;
+        return $id;
     }
 
     /**
@@ -91,9 +95,9 @@ class ModelBinder extends Model
      *
      * @see \Minwork\Basic\Interfaces\ModelInterface::getId()
      */
-    public function getId()
+    public function getId(?string $key = null)
     {
-        return $this->id;
+        return is_null($key) ? $this->id : $this->id[$key] ?? null;
     }
 
     /**

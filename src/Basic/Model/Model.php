@@ -279,9 +279,10 @@ class Model implements ModelInterface, BindableModelInterface
             if (is_array($id)) {
                 $idField = $this->getStorage()->getPkField();
                 if (is_string($idField) && (array_key_exists($idField, $id) || count($id) === 1)) {
-                    $this->id = reset($id);
+                    $this->id = array_key_exists($idField, $id) ? $id[$idField] : reset($id);
                 } else {
-                    $this->id = ArrayHelper::isAssoc($id, true) ? ArrayHelper::filterByKeys($id, ArrayHelper::forceArray($idField)) : $id;
+                    $idFields = ArrayHelper::forceArray($idField);
+                    $this->id = ArrayHelper::isAssoc($id, true) ? ArrayHelper::orderByKeys(ArrayHelper::filterByKeys($id, $idFields), $idFields) : $id;
                 }
             } else {
                 $this->id = $id;
