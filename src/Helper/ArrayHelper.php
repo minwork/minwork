@@ -41,7 +41,7 @@ class ArrayHelper
     }
 
     /**
-     * Get nested element of an array or object implementing array access without triggering warning
+     * Get nested element of an array or object implementing array access
      *
      * @param array|\ArrayAccess $array
      *            Array or object implementing array access to get element from
@@ -234,8 +234,8 @@ class ArrayHelper
      */
     public static function isArrayOfArrays(array $array): bool
     {
-        foreach ($array as $el) {
-            if (! is_array($el)) {
+        foreach ($array as $element) {
+            if (! is_array($element)) {
                 return false;
             }
         }
@@ -261,6 +261,28 @@ class ArrayHelper
             return $exclude ? $array : [];
         }
         return $exclude ? array_diff_key($array, array_flip($keysArray)) : array_intersect_key($array, array_flip($keysArray));
+    }
+    
+    /**
+     * Order associative array by supplied keys order.
+     * Keys that are not present in $keys param will be appended to the end of an array preserving supplied order.
+     * @param array $array
+     * @param mixed $keys
+     *            Look at getKeysArray function
+     * @see \Minwork\Helper\ArrayHelper::getKeysArray()
+     * @return array
+     */
+    public static function orderByKeys(array $array, $keys): array
+    {
+        $return = [];
+        
+        foreach (self::getKeysArray($keys) as $key) {
+            if (array_key_exists($key, $array)) {
+                $return[$key] = $array[$key];
+            }
+        }
+        
+        return array_merge($return, self::filterByKeys($array, $keys, true));
     }
 
     /**
@@ -320,6 +342,25 @@ class ArrayHelper
         return $values;
     }
 
+    /**
+     * Sum associative arrays by their keys into one array
+     * 
+     * @param array ...$arrays Can be either list of an arrays or single array of arrays
+     * @return array
+     */
+    public static function sum(array ...$arrays): array
+    {
+        $return = [];
+        
+        foreach ($arrays as $array) {
+            foreach ($array as $key => $value) {
+                $return[$key] = ($return[$key] ?? 0) + floatval($value);
+            }
+        }
+        
+        return $return;
+    }
+    
     /**
      * Group list of objects by value returned from supplied method.<br><br>
      * <u>Example</u><br>
@@ -425,6 +466,40 @@ class ArrayHelper
                 }
             } else {
                 $return[$key] = $value;
+            }
+        }
+        
+        return $return;
+    }
+    
+    /**
+     * Flatten array of arrays to single level array
+     * 
+     * @param array $array
+     * @param int|null $depth How many levels of nesting will be flatten. By default every nested array will be flatten.
+     * @param bool $assoc If this param is set to true, this method will try to preserve as much string keys as possible. 
+     * In case of conflicting key name, value will be merged with automatic numeric key.
+     * @return array
+     */
+    public static function flatten(array $array, ?int $depth = null, bool $assoc = false): array
+    {
+        $return = [];
+        
+        $addElement = function ($key, $value) use (&$return, $assoc) {
+            if (! $assoc || array_key_exists($key, $return)) {
+                $return[] = $value;
+            } else {
+                $return[$key] = $value;
+            }
+        };
+        
+        foreach ($array as $key => $value) {
+            if (is_array($value) && (is_null($depth) || $depth >= 1)) {
+                foreach (self::flatten($value, is_null($depth) ? $depth : $depth - 1, $assoc) as $k => $v) {
+                    $addElement($k, $v);
+                }
+            } else {
+                $addElement($key, $value);
             }
         }
         
