@@ -300,6 +300,8 @@ class Model implements ModelInterface, BindableModelInterface
      */
     public function initFromData(array $data): ModelInterface
     {
+        // Format data according to database columns
+        $data = $this->getStorage()->format($data);
         // If we have id in data then set it
         $ids = ArrayHelper::filterByKeys($data, ArrayHelper::forceArray($this->getStorage()->getPkField()));
         if (! empty($ids)) {
@@ -616,6 +618,12 @@ class Model implements ModelInterface, BindableModelInterface
         $data = $this->getStorage()->get(new Query($this->getQueryConditionsWithId(), $filter, 1));
         // If data from storage is same as current data and current data is in changed list then remove it from that list
         $toRemove = [];
+        
+        // Initialize data array if neccessary
+        if (is_null($this->data)) {
+            $this->data = [];
+        }
+        
         foreach ($data as $key => $value) {
             if (array_key_exists($key, $this->data) && (string) $this->data[$key] === (string) $value && in_array($key, $this->changedData)) {
                 $toRemove[] = $key;
