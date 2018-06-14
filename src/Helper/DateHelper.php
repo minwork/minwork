@@ -40,6 +40,18 @@ class DateHelper
     }
 
     /**
+     * Reformat date string according to specified params
+     * 
+     * @param string $date
+     * @param string $format
+     * @return string
+     */
+    public static function reformat(string $date, string $format = self::FORMAT_DATETIME)
+    {
+        return date($format, strtotime($date));
+    }
+    
+    /**
      * Check if date is empty (0000-00-00 [00:00:00])
      *
      * @param string $date            
@@ -56,11 +68,11 @@ class DateHelper
      * @param string|null $date Default - current date
      * @return string
      */
-    public static function addDays(int $days, ?string $date = null): string
+    public static function addDays(int $days, ?string $date = null, string $format = self::FORMAT_DATETIME): string
     {
         $curDate = new \DateTime($date);
         $curDate->add(new \DateInterval("P{$days}D"));
-        return $curDate->format(self::FORMAT_DATETIME);
+        return $curDate->format($format);
     }
 
     /**
@@ -70,11 +82,11 @@ class DateHelper
      * @param string|null $date Default - current date
      * @return string
      */
-    public static function addHours(int $hours, ?string $date = null): string
+    public static function addHours(int $hours, ?string $date = null, string $format = self::FORMAT_DATETIME): string
     {
         $curDate = new \DateTime($date);
         $curDate->add(new \DateInterval("PT{$hours}H"));
-        return $curDate->format(self::FORMAT_DATETIME);
+        return $curDate->format($format);
     }
 
     /**
@@ -84,11 +96,11 @@ class DateHelper
      * @param string|null $date Default - current date
      * @return string
      */
-    public static function addMinutes(int $minutes, ?string $date = null): string
+    public static function addMinutes(int $minutes, ?string $date = null, string $format = self::FORMAT_DATETIME): string
     {
         $curDate = new \DateTime($date);
         $curDate->add(new \DateInterval("PT{$minutes}M"));
-        return $curDate->format(self::FORMAT_DATETIME);
+        return $curDate->format($format);
     }
     
     /**
@@ -98,20 +110,70 @@ class DateHelper
      * @param string|null $date Default - current date
      * @return string
      */
-    public static function addSeconds(int $seconds, ?string $date = null): string
+    public static function addSeconds(int $seconds, ?string $date = null, string $format = self::FORMAT_DATETIME): string
     {
         $curDate = new \DateTime($date);
         $curDate->add(new \DateInterval("PT{$seconds}S"));
-        return $curDate->format(self::FORMAT_DATETIME);
+        return $curDate->format($format);
+    }
+    
+    /**
+     * Substract specified amount of seconds from date string
+     *
+     * @param int $seconds
+     * @param string|null $date Default - current date
+     * @return string
+     */
+    public static function subSeconds(int $seconds, ?string $date = null, string $format = self::FORMAT_DATETIME): string
+    {
+        $curDate = new \DateTime($date);
+        $curDate->sub(new \DateInterval("PT{$seconds}S"));
+        return $curDate->format($format);
     }
     
     /**
      * Get amount of seconds until specified date
-     * @param string|null $date Default - current date
+     * 
+     * @param string $date
      * @return int
      */
-    public static function secondsUntil(?string $date = null): int
+    public static function secondsUntil(string $date): int
     {
         return (new \DateTime($date))->getTimestamp() - (new \DateTime())->getTimestamp();
+    }
+    
+    /**
+     * Get amount of seconds elapsed since specified date
+     *
+     * @param string $date
+     * @return int
+     */
+    public static function secondsSince(string $date): int
+    {
+        return (new \DateTime())->getTimestamp() - (new \DateTime($date))->getTimestamp();
+    }
+    
+    /**
+     * Extract time part of datetime string and return it in specified format
+     * 
+     * @param string $date
+     * @param string $format
+     * @return string
+     */
+    public static function extractTime(string $date, string $format = self::FORMAT_TIME): string
+    {
+        return (new \DateTime($date))->format($format);
+    }
+    
+    /**
+     * Extract date part of datetime string and return it in specified format
+     *
+     * @param string $date
+     * @param string $format
+     * @return string
+     */
+    public static function extractDate(string $date, string $format = self::FORMAT_DATE): string
+    {
+        return (new \DateTime($date))->format($format);
     }
 }
