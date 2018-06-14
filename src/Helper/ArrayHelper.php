@@ -160,6 +160,26 @@ class ArrayHelper
         }
         return $count == 1 ? $array[array_rand($array)] : array_intersect_key($array, array_flip(array_rand($array, $count) ?? []));
     }
+    
+    /**
+     * Shuffle array preserving keys and returning new shuffled array
+     *  
+     * @param array $array
+     * @return array
+     */
+    public static function shuffle(array $array): array
+    {
+        $return = [];
+        $keys = array_keys($array);
+        
+        shuffle($keys);
+        
+        foreach ($keys as $key) {
+            $return[$key] = $array[$key];
+        }
+        
+        return $return;
+    }
 
     /**
      * Recursively check if all of array values match empty condition
@@ -374,10 +394,9 @@ class ArrayHelper
      * ['string1' => Foo1, 'string2' => Foo3]
      * </pre>
      *
-     * @param array $objects
-     * @param string $method
-     * @param bool $flat
-     * @param mixed ...$args
+     * @param array $objects Array of objects
+     * @param string $method Object method name
+     * @param mixed ...$args Method arguments
      * @return array
      */
     public static function groupObjects(array $objects, string $method, ...$args): array
@@ -404,18 +423,67 @@ class ArrayHelper
      * Filter objects array using supplied method name.<br>
      * Discard any object which method return value convertable to false
      * 
-     * @param array $objects
-     * @param string $method
-     * @param mixed ...$args
+     * This method also filter values other than objects by standard boolean comparison
+     * 
+     * @param array $objects Array of objects
+     * @param string $method Object method name
+     * @param mixed ...$args Method arguments
      * @return array
      */
     public static function filterObjects(array $objects, string $method, ...$args): array
     {
         $return = [];
         
-        foreach ($objects as $key => $object) {
-            if (is_object($object) && $object->$method(...$args)) {
-                $return[$key] = $object;
+        foreach ($objects as $key => $value) {
+            if (is_object($value)) {
+                if ($value->$method(...$args)) {
+                    $return[$key] = $value;
+                }
+            } elseif ($value) {
+                $return[$key] = $value;
+            }
+        }
+        
+        return $return;
+    }
+    
+    /**
+     * Applies a callback to the elements of given array
+     * 
+     * @param callable $function Callback to run for each element of array (arguments: key, value) 
+     * @param array $array
+     * @return array
+     */
+    public static function map(callable $callback, array $array): array
+    {
+        $return = [];
+        
+        foreach ($array as $key => $value) {
+            $return[$key] = $callback($key, $value);
+        }
+        
+        return $return;
+    }
+    
+    /**
+     * Overwrite value of every object in $objects array with return value from object method
+     * 
+     * This method preserve values other than objects leaving them intact
+     * 
+     * @param array $objects Array of objects
+     * @param string $method Object method name
+     * @param mixed ...$args Method arguments
+     * @return array
+     */
+    public static function mapObjects(array $objects, string $method, ...$args): array
+    {
+        $return = [];
+        
+        foreach ($objects as $key => $value) {
+            if (is_object($value)) {
+                $return[$key] = $value->$method(...$args);
+            } else {
+                $return[$key] = $value;
             }
         }
         
