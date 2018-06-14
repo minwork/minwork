@@ -41,6 +41,17 @@ class Formatter
     }
     
     /**
+     * Get signed number string with like '+10' or '-5'
+     * 
+     * @param float $number
+     * @return string
+     */
+    public static function signedNumber(float $number): string
+    {
+        return self::sign($number, true) . abs($number);
+    }
+    
+    /**
      * Make string float replacing any commas with dots
      *
      * @param string $string            
