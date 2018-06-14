@@ -10,6 +10,7 @@ namespace Minwork\Validation\Object;
 use Minwork\Validation\Interfaces\ValidatorInterface;
 use Minwork\Validation\Traits\Validator as ValidatorTrait;
 use Minwork\Validation\Utility\Field;
+use Minwork\Helper\ArrayHelper;
 
 /**
  * Basic implementation of validator interface
@@ -90,9 +91,9 @@ class Validator implements ValidatorInterface
                 }
                 
                 // If field is mandatory but doesnt have any data supplied, then trigger it's error
-                if (empty($fieldArguments)) {
+                if (ArrayHelper::isEmpty($fieldArguments)) {
                     if ($validator->isMandatory()) {
-                        $validator->addError($validator->getName(), $validator->getError());
+                        $validator->addError($validator->getName(), $validator->getError())->setValid(false);
                     }
                 } else {
                     $validator->validate(...$fieldArguments);
@@ -102,7 +103,7 @@ class Validator implements ValidatorInterface
             }
             
             if (! $validator->isValid()) {
-                $this->valid = false;
+                $this->setValid(false);
                 $this->getErrors()->merge($validator->getErrors());
                 if (method_exists($validator, 'hasCriticalError') && $validator->hasCriticalError()) {
                     break;
@@ -110,7 +111,7 @@ class Validator implements ValidatorInterface
             }
         }
         
-        $this->valid = $this->valid && ! $this->hasErrors();
+        $this->setValid($this->isValid() && ! $this->hasErrors());
         
         return $this;
     }

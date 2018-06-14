@@ -72,4 +72,17 @@ trait Validator {
     {
         return boolval($this->valid);
     }
+    
+    /**
+     * Set if validation was successful
+     * 
+     * @param bool $valid
+     * @return self
+     */
+    public function setValid(bool $valid): self
+    {
+        $this->valid = $valid;
+        
+        return $this;
+    }
 }
