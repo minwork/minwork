@@ -20,6 +20,8 @@ class Server
     const HTTPS_DISABLED = "off";
 
     const HTTPS_PORT = '443';
+    
+    const HTTPS_PROTOCOL = 'https';
 
     const DEFAULT_PORT = '80';
 
@@ -125,7 +127,7 @@ class Server
     public static function getProtocolName(): string
     {
         if (self::isSecure()) {
-            return 'https';
+            return self::HTTPS_PROTOCOL;
         }
         return strtolower(substr(self::getProtocol(), 0, strpos(self::getProtocol(), '/')));
     }
@@ -142,7 +144,12 @@ class Server
      */
     public static function isSecure(): bool
     {
-        return (! empty(self::getHttps()) && self::getHttps() !== self::HTTPS_DISABLED) || self::getPort() == self::HTTPS_PORT;
+        return 
+            (! empty(self::getHttps()) && self::getHttps() !== self::HTTPS_DISABLED) || 
+            self::getPort() == self::HTTPS_PORT || 
+            // Case for SSL gateway
+            ($_SERVER['HTTP_X_FORWARDED_PORT'] ?? '') == self::HTTPS_PORT || 
+            ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') == self::HTTPS_PROTOCOL;
     }
 
     /**
