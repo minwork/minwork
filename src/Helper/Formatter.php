@@ -95,6 +95,7 @@ class Formatter
     {
         $text = trim($string);
         $text = preg_replace('/[\s_]+/', $whitespaceReplacement, mb_strtolower($text, self::STRING_ENCODING));
+        $text = preg_replace('/[^a-zA-Z0-9-]+/', '', $text);
         // Replace all special chars with english chars equivalent
         $curLocaleCType = setlocale(LC_CTYPE, 0);
         setlocale(LC_CTYPE, self::STRING_NORMALIZED_LANG . '.' . self::STRING_ENCODING);
