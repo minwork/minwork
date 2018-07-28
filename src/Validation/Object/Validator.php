@@ -10,7 +10,6 @@ namespace Minwork\Validation\Object;
 use Minwork\Validation\Interfaces\ValidatorInterface;
 use Minwork\Validation\Traits\Validator as ValidatorTrait;
 use Minwork\Validation\Utility\Field;
-use Minwork\Helper\ArrayHelper;
 
 /**
  * Basic implementation of validator interface
@@ -91,7 +90,7 @@ class Validator implements ValidatorInterface
                 }
                 
                 // If field is mandatory but doesnt have any data supplied, then trigger it's error
-                if (ArrayHelper::isEmpty($fieldArguments)) {
+                if ($this->hasEmptyArguments($fieldArguments)) {
                     if ($validator->isMandatory()) {
                         $validator->addError($validator->getName(), $validator->getError())->setValid(false);
                     }
@@ -114,5 +113,16 @@ class Validator implements ValidatorInterface
         $this->setValid($this->isValid() && ! $this->hasErrors());
         
         return $this;
+    }
+    
+    protected function hasEmptyArguments(array $arguments): bool
+    {
+        foreach ($arguments as $arg) {
+            if (is_numeric($arg) || (is_array($arg) && ! $this->hasEmptyArguments($arg)) || ! empty($arg)) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 }
