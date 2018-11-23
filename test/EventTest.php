@@ -120,7 +120,7 @@ class EventTest extends \PHPUnit_Framework_TestCase
             }
         };
         $this->assertEquals('TestEvent', $event->getName());
-        $this->assertEquals('test', $event->getData()
+        $this->assertEquals('test', $event->getData()[0]
             ->test());
         $dispatcher->addListener($event, [
             $listener1,
@@ -132,7 +132,7 @@ class EventTest extends \PHPUnit_Framework_TestCase
             1,
             1.7,
             NULL
-        ], $event->getData());
+        ], $event->getData()[0]);
         $dispatcher->removeListener($event, [
             $listener1,
             "update"
@@ -142,7 +142,7 @@ class EventTest extends \PHPUnit_Framework_TestCase
             "update"
         ]);
         $dispatcher->dispatch($event);
-        $this->assertEquals('testingtest', $event->getData()('testing'));
+        $this->assertEquals('testingtest', $event->getData()[0]('testing'));
     }
 }
 ?>

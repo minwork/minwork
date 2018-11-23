@@ -30,7 +30,8 @@ class ModelBinder extends Model
     /**
      *
      * @param DatabaseStorageInterface $storage            
-     * @param BindableModelInterface[] $models            
+     * @param BindableModelInterface[] $models
+     * @param bool $buffering
      * @param EventDispatcherInterface $eventDispatcher            
      */
     public function __construct(DatabaseStorageInterface $storage, array $models = [], bool $buffering = true, EventDispatcherInterface $eventDispatcher = null)
@@ -97,7 +98,10 @@ class ModelBinder extends Model
      */
     public function getId(?string $key = null)
     {
-        return is_null($key) ? $this->id : $this->id[$key] ?? null;
+        if ($this->state === self::STATE_CREATE) {
+            $this->synchronize();
+        }
+        return is_null($key) ? $this->id : ($this->id[$key] ?? null);
     }
 
     /**

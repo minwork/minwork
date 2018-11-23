@@ -157,13 +157,14 @@ class ModelsList
         $query = $this->query;
         
         if (! is_null($onPage)) {
-            $query->setLimit([
-                ($page - 1) * $onPage,
-                $onPage
-            ]);
             $countQuery = clone $query;
             $countQuery->setColumns(null);
             $this->total = $this->storage->count($countQuery);
+
+            $query->setLimit([
+                min(($page - 1) * $onPage, ceil($this->total / $onPage)),
+                $onPage
+            ]);
         }
         
         $list = $this->storage->get($query);

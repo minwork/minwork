@@ -35,7 +35,7 @@ class Cookie extends AbstractArrayStorage
     
     public function unset($key): StorageInterface
     {
-        setcookie(Formatter::toString($key, false), $value, time() - 3600);
+        setcookie(Formatter::toString($key, false), '', time() - 3600);
         return $this;
     }
 }

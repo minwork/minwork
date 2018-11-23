@@ -98,7 +98,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         $updateData = [
             TableInterface::DEFAULT_PK_FIELD => rand(0, PHP_INT_MAX),
             'data' => Random::string(255),
-            'date' => DateHelper::addDays(DateHelper::now(), 2)
+            'date' => DateHelper::addDays(2)
         ];
         
         $this->assertTrue($this->table->create(true));
@@ -167,7 +167,7 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
             ->isNull()
             ->or()
             ->column('date')
-            ->between(DateHelper::now(), DateHelper::addDays(DateHelper::now(), 20)))
+            ->between(DateHelper::now(), DateHelper::addDays(20)))
             ->and()
             ->column('data')
             ->isNotNull();

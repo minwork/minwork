@@ -72,7 +72,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         ];
         $newData = [
             'name' => 'test2',
-            'change_date' => DateHelper::addHours(DateHelper::now(), 2)
+            'change_date' => DateHelper::addHours(2, DateHelper::now())
         ];
         $newId = 'unexisting';
         /** @var $table \Minwork\Database\Interfaces\TableInterface */
@@ -85,22 +85,17 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $table->create(true);
         
         $model = new Model($table);
-        $validator = new Validator([
+        $validator = new Validator(
             new Field('name', [
-                new Rule('isNotEmpty'),
-                new Rule('isAlphabeticOnly'),
-                new Rule('isInt', '', [], Rule::IMPORTANCE_NORMAL, false)
+                new Rule('Minwork\Helper\Validation::isNotEmpty'),
+                new Rule('Minwork\Helper\Validation::isAlphabeticOnly'),
+                //new Rule('Minwork\Helper\Validation::isInt')
             ]),
             new Field('email', [
-                new Rule('isEmail', '', [
-                    false
-                ]),
-                new Rule($validatorFunction, '', [
-                    true,
-                    false
-                ])
+                new Rule('Minwork\Helper\Validation::isEmail', null, null, false),
+                new Rule($validatorFunction, null, null, true, false)
             ])
-        ]);
+        );
         $this->assertSame($data, $model->setData($data)
             ->getData());
         $this->assertTrue($model->validateThenExecute(new Create(), $validator, $data));
@@ -227,6 +222,13 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(2, $modelsList->getOnPage());
         $this->assertEquals(3, $modelsList->getTotal());
         $this->assertEquals(2, count($list));
+
+        // Model list page edge case
+        $list = $modelsList->reset()
+            ->setQuery(new Query())
+            ->getData(1000000, 2)
+            ->getElements();
+        $this->assertEquals(1, count($list));
         
         // Clean up
         foreach ($list as $model) {

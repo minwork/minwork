@@ -23,7 +23,7 @@ class StorageTest extends \PHPUnit_Framework_TestCase {
                     parent::__construct($array);
                 }
             },
-            new Cookie(),
+            //new Cookie(),
             new Session(),
             new Get(),
             new Post(),
