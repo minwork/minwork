@@ -228,6 +228,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->setQuery(new Query())
             ->getData(1000000, 2)
             ->getElements();
+        $this->assertSame(1000000, $modelsList->getPage());
+        $this->assertEquals(2, $modelsList->getOnPage());
+        $this->assertEquals(3, $modelsList->getTotal());
         $this->assertEquals(1, count($list));
         
         // Clean up

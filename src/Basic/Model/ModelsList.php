@@ -161,8 +161,11 @@ class ModelsList
             $countQuery->setColumns(null);
             $this->total = $this->storage->count($countQuery);
 
+            // Limit max page to not trigger database errors
+            $page = min($page, ceil($this->total / $onPage));
+
             $query->setLimit([
-                min(($page - 1) * $onPage, ceil($this->total / $onPage)),
+                ($page - 1) * $onPage,
                 $onPage
             ]);
         }
