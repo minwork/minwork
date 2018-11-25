@@ -235,21 +235,21 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
         $list = $modelsList->reset()
             ->setQuery(new Query())
-            ->getData(-1000000, 2)
-            ->getElements();
-        $this->assertSame(1, $modelsList->getPage());
-        $this->assertEquals(2, $modelsList->getOnPage());
-        $this->assertEquals(3, $modelsList->getTotal());
-        $this->assertEquals(2, count($list));
-
-        $list = $modelsList->reset()
-            ->setQuery(new Query())
-            ->getData(0, 100000000)
+            ->getData(-1000000, 100000000)
             ->getElements();
         $this->assertSame(1, $modelsList->getPage());
         $this->assertEquals(3, $modelsList->getOnPage());
         $this->assertEquals(3, $modelsList->getTotal());
         $this->assertEquals(3, count($list));
+
+        $list = $modelsList->reset()
+            ->setQuery(new Query())
+            ->getData(0, -100000000)
+            ->getElements();
+        $this->assertSame(1, $modelsList->getPage());
+        $this->assertEquals(1, $modelsList->getOnPage());
+        $this->assertEquals(3, $modelsList->getTotal());
+        $this->assertEquals(1, count($list));
         
         // Clean up
         foreach ($list as $model) {
