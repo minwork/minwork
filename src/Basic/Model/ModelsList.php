@@ -152,21 +152,22 @@ class ModelsList
      */
     public function getData(int $page = 1, ?int $onPage = null): self
     {
-        $this->page = $page;
+        $this->page = max($page, 1);
         $this->onPage = $onPage;
         $query = $this->query;
         
-        if (! is_null($onPage)) {
+        if (! is_null($this->onPage)) {
             $countQuery = clone $query;
             $countQuery->setColumns(null);
             $this->total = $this->storage->count($countQuery);
 
-            // Limit max page to not trigger database errors
-            $page = min($page, ceil($this->total / $onPage));
+            // Limit page and onPage conditions to not trigger database errors
+            $this->onPage = max(1, min($this->onPage, $this->total));
+            $this->page = min($this->page, ceil($this->total / $this->onPage));
 
             $query->setLimit([
-                ($page - 1) * $onPage,
-                $onPage
+                ($this->page - 1) * $this->onPage,
+                $this->onPage
             ]);
         }
         
