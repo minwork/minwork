@@ -162,8 +162,8 @@ class ModelsList
             $this->total = $this->storage->count($countQuery);
 
             // Limit page and onPage conditions to not trigger database errors
-            $this->onPage = max(1, min($this->onPage, $this->total));
-            $this->page = min($this->page, ceil($this->total / $this->onPage));
+            $this->onPage = max(1, $this->onPage);
+            $this->page = max(min($this->page, ceil($this->total / $this->onPage)), 1);
 
             $query->setLimit([
                 ($this->page - 1) * $this->onPage,
