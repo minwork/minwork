@@ -331,10 +331,10 @@ class Router implements RouterInterface
         $controllerMethods = $controller instanceof Controller ? get_class_methods('Minwork\Basic\Controller\Controller') : get_class_methods('Minwork\Basic\Interfaces\ControllerInterface');
         
         // Process method name
-        if (! in_array($methodNormalized, Framework::EVENTS) && ! in_array($methodNormalized, $controllerMethods) && method_exists($controller, $methodNormalized)) {
+        if (! in_array($methodNormalized, Framework::EVENTS) && ! in_array($methodNormalized, $controllerMethods) && is_callable([$controller, $methodNormalized])) {
             $this->method = $methodNormalized;
         } elseif (method_exists($controller, self::DEFAULT_CONTROLLER_METHOD)) {
-            $this->addMethodArgument($this->methodArguments, $method);
+            $this->addMethodArgument($this->methodArguments, $method, true);
             $this->method = self::DEFAULT_CONTROLLER_METHOD;
         } else {
             throw new \DomainException("Cannot find method {$methodNormalized} inside " . get_class($controller) . " controller");
