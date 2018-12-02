@@ -334,7 +334,7 @@ class Router implements RouterInterface
         if (! in_array($methodNormalized, Framework::EVENTS) && ! in_array($methodNormalized, $controllerMethods) && is_callable([$controller, $methodNormalized])) {
             $this->method = $methodNormalized;
         } elseif (method_exists($controller, self::DEFAULT_CONTROLLER_METHOD)) {
-            $this->addMethodArgument($this->methodArguments, $method, true);
+            $this->addMethodArgument($this->methodArguments, $method, false);
             $this->method = self::DEFAULT_CONTROLLER_METHOD;
         } else {
             throw new \DomainException("Cannot find method {$methodNormalized} inside " . get_class($controller) . " controller");
