@@ -7,18 +7,18 @@
  */
 namespace Minwork\Core;
 
-use Minwork\Event\Object\EventDispatcher;
-use Minwork\Event\Object\Event;
-use Minwork\Event\Traits\Events;
-use Minwork\Http\Interfaces\RouterInterface;
-use Minwork\Event\Interfaces\EventDispatcherInterface;
-use Minwork\Http\Object\Response;
-use Minwork\Http\Interfaces\ResponseInterface;
-use Minwork\Basic\Interfaces\ViewInterface;
-use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
 use Minwork\Basic\Interfaces\FrameworkInterface;
-use Minwork\Http\Interfaces\EnvironmentInterface;
+use Minwork\Basic\Utility\FlowEvent;
+use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
+use Minwork\Event\Interfaces\EventDispatcherInterface;
+use Minwork\Event\Object\Event;
+use Minwork\Event\Object\EventDispatcher;
+use Minwork\Event\Traits\Events;
 use Minwork\Helper\Formatter;
+use Minwork\Http\Interfaces\EnvironmentInterface;
+use Minwork\Http\Interfaces\ResponseInterface;
+use Minwork\Http\Interfaces\RouterInterface;
+use Minwork\Http\Object\Response;
 use Minwork\Http\Utility\HttpCode;
 
 /**
@@ -41,7 +41,7 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
 
     const EVENT_AFTER_CONTROLLER_RUN = 'afterRun';
 
-    const EVENT_BEFORE_OUTPUT_CONTENT = 'beforeOutputContent';
+    const EVENT_BEFORE_CONTENT_OUTPUT = 'beforeOutput';
 
     const EVENT_BEFORE_REDIRECT = 'beforeRedirect';
 
@@ -51,7 +51,7 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
         self::EVENT_AFTER_METHOD_RUN,
         self::EVENT_BEFORE_CONTROLLER_RUN,
         self::EVENT_AFTER_CONTROLLER_RUN,
-        self::EVENT_BEFORE_OUTPUT_CONTENT,
+        self::EVENT_BEFORE_CONTENT_OUTPUT,
         self::EVENT_BEFORE_REDIRECT
     ];
 
@@ -63,6 +63,13 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
     protected $router;
 
     /**
+     * Environment object
+     *
+     * @var EnvironmentInterface
+     */
+    protected $environment;
+
+    /**
      *
      * @param RouterInterface $router            
      * @param EnvironmentInterface $environment            
@@ -70,9 +77,9 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
      */
     public function __construct(RouterInterface $router, EnvironmentInterface $environment, EventDispatcherInterface $eventDisptacher = null)
     {
-        $this->setRouter($router)
-            ->setEnvironment($environment)
-            ->setEventDispatcher($eventDisptacher ?? EventDispatcher::getGlobal());
+        $this->setEventDispatcher($eventDisptacher ?? EventDispatcher::getGlobal())
+            ->setRouter($router)
+            ->setEnvironment($environment);
     }
 
     /**
@@ -122,54 +129,46 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
     }
 
     /**
-     * Output response recieved from controller method
+     * Output response received from controller method
      *
-     * @param mixed $response            
-     * @throws \Exception
-     * @return bool
+     * @param ResponseInterface $response
+     * @param bool $return
+     * @return mixed
      */
-    protected function outputContent($response): bool
+    protected function output(ResponseInterface $response, bool $return)
     {
-        if (is_null($response)) {
-            return false;
-        } elseif (is_string($response) || is_numeric($response)) {
-            $response = new Response($response);
-        } elseif (is_object($response)) {
-            if ($response instanceof ViewInterface) {
-                $response = (new Response())->setObject($response);
-            } elseif (! ($response instanceof ResponseInterface)) {
-                throw new \Exception("Object returned in controller must implement ViewInterface or ResponseInterface");
-            }
-        } elseif (is_array($response)) {
-            $response = new Response(print_r($response, true));
-        } else {
-            $response = new Response();
+        $this->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_CONTENT_OUTPUT));
+
+        if ($return) {
+            return $response->getContent();
         }
-        
+
         foreach ($response->getHeaders() as $header) {
             header($header);
         }
         
         http_response_code($response->getHttpCode());
-        
-        if (! empty($response->getContent())) {
-            echo $response->getContent();
-        }
-        return true;
+        echo strval($response->getContent());
+
+        return $response;
     }
 
     /**
      * Run application based on supplied url
      *
-     * @param string $url            
-     * @param bool $returnContent
-     *            If content should be outputed or returned
+     * Browser output or this method return value (@see $return) depends on Controller response object.
+     * Response can be set directly or its content can be set by returning it from controller method
+     *
+     * @param string $url
+     * @param bool $return
+     *            If response should be returned from this method instead of outputting it to the browser
      * @param bool $sanitize
      *            If url should be sanitized
      * @return mixed
      */
-    public function run(string $url, bool $returnContent = false, bool $sanitize = true)
+    public function run(string $url, bool $return = false, bool $sanitize = true)
     {
+        $controllerName = $this->getRouter()->getControllerName();
         $controller = $this->getRouter()
             ->translateUrl($url, $sanitize)
             ->getController()
@@ -177,38 +176,45 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
         
         // All events should start here so controller can intercept them
         $this->getEventDispatcher()->dispatch(new Event(self::EVENT_AFTER_URL_TRANSLATION));
-        
-        $controller->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_CONTROLLER_RUN));
+
+        $event = new FlowEvent(self::EVENT_BEFORE_CONTROLLER_RUN, $controllerName);
+        $controller->getEventDispatcher()->dispatch($event);
         
         // If response was set by any event listener then directly output content of the response
-        if (! $controller->getResponse()->isEmpty()) {
-            $this->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_OUTPUT_CONTENT));
-            return ! $returnContent ? $this->outputContent($controller->getResponse()) : $controller->getResponse();
+        if ($event->shouldBreakFlow()) {
+            return $this->output($controller->getResponse(), $return);
         }
         
         $method = $this->getRouter()->getMethod();
-        
-        $controller->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_METHOD_RUN));
-        
+
         $arguments = $this->getRouter()->getMethodArguments();
-        
+
+        $event = new FlowEvent(self::EVENT_BEFORE_METHOD_RUN, $method, $arguments);
+        $controller->getEventDispatcher()->dispatch($event);
+
         // If response was set by any event listener then directly output content of the response
-        if (! $controller->getResponse()->isEmpty()) {
-            $this->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_OUTPUT_CONTENT));
-            return ! $returnContent ? $this->outputContent($controller->getResponse()) : $controller->getResponse();
+        if ($event->shouldBreakFlow()) {
+            return $this->output($controller->getResponse(), $return);
         }
         
         // Get content
         $args = array_values($arguments);
         $content = $controller->$method(...$args);
+
+        // If controller returned some value then convert it to response
+        if ($controller->getResponse()->isEmpty()) {
+            // Cast whole content to response if it was empty
+            $controller->setResponse(Response::createFrom($content));
+        } else {
+            // Or only set it as content if it wasn't
+            $controller->getResponse()->setContent($content);
+        }
         
-        $controller->getEventDispatcher()->dispatch(new Event(self::EVENT_AFTER_METHOD_RUN));
+        $controller->getEventDispatcher()->dispatch(new FlowEvent(self::EVENT_AFTER_METHOD_RUN, $method, $arguments));
         
-        $controller->getEventDispatcher()->dispatch(new Event(self::EVENT_AFTER_CONTROLLER_RUN));
+        $controller->getEventDispatcher()->dispatch(new FlowEvent(self::EVENT_AFTER_CONTROLLER_RUN, $controllerName));
         
-        $this->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_OUTPUT_CONTENT));
-        
-        return ! $returnContent ? $this->outputContent($content) : $content;
+        return $this->output($controller->getResponse(), $return);
     }
 
     /**
@@ -221,7 +227,7 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
     {
         $this->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_REDIRECT));
         $address = $external ? Formatter::makeUrl($address) : $this->getEnvironment()->getDomain() . $address;
-        $response = new Response();
-        return $response->setHttpCode(HttpCode::FOUND)->setHeader("Location: {$address}", false);
+
+        return (new Response())->setHttpCode(HttpCode::FOUND)->setHeader("Location: {$address}", false);
     }
 }

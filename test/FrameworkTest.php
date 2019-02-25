@@ -3,6 +3,7 @@ namespace Test;
 
 require "vendor/autoload.php";
 
+use Minwork\Basic\Utility\FlowEvent;
 use Minwork\Core\Framework;
 use Minwork\Basic\Controller\Controller;
 use Minwork\Http\Object\Response;
@@ -35,7 +36,7 @@ class FrameworkTest extends \PHPUnit_Framework_TestCase
         $environment = new Environment();
         $framework = new Framework($router, $environment);
         
-        $framework->run($url, TRUE);
+        $framework->run($url, true);
         
         $this->assertEquals('es', $framework->getRouter()
             ->getLang());
@@ -66,23 +67,26 @@ class FrameworkTest extends \PHPUnit_Framework_TestCase
     {
         $url = '/test/test-method';
         $counter = 0;
-        $break = false;
         $eventDispatcher = new EventDispatcher();
         $environment = new Environment();
-        
-        $controller = new class($eventDispatcher, $counter, $break) extends Controller {
+        $breakFlowResponse = new Response('TestBreakFlowContent', Response::CONTENT_TYPE_JSON, HttpCode::BAD_REQUEST);
+
+        $controller = new class($eventDispatcher, $counter, $breakFlowResponse) extends Controller {
             /* @var $this self */
             use Connector;
 
-            public $counter;
+            public $break, $counter, $postProcess;
 
-            public $break;
+            private $breakFlowResponse;
 
-            public function __construct($dispatcher, $counter, $break)
+            public function __construct($dispatcher, $counter, $breakFlowResponse)
             {
                 parent::__construct();
                 $this->counter = $counter;
-                $this->break = $break;
+                $this->break = false;
+                $this->postProcess = false;
+
+                $this->breakFlowResponse = $breakFlowResponse;
                 $this->connect('\Minwork\Core\Framework', $dispatcher);
             }
 
@@ -91,14 +95,12 @@ class FrameworkTest extends \PHPUnit_Framework_TestCase
                 $this->counter += 1;
             }
 
-            public function beforeMethodRun()
+            public function beforeMethodRun(FlowEvent $event)
             {
                 $this->counter += 2;
                 if ($this->break) {
-                    $this->getResponse()
-                        ->setContent('TestBreakFlowContent')
-                        ->setContentType(Response::CONTENT_TYPE_JSON)
-                        ->setHttpCode(HttpCode::BAD_REQUEST);
+                    $event->breakFlow();
+                    $this->setResponse($this->breakFlowResponse);
                 }
             }
 
@@ -112,9 +114,16 @@ class FrameworkTest extends \PHPUnit_Framework_TestCase
                 $this->counter += 4;
             }
 
-            public function beforeOutputContent()
+            public function beforeOutput()
             {
                 $this->counter += 5;
+            }
+
+            public function afterMethodRun()
+            {
+                if ($this->postProcess) {
+                    $this->getResponse()->setContent('PostProcessedContent');
+                }
             }
 
             public function test_method()
@@ -135,6 +144,11 @@ class FrameworkTest extends \PHPUnit_Framework_TestCase
         
         $controller->break = true;
         $content = $framework->run($url, TRUE);
-        $this->assertEquals(new Response('TestBreakFlowContent', Response::CONTENT_TYPE_JSON, HttpCode::BAD_REQUEST), $content);
+        $this->assertEquals('TestBreakFlowContent', $content);
+
+        $controller->break = false;
+        $controller->postProcess = true;
+        $content = $framework->run($url, TRUE);
+        $this->assertEquals('PostProcessedContent', $content);
     }
 }

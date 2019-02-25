@@ -61,7 +61,7 @@ class Response implements ResponseInterface
      * @param string $contentType            
      * @param int $httpCode            
      */
-    public function __construct($content = '', string $contentType = self::CONTENT_TYPE_TEXT, int $httpCode = HttpCode::OK)
+    public function __construct($content = null, string $contentType = self::CONTENT_TYPE_TEXT, int $httpCode = HttpCode::OK)
     {
         $this->setContent($content)
             ->setContentType($contentType)
@@ -149,8 +149,8 @@ class Response implements ResponseInterface
      */
     public function setContent($content): ResponseInterface
     {
-        $this->empty = empty($content);
-        $this->content = strval($content);
+        $this->empty = is_null($content);
+        $this->content = $content;
         return $this;
     }
 
@@ -200,5 +200,20 @@ class Response implements ResponseInterface
     public function getHeaders(): array
     {
         return $this->headers;
+    }
+
+    /**
+     * Create response object based on variable value
+     *
+     * @param $var
+     * @return Response
+     */
+    public static function createFrom($var): self
+    {
+        if (is_object($var) && $var instanceof ViewInterface) {
+            return (new self())->setObject($var);
+        }
+
+        return new self($var);
     }
 }

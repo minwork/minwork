@@ -33,9 +33,9 @@ interface EnvironmentInterface
      * Set environment type
      *
      * @param string $type            
-     * @return self
+     * @return EnvironmentInterface
      */
-    public function setType(string $type): self;
+    public function setType(string $type): EnvironmentInterface;
 
     /**
      * Get environment domain address
@@ -48,7 +48,7 @@ interface EnvironmentInterface
      * Set environment domain address trailing slash (like https://mydomain.com or http://subdomain.otherdomain.com:3000/test)
      *
      * @param string $domain            
-     * @return string
+     * @return EnvironmentInterface
      */
-    public function setDomain(string $domain): self;
+    public function setDomain(string $domain): EnvironmentInterface;
 }
