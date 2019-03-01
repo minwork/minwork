@@ -72,12 +72,13 @@ class Json implements ViewInterface
     /**
      * Set array that will be encoded using json_encode
      *
-     * @param array $data            
-     * @param bool $merge            
+     * @param array $data
+     * @param bool $merge
+     * @return Json
      */
     public function setData(array $data, bool $merge = true): self
     {
-        $this->data = $merge && !is_null($this->data) ? array_merge($this->data, $data) : $data;
+        $this->data = $merge && !is_null($this->data) ? array_merge_recursive($this->data, $data) : $data;
         return $this;
     }
 }
