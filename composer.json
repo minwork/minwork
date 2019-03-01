@@ -1,39 +1,41 @@
 {
-	"name" : "minwork/minwork",
-	"description" : "Minwork - Simple yet powerful PHP 7.1 framework",
-	"type" : "library",
-	"keywords" : [
-		"framework",
-		"api",
-		"micro",
-		"php",
-		"minimal",
-		"simple",
-		"php 7",
-		"php 7.1"
-	],
-	"license" : "MIT",
-	"authors" : [{
-			"name" : "Christopher Kalkhoff",
-			"email" : "krzysztof.kalkhoff@gmail.com",
-			"role" : "Founder"
-		}
-	],
-	"require" : {
-		"php" : ">=7.1"
-	},
-	"require-dev" : {
-		"phpunit/phpunit" : "^5.0"
-	},
-	"autoload" : {
-		"psr-4" : {
-			"Minwork\\" : "src/"
-		}
-	},
-	"autoload-dev" : {
-		"psr-4" : {
-			"Example\\ApiServer\\" : "example/api/server/",
-			"Example\\ApiClient\\" : "example/api/client/"
-		}
-	}
+  "name": "minwork/minwork",
+  "description": "Minwork - Simple yet powerful PHP 7.1 framework",
+  "type": "library",
+  "keywords": [
+    "framework",
+    "api",
+    "micro",
+    "php",
+    "minimal",
+    "simple",
+    "php 7",
+    "php 7.1"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Christopher Kalkhoff",
+      "email": "krzysztof.kalkhoff@gmail.com",
+      "role": "Founder"
+    }
+  ],
+  "require": {
+    "php": ">=7.1",
+    "ext-json": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^5.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Minwork\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Example\\ApiServer\\": "example/api/server/",
+      "Example\\ApiClient\\": "example/api/client/"
+    }
+  }
 }
