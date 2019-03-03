@@ -1,18 +1,21 @@
 <?php
 namespace Minwork\Validation\Utility;
 
+use Minwork\Error\Interfaces\ErrorInterface;
+use Minwork\Error\Interfaces\ErrorsStorageContainerInterface;
+use Minwork\Error\Traits\Errors;
 use Minwork\Validation\Interfaces\ValidatorInterface;
 use Minwork\Validation\Traits\Validator;
-use Minwork\Error\Basic\ErrorGlobal;
+use Minwork\Error\Object\Error;
 
 /**
  *
  * @author Christopher Kalkhoff
  *        
  */
-class Field implements ValidatorInterface
+class Field implements ValidatorInterface, ErrorsStorageContainerInterface
 {
-    use Validator;
+    use Validator, Errors;
 
     /**
      * Field name
@@ -38,7 +41,7 @@ class Field implements ValidatorInterface
     /**
      * Global error when field is mandatory but didn't found key corresponding to its name during validation on $data array
      *
-     * @var string
+     * @var ErrorInterface
      */
     protected $error;
 
@@ -58,14 +61,14 @@ class Field implements ValidatorInterface
      *            Set of rules for validating this field
      * @param bool $mandatory
      *            If this field is mandatory and must be present in $data array in validate method
-     * @param string $error
+     * @param ErrorInterface|null $error
      *            Global error when field is mandatory but didn't found key corresponding to its name during validation on $data array
      */
-    public function __construct(string $name, array $rules = [], bool $mandatory = true, string $error = '')
+    public function __construct(string $name, array $rules = [], bool $mandatory = true, ?ErrorInterface $error = null)
     {
         $this->name = $name;
         $this->mandatory = $mandatory;
-        $this->error = $error === '' ? "Field {$name} is mandatory" : $error;
+        $this->error = $error ?? new Error("Field {$name} is mandatory");
         $this->setRules($rules);
     }
     
@@ -136,13 +139,15 @@ class Field implements ValidatorInterface
     {
         return $this->hasCriticalError;
     }
-    
+
     /**
      *
      * {@inheritdoc}
      *
      * @param array $data
      *            Form data
+     * @return ValidatorInterface
+     * @throws \Exception
      * @see \Minwork\Validation\Interfaces\ValidatorInterface::validate()
      */
     public function validate(...$data): ValidatorInterface
@@ -164,7 +169,7 @@ class Field implements ValidatorInterface
             if (! $rule->validate(...$data)->isValid()) {
                 $this->valid = false;
                 // Add rule errors
-                foreach ($rule->getErrors()->getErrors(ErrorGlobal::TYPE) as $error) {
+                foreach ($rule->getErrorsStorage()->getErrors(Error::TYPE) as $error) {
                     $this->addError($this->getName(), $error->getMessage());
                 }
                 

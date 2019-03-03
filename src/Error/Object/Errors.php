@@ -8,7 +8,6 @@
 namespace Minwork\Error\Object;
 
 use Minwork\Error\Interfaces\ErrorInterface;
-use Minwork\Helper\ArrayHelper;
 use Minwork\Error\Interfaces\ErrorsStorageInterface;
 
 /**
@@ -21,9 +20,9 @@ class Errors implements ErrorsStorageInterface
 {
 
     /**
-     * Array storage for error objects
+     * List of error objects
      *
-     * @var ErrorInterface[][]
+     * @var ErrorInterface[]
      */
     protected $list = [];
 
@@ -33,33 +32,11 @@ class Errors implements ErrorsStorageInterface
      *
      * @see \Minwork\Error\Interfaces\ErrorsStorageInterface::addError()
      */
-    public function addError(ErrorInterface $errorObj): ErrorsStorageInterface
+    public function addError(ErrorInterface $error): ErrorsStorageInterface
     {
-        $type = $errorObj->getType();
-        
-        if (! array_key_exists($type, $this->list)) {
-            $this->list[$type] = [];
-        }
-        
-        if ($errorObj->hasFieldName()) {
-            $this->list[$type][$errorObj->getFieldName()] = $errorObj;
-        } else {
-            $this->list[$type][] = $errorObj;
-        }
+        $this->list[] = $error;
         
         return $this;
-    }
-
-    /**
-     * Create errors storage, add error and return newly created object
-     *
-     * @param ErrorPrototype $error            
-     * @return self
-     */
-    public static function addAndReturn(ErrorInterface $error): self
-    {
-        $error = new self();
-        return $error->addError($error);
     }
 
     /**
@@ -70,7 +47,7 @@ class Errors implements ErrorsStorageInterface
      */
     public function hasErrors(): bool
     {
-        return ! ArrayHelper::isEmpty($this->list);
+        return ! empty($this->list);
     }
 
     /**
@@ -91,14 +68,12 @@ class Errors implements ErrorsStorageInterface
      *
      * @see \Minwork\Error\Interfaces\ErrorsStorageInterface::merge()
      */
-    public function merge(ErrorsStorageInterface $error): ErrorsStorageInterface
+    public function merge(ErrorsStorageInterface $storage): ErrorsStorageInterface
     {
-        $errors = $error->getErrors();
-        foreach ($errors as $list) {
-            foreach ($list as $error) {
-                $this->addError($error);
-            }
+        foreach ($storage->getErrors() as $error) {
+            $this->addError($error);
         }
+
         return $this;
     }
 
@@ -110,12 +85,14 @@ class Errors implements ErrorsStorageInterface
      */
     public function getErrors($config = null): array
     {
-        $return = [];
         if (is_null($config)) {
-            $return = $this->list;
-        } elseif (array_key_exists($config, $this->list)) {
-            $return = $this->list[$config];
+            return $this->list;
+        } elseif (is_string($config)) {
+            // Filter errors by type
+            return array_filter($this->list, function ($error) use ($config) {
+                return $error->getType() === $config;
+            });
         }
-        return $return;
+        return [];
     }
 }

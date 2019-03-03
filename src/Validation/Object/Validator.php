@@ -7,6 +7,8 @@
  */
 namespace Minwork\Validation\Object;
 
+use Minwork\Error\Interfaces\ErrorsStorageContainerInterface;
+use Minwork\Error\Traits\Errors;
 use Minwork\Validation\Interfaces\ValidatorInterface;
 use Minwork\Validation\Traits\Validator as ValidatorTrait;
 use Minwork\Validation\Utility\Field;
@@ -17,9 +19,9 @@ use Minwork\Validation\Utility\Field;
  * @author Christopher Kalkhoff
  *        
  */
-class Validator implements ValidatorInterface
+class Validator implements ValidatorInterface, ErrorsStorageContainerInterface
 {
-    use ValidatorTrait;
+    use ValidatorTrait, Errors;
 
     /**
      * Validation config which is a list of objects implementing ValidatorInterface
@@ -31,8 +33,7 @@ class Validator implements ValidatorInterface
     /**
      * Initialize validator with array of objects implementing ValidatorInterface
      *
-     * @param ValidatorInterface[] $config            
-     * @throws \InvalidArgumentException
+     * @param ValidatorInterface[] $validators
      */
     public function __construct(ValidatorInterface ...$validators)
     {
@@ -42,8 +43,7 @@ class Validator implements ValidatorInterface
     /**
      * Set validator config which is list of ValidatorInterface objects
      *
-     * @param ValidatorInterface[] $config            
-     * @throws \InvalidArgumentException
+     * @param ValidatorInterface[] $validator
      * @return self
      */
     
@@ -60,6 +60,7 @@ class Validator implements ValidatorInterface
      * {@inheritdoc}
      *
      * @see \Minwork\Validation\Interfaces\ValidatorInterface::validate()
+     * @throws \Exception
      */
     public function validate(...$data): ValidatorInterface
     {
@@ -103,7 +104,7 @@ class Validator implements ValidatorInterface
             
             if (! $validator->isValid()) {
                 $this->setValid(false);
-                $this->getErrors()->merge($validator->getErrors());
+                $this->getErrorsStorage()->merge($validator->getErrorsStorage());
                 if (method_exists($validator, 'hasCriticalError') && $validator->hasCriticalError()) {
                     break;
                 }

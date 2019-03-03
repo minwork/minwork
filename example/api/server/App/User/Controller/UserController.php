@@ -49,7 +49,7 @@ class UserController extends MainController
                 ]
             ]));
         }
-        return $this->respond((new JSON())->setErrors($user->getErrors()));
+        return $this->respond((new JSON())->setErrorsStorage($user->getErrorsStorage()));
     }
 
     /**
@@ -95,7 +95,7 @@ class UserController extends MainController
                 'user' => $user->getData()
             ]));
         }
-        return $this->respond((new JSON())->setErrors($user->getErrors()));
+        return $this->respond((new JSON())->setErrorsStorage($user->getErrorsStorage()));
     }
 
     /**

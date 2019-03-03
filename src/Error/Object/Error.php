@@ -15,8 +15,9 @@ use Minwork\Error\Interfaces\ErrorInterface;
  * @author Christopher Kalkhoff
  *        
  */
-abstract class ErrorPrototype implements ErrorInterface, \JsonSerializable
+class Error implements ErrorInterface, \JsonSerializable
 {
+    const TYPE = 'general';
 
     /**
      * Message
@@ -26,20 +27,48 @@ abstract class ErrorPrototype implements ErrorInterface, \JsonSerializable
     protected $message;
 
     /**
-     * Field name associated with error
+     * Reference to something this error concerns
      *
-     * @var string
+     * @var mixed
      */
-    protected $fieldName;
+    protected $ref = null;
+
+    /**
+     * List of additional error data
+     *
+     * @var array
+     */
+    protected $data;
 
     /**
      * Create error with string message
      *
      * @param string $message
+     * @param array $data
      */
-    public function __construct(string $message)
+    public function __construct(string $message, ...$data)
+    {
+        $this->setMessage($message)->setData($data);
+    }
+
+    /**
+     * @param string $message
+     * @return Error
+     */
+    protected function setMessage(string $message): ErrorInterface
     {
         $this->message = $message;
+        return $this;
+    }
+
+    /**
+     * @param array $data
+     * @return Error
+     */
+    protected function setData(array $data): ErrorInterface
+    {
+        $this->data = $data;
+        return $this;
     }
 
     /**
@@ -50,7 +79,7 @@ abstract class ErrorPrototype implements ErrorInterface, \JsonSerializable
      */
     public function getType(): string
     {
-        return '';
+        return static::TYPE;
     }
 
     /**
@@ -78,7 +107,7 @@ abstract class ErrorPrototype implements ErrorInterface, \JsonSerializable
     /**
      * Specify data which should be serialized to JSON
      */
-    public function jsonSerialize(): string
+    public function jsonSerialize()
     {
         return $this->getMessage();
     }
@@ -87,22 +116,23 @@ abstract class ErrorPrototype implements ErrorInterface, \JsonSerializable
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Error\Interfaces\ErrorInterface::hasFieldName()
+     * @see \Minwork\Error\Interfaces\ErrorInterface::hasRef()
      */
-    public function hasFieldName(): bool
+    public function hasRef(): bool
     {
-        return ! is_null($this->fieldName);
+        return ! is_null($this->ref);
     }
 
     /**
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Error\Interfaces\ErrorInterface::setFieldName()
+     * @see \Minwork\Error\Interfaces\ErrorInterface::setRef()
+     * @return Error
      */
-    public function setFieldName(string $name): ErrorInterface
+    public function setRef($ref): ErrorInterface
     {
-        $this->fieldName = $name;
+        $this->ref = $ref;
         return $this;
     }
 
@@ -110,10 +140,20 @@ abstract class ErrorPrototype implements ErrorInterface, \JsonSerializable
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Error\Interfaces\ErrorInterface::getFieldName()
+     * @see \Minwork\Error\Interfaces\ErrorInterface::getRef()
      */
-    public function getFieldName(): string
+    public function getRef()
     {
-        return strval($this->fieldName);
+        return $this->ref;
+    }
+
+    /**
+     * Get list of additional error data
+     *
+     * @return array
+     */
+    public function getData(): array
+    {
+        return $this->data;
     }
 }

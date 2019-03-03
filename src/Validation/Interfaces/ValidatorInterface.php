@@ -59,5 +59,5 @@ interface ValidatorInterface
      *
      * @return ErrorsStorageInterface
      */
-    public function getErrors(): ErrorsStorageInterface;
+    public function getErrorsStorage(): ErrorsStorageInterface;
 }

@@ -41,6 +41,7 @@ interface RequestInterface
      * @see \Minwork\Http\Interfaces\UrlInterface
      * @param string|UrlInterface $url
      *            Either string with proper url or object implementing UrlInterface
+     * @return RequestInterface
      */
     public function setUrl($url): self;
 
@@ -81,7 +82,7 @@ interface RequestInterface
      *
      * @return ErrorsStorageInterface
      */
-    public function getErrors(): ErrorsStorageInterface;
+    public function getErrorsStorage(): ErrorsStorageInterface;
 
     /**
      * Get request url address

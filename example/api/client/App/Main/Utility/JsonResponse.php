@@ -10,8 +10,8 @@ namespace Example\ApiClient\App\Main\Utility;
 use Minwork\Http\Interfaces\ResponseInterface;
 use Minwork\Error\Traits\Errors;
 use Minwork\Helper\Formatter;
-use Minwork\Error\Basic\ErrorGlobal;
-use Minwork\Error\Basic\ErrorForm;
+use Minwork\Error\Object\Error;
+use Minwork\Error\Basic\FieldError;
 
 /**
  * Utility class for handling cUrl Response as JSON
@@ -81,12 +81,12 @@ class JsonResponse
                         foreach ($data[self::FIELD_ERRORS] as $errorType => $errors) {
                             if (is_array($errors)) {
                                 switch ($errorType) {
-                                    case ErrorForm::TYPE:
+                                    case FieldError::TYPE:
                                         foreach ($errors as $field => $error) {
                                             $this->addError($field, $error);
                                         }
                                         break;
-                                    case ErrorGlobal::TYPE:
+                                    case Error::TYPE:
                                     default:
                                         foreach ($errors as $error) {
                                             $this->addError($error);

@@ -16,7 +16,7 @@ $request = $data['request'];
 <?php endif; ?>
 <?php if ($response->hasErrors()): ?>
     <h3>Errors</h3>
-    <?php if (($errors = $response->getErrors()->getErrors(\Minwork\Error\Basic\ErrorGlobal::TYPE))): ?>
+    <?php if (($errors = $response->getErrorsStorage()->getErrors(\Minwork\Error\Object\Error::TYPE))): ?>
         <b>Global</b><br>
         <ul>
         <?php foreach ($errors as $error): ?>
@@ -24,7 +24,7 @@ $request = $data['request'];
         <?php endforeach; ?>
         </ul>
     <?php endif; ?>
-   	<?php if (($errors = $response->getErrors()->getErrors(\Minwork\Error\Basic\ErrorForm::TYPE))): ?>
+   	<?php if (($errors = $response->getErrorsStorage()->getErrors(\Minwork\Error\Basic\FieldError::TYPE))): ?>
         <b>Form</b><br>
         <ul>
         <?php foreach ($errors as $field => $error): ?>

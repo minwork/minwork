@@ -7,8 +7,9 @@
  */
 namespace Minwork\Error\Traits;
 
-use Minwork\Error\Basic\ErrorGlobal;
-use Minwork\Error\Basic\ErrorForm;
+use Minwork\Error\Interfaces\ErrorsStorageContainerInterface;
+use Minwork\Error\Object\Error;
+use Minwork\Error\Basic\FieldError;
 use Minwork\Error\Object\Errors as ErrorsStorage;
 use Minwork\Error\Interfaces\ErrorsStorageInterface;
 
@@ -33,21 +34,21 @@ trait Errors
      *
      * @return ErrorsStorageInterface
      */
-    public function getErrors(): ErrorsStorageInterface
+    public function getErrorsStorage(): ErrorsStorageInterface
     {
         if (is_null($this->errors)) {
-            $this->setErrors(new ErrorsStorage());
+            $this->setErrorsStorage(new ErrorsStorage());
         }
         return $this->errors;
     }
 
     /**
      * Set errors storage object
-     * 
-     * @param ErrorsStorageInterface $errors            
-     * @return self
+     *
+     * @param ErrorsStorageInterface $errors
+     * @return ErrorsStorageContainerInterface
      */
-    public function setErrors(ErrorsStorageInterface $errors): self
+    public function setErrorsStorage(ErrorsStorageInterface $errors): ErrorsStorageContainerInterface
     {
         $this->errors = $errors;
         return $this;
@@ -55,28 +56,28 @@ trait Errors
 
     /**
      * Create error object based on arguments and add it object to errors storage
-     * By default it creates ErrorGlobal object
+     * By default it creates Error object
      *
-     * @see \Minwork\Error\Basic\ErrorForm
-     * @see \Minwork\Error\Basic\ErrorGlobal
-     * @param string $args,...
-     *            Error properties used for creating appropiate object, like:<br>
-     *            <i>addError(field_name, message)</i> will create ErrorForm<br>
-     *            <i>addError(message)</i> will create ErrorGlobal
+     * @see \Minwork\Error\Basic\FieldError
+     * @see \Minwork\Error\Object\Error
+     * @param mixed ...$args
+     *            Error properties used for creating appropriate object, like:<br>
+     *            <i>addError(field_name, message)</i> will create FieldError<br>
+     *            <i>addError(message)</i> will create regular Error
      *            
      * @return self
      */
-    public function addError(string ...$args): self
+    public function addError(...$args): self
     {
         $count = count($args);
         
         switch ($count) {
             case 2:
-                $this->getErrors()->addError(new ErrorForm($args[0], $args[1]));
+                $this->getErrorsStorage()->addError(new FieldError(...$args));
                 break;
             case 1:
             default:
-                $this->getErrors()->addError(new ErrorGlobal($args[0]));
+                $this->getErrorsStorage()->addError(new Error(...$args));
                 break;
         }
         return $this;
@@ -89,7 +90,7 @@ trait Errors
      */
     public function hasErrors(): bool
     {
-        return $this->getErrors()->hasErrors();
+        return $this->getErrorsStorage()->hasErrors();
     }
 
     /**
@@ -99,7 +100,7 @@ trait Errors
      */
     public function clearErrors(): self
     {
-        $this->getErrors()->clearErrors();
+        $this->getErrorsStorage()->clearErrors();
         return $this;
     }
 }

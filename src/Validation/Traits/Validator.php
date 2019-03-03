@@ -7,12 +7,9 @@
  */
 namespace Minwork\Validation\Traits;
 
-use Minwork\Error\Traits\Errors;
 use Minwork\Validation\Interfaces\ValidatorInterface;
 
 trait Validator {
-    use Errors;
-
     /**
      * If validation was successful
      * 
@@ -54,8 +51,8 @@ trait Validator {
     /**
      * Set optional context for validation so any sub-validators can access it (i.e. model during form data validation)
      *
-     * @param mixed $context            
-     * @return self
+     * @param mixed $context
+     * @return ValidatorInterface
      */
     public function setContext($context): ValidatorInterface
     {

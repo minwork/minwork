@@ -7,6 +7,7 @@
  */
 namespace Minwork\Http\Object;
 
+use Minwork\Error\Interfaces\ErrorsStorageContainerInterface;
 use Minwork\Helper\Validation;
 use Minwork\Helper\Formatter;
 use Minwork\Http\Utility\cUrl;
@@ -23,7 +24,7 @@ use Minwork\Basic\Traits\Debugger;
  * @author Krzysztof Kalkhoff
  *        
  */
-class Request implements RequestInterface
+class Request implements RequestInterface, ErrorsStorageContainerInterface
 {
     use Errors, Debugger;
 
@@ -117,6 +118,7 @@ class Request implements RequestInterface
      * {@inheritdoc}
      *
      * @see \Minwork\Http\Interfaces\RequestInterface::execute($config)
+     * @throws \Exception
      */
     public function execute($config = null): ResponseInterface
     {

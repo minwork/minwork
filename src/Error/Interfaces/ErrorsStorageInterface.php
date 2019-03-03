@@ -24,7 +24,7 @@ interface ErrorsStorageInterface
     public function hasErrors(): bool;
 
     /**
-     * Get error objects array
+     * Get list of error objects
      *
      * @param mixed $config            
      * @return ErrorInterface[]
@@ -42,13 +42,13 @@ interface ErrorsStorageInterface
     /**
      * Merge error storage with another
      *
-     * @param ErrorsStorageInterface $error            
+     * @param ErrorsStorageInterface $storage
      * @return self
      */
-    public function merge(ErrorsStorageInterface $error): self;
+    public function merge(ErrorsStorageInterface $storage): self;
 
     /**
-     * Clear errors array
+     * Clear errors list
      *
      * @return self
      */

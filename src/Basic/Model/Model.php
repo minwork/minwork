@@ -444,7 +444,7 @@ class Model implements ModelInterface, BindableModelInterface
         if (! $validator->setContext($this)
             ->validate(...$arguments)
             ->isValid()) {
-                $this->getErrors()->merge($validator->getErrors());
+                $this->getErrorsStorage()->merge($validator->getErrors());
                 return false;
         }
         

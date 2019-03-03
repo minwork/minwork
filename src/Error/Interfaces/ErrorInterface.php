@@ -37,24 +37,31 @@ interface ErrorInterface
     public function getType(): string;
 
     /**
-     * If error has set field name
+     * Get list of additional error data
+     *
+     * @return array
+     */
+    public function getData(): array;
+
+    /**
+     * If error is referring to something
      *
      * @return bool
      */
-    public function hasFieldName(): bool;
+    public function hasRef(): bool;
 
     /**
-     * Set error field name
+     * Set reference to something
      *
-     * @param string $name            
+     * @param mixed $ref
      * @return self
      */
-    public function setFieldName(string $name): self;
+    public function setRef($ref): self;
 
     /**
-     * Get error field name
+     * Get error reference
      *
-     * @return string
+     * @return mixed
      */
-    public function getFieldName(): string;
+    public function getRef();
 }

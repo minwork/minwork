@@ -1,11 +1,12 @@
 <?php
+
 namespace Test;
 
 require "vendor/autoload.php";
 
 use Minwork\Error\Object\Errors;
-use Minwork\Error\Basic\ErrorForm;
-use Minwork\Error\Basic\ErrorGlobal;
+use Minwork\Error\Basic\FieldError;
+use Minwork\Error\Object\Error;
 
 class ErrorTest extends \PHPUnit_Framework_TestCase
 {
@@ -14,65 +15,57 @@ class ErrorTest extends \PHPUnit_Framework_TestCase
     {
         $storage = new Errors();
         $storage2 = new Errors();
-        
-        $errorGlobal1 = new ErrorGlobal('Test 1');
-        $errorGlobal2 = new ErrorGlobal('Test 2');
-        $errorGlobal3 = new ErrorGlobal('Test 3');
-        $errorForm1 = new ErrorForm('test1', 'Test msg 1');
-        $errorForm2 = new ErrorForm('test2', 'Test msg 2');
-        $errorForm3 = new ErrorForm('test3', 'Test msg 3');
-        
-        $this->assertEquals(ErrorGlobal::TYPE, $errorGlobal1->getType());
+
+        $errorGlobal1 = new Error('Test 1');
+        $errorGlobal2 = new Error('Test 2');
+        $errorGlobal3 = new Error('Test 3');
+        $fieldError1 = new FieldError('test1', 'Test msg 1');
+        $fieldError2 = new FieldError('test2', 'Test msg 2');
+        $fieldError3 = new FieldError('test3', 'Test msg 3');
+
+        $this->assertEquals(Error::TYPE, $errorGlobal1->getType());
         $this->assertEquals('Test 1', $errorGlobal1->getMessage());
-        
-        $this->assertEquals(ErrorForm::TYPE, $errorForm1->getType());
-        $this->assertEquals('Test msg 1', $errorForm1->getMessage());
-        $this->assertTrue($errorForm1->hasFieldName());
-        $this->assertEquals('test1', $errorForm1->getFieldName());
-        
+
+        $this->assertEquals(FieldError::TYPE, $fieldError1->getType());
+        $this->assertEquals('Test msg 1', $fieldError1->getMessage());
+        $this->assertTrue($fieldError1->hasRef());
+        $this->assertEquals('test1', $fieldError1->getRef());
+
         $this->assertFalse($storage->hasErrors());
         $this->assertEmpty($storage->getErrors());
-        
+
         $storage->addError($errorGlobal1);
         $storage->addError($errorGlobal2);
-        $storage->addError($errorForm1);
-        $storage->addError($errorForm2);
-        
+        $storage->addError($fieldError1);
+        $storage->addError($fieldError2);
+
         $this->assertTrue($storage->hasErrors());
         $this->assertEquals([
-            'test1' => $errorForm1,
-            'test2' => $errorForm2
-        ], $storage->getErrors(ErrorForm::TYPE));
+            2 => $fieldError1,
+            3 => $fieldError2
+        ], $storage->getErrors(FieldError::TYPE));
         $this->assertEquals([
             $errorGlobal1,
             $errorGlobal2
-        ], $storage->getErrors(ErrorGlobal::TYPE));
+        ], $storage->getErrors(Error::TYPE));
         $this->assertEquals([
-            ErrorGlobal::TYPE => [
-                $errorGlobal1,
-                $errorGlobal2
-            ],
-            ErrorForm::TYPE => [
-                'test1' => $errorForm1,
-                'test2' => $errorForm2
-            ]
+            $errorGlobal1,
+            $errorGlobal2,
+            $fieldError1,
+            $fieldError2,
         ], $storage->getErrors());
-        
+
         $storage2->addError($errorGlobal3);
-        $storage2->addError($errorForm3);
-        
+        $storage2->addError($fieldError3);
+
         $storage->merge($storage2);
         $this->assertEquals([
-            ErrorGlobal::TYPE => [
-                $errorGlobal1,
-                $errorGlobal2,
-                $errorGlobal3
-            ],
-            ErrorForm::TYPE => [
-                'test1' => $errorForm1,
-                'test2' => $errorForm2,
-                'test3' => $errorForm3
-            ]
+            $errorGlobal1,
+            $errorGlobal2,
+            $fieldError1,
+            $fieldError2,
+            $errorGlobal3,
+            $fieldError3,
         ], $storage->getErrors());
         $storage->clearErrors();
         $this->assertEmpty($storage->getErrors());

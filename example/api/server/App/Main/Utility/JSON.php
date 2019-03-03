@@ -10,8 +10,8 @@ namespace Example\ApiServer\App\Main\Utility;
 use Minwork\Http\View\Json as JSONView;
 use Minwork\Error\Traits\Errors;
 use Minwork\Error\Interfaces\ErrorsStorageInterface;
-use Minwork\Error\Basic\ErrorGlobal;
-use Minwork\Error\Basic\ErrorForm;
+use Minwork\Error\Object\Error;
+use Minwork\Error\Basic\FieldError;
 
 /**
  * Extended JSON View implementation
@@ -22,7 +22,7 @@ use Minwork\Error\Basic\ErrorForm;
 class JSON extends JSONView
 {
     use Errors {
-        setErrors as setErrorsTrait;
+        setErrorsStorage as setErrorsTrait;
     }
 
     const DATA_SUCCESS = "success";
@@ -64,16 +64,11 @@ class JSON extends JSONView
      * @param ErrorsStorageInterface $errors            
      * @return self
      */
-    public function setErrors(ErrorsStorageInterface $errors): self
+    public function setErrorsStorage(ErrorsStorageInterface $errors): self
     {
         $this->setErrorsTrait($errors);
-        $errorsList = $errors->getErrors();
-        if (array_key_exists(ErrorGlobal::TYPE, $errorsList)) {
-            $this->data[self::DATA_ERROR][self::DATA_ERROR_GLOBAL] = array_map('strval', $errorsList[ErrorGlobal::TYPE]);
-        }
-        if (array_key_exists(ErrorForm::TYPE, $errorsList)) {
-            $this->data[self::DATA_ERROR][self::DATA_ERROR_FORM] = array_map('strval', $errorsList[ErrorForm::TYPE]);
-        }
+        $this->data[self::DATA_ERROR][self::DATA_ERROR_GLOBAL] = array_map('strval', $errors->getErrors(Error::TYPE));
+        $this->data[self::DATA_ERROR][self::DATA_ERROR_FORM] = array_map('strval', $errors->getErrors(FieldError::TYPE));
         $this->setSuccess(false);
         return $this;
     }
@@ -96,10 +91,10 @@ class JSON extends JSONView
      *
      * @see \Minwork\Http\View\Json::getContent()
      */
-    public function getContent()
+    public function getContent(): string
     {
         if ($this->hasErrors()) {
-            $this->setErrors($this->getErrors());
+            $this->setErrorsStorage($this->getErrorsStorage());
         }
         return parent::getContent();
     }
