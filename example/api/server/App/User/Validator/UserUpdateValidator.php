@@ -7,6 +7,7 @@
  */
 namespace Example\ApiServer\App\User\Validator;
 
+use Minwork\Error\Object\Error;
 use Minwork\Validation\Object\Validator;
 use Minwork\Validation\Utility\Rule;
 use Minwork\Validation\Utility\Field;
@@ -24,12 +25,12 @@ class UserUpdateValidator extends Validator
     {
         $config = [
             // If email field is not email validation will stop at this field and immidiately return error
-            new Field('email', [new Rule('isNotEmpty'), new Rule('isEmail', '', [false], Rule::IMPORTANCE_CRITICAL)]),
+            new Field('email', [new Rule('isNotEmpty'), new Rule('isEmail', null, Rule::CRITICAL, true, false)]),
             new Field('first_name', [new Rule('isAlphabeticOnly')], false),
             new Field('last_name', [new Rule('isAlphabeticOnly')], false),
             new Field('new_email', [new Rule('isEmail', '', [false])], false),
-            new Rule([$this, 'requireOneOrMoreFields'], 'You need to specify at least one field to update'),
-            new Rule([$this, 'sameEmail'], 'Specified email doesn\'t match user email'),
+            new Rule([$this, 'requireOneOrMoreFields'], new Error('You need to specify at least one field to update')),
+            new Rule([$this, 'sameEmail'], new Error('Specified email doesn\'t match user email')),
         ];
         parent::__construct($config);
     }

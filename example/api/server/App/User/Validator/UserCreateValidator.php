@@ -25,7 +25,7 @@ class UserCreateValidator extends Validator
         $config = [
             new Field('email', [
                 new Rule('isNotEmpty'),
-                new Rule('isEmail', '', [false])
+                new Rule('isEmail', null, null, true,false)
             ]),
             new Field('first_name', [
                 new Rule('isNotEmpty'),

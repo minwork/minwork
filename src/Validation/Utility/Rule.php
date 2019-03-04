@@ -25,14 +25,11 @@ class Rule implements ValidatorInterface, ErrorsStorageContainerInterface
 {
     use Validator, Errors;
 
-    // Validation will stop immediately after this rule conditions are not met
-    const IMPORTANCE_CRITICAL = 'critical';
+    // Validation will stop immediately after this Rule conditions are not met
+    const CRITICAL = 1;
 
-    // Validation will continue after this rule conditions are not met
-    const IMPORTANCE_NORMAL = 'normal';
-
-    // Error will not be added
-    const IMPORTANCE_SILENT = 'silent';
+    // When validation fails Error will not be added
+    const SILENT = 2;
 
     /**
      * Function for checking data
@@ -40,6 +37,13 @@ class Rule implements ValidatorInterface, ErrorsStorageContainerInterface
      * @var callable
      */
     protected $callback;
+
+    /**
+     * Value that callback should return in order to positively pass validation
+     *
+     * @var bool|mixed
+     */
+    protected $expect;
 
     /**
      * Callback function arguments
@@ -56,13 +60,13 @@ class Rule implements ValidatorInterface, ErrorsStorageContainerInterface
     protected $error;
 
     /**
-     * Imporance of a rule which determines validator behaviour during rule check
-     * If rule importance is critical in case of error during check validator should immediately finish validation returning false<br>
-     * For normal importance all rules should be checked before returing final result of validation
+     * Various flags for different rule behaviours
      *
      * @var string
      */
-    protected $importance;
+    protected $flag;
+
+
 
     /**
      * Set rule config
@@ -71,17 +75,18 @@ class Rule implements ValidatorInterface, ErrorsStorageContainerInterface
      *            Function to validate supplied data
      * @param ErrorInterface|null $error
      *            Default Error to display if validation fail. Null value will create generic message.
-     * @param string $importance
-     *            Importance of a rule (defaults to normal)
+     * @param int|null $flag
+     * @param mixed $expect What value callback should return to mark this rule as valid
      * @param mixed ...$arguments
      *            Additional arguments passed to callback (besides arguments passed to validate method)
      */
-    public function __construct(callable $callback, ?ErrorInterface $error = null, ?string $importance = null, ...$arguments)
+    public function __construct(callable $callback, ?ErrorInterface $error = null, ?int $flag = null, $expect = true, ...$arguments)
     {
         $this->callback = $callback;
         $this->arguments = $arguments;
+        $this->expect = $expect;
         $this->error = $error ?? new Error('Rule check failed at ' . Formatter::toString($this->callback) . Formatter::toString($this->arguments));
-        $this->importance = $importance ?? self::IMPORTANCE_NORMAL;
+        $this->flag = $flag ?? 0;
     }
 
     /**
@@ -97,10 +102,10 @@ class Rule implements ValidatorInterface, ErrorsStorageContainerInterface
         $arguments = $this->arguments;
         array_unshift($arguments, ...$data);
         
-        $this->valid = boolval(($this->callback)(...$arguments));
+        $this->valid = ($this->callback)(...$arguments) === $this->expect;
         
         // If is invalid but has no errors, set default one
-        if (! $this->valid && $this->importance !== self::IMPORTANCE_SILENT && ! $this->hasErrors()) {
+        if (! $this->valid && !($this->flag & self::SILENT) && ! $this->hasErrors()) {
             $this->getErrorsStorage()->addError($this->error);
         }
         
@@ -114,6 +119,6 @@ class Rule implements ValidatorInterface, ErrorsStorageContainerInterface
      */
     public function hasCriticalError(): bool
     {
-        return $this->valid === false && $this->importance === self::IMPORTANCE_CRITICAL;
+        return $this->valid === false && $this->flag & self::CRITICAL;
     }
 }

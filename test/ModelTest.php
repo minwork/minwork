@@ -92,8 +92,8 @@ class ModelTest extends \PHPUnit_Framework_TestCase
                 //new Rule('Minwork\Helper\Validation::isInt')
             ]),
             new Field('email', [
-                new Rule('Minwork\Helper\Validation::isEmail', null, null, false),
-                new Rule($validatorFunction, null, null, true, false)
+                new Rule('Minwork\Helper\Validation::isEmail', null, null, true, false),
+                new Rule($validatorFunction, null, null, true,true, false)
             ])
         );
         $this->assertSame($data, $model->setData($data)
