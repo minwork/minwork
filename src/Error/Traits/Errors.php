@@ -7,6 +7,7 @@
  */
 namespace Minwork\Error\Traits;
 
+use Minwork\Error\Interfaces\ErrorInterface;
 use Minwork\Error\Interfaces\ErrorsStorageContainerInterface;
 use Minwork\Error\Object\Error;
 use Minwork\Error\Basic\FieldError;
@@ -77,7 +78,11 @@ trait Errors
                 break;
             case 1:
             default:
-                $this->getErrorsStorage()->addError(new Error(...$args));
+                if ($args[0] instanceof ErrorInterface) {
+                    $this->getErrorsStorage()->addError($args[0]);
+                } else {
+                    $this->getErrorsStorage()->addError(new Error(...$args));
+                }
                 break;
         }
         return $this;
