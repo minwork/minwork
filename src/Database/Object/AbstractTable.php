@@ -7,7 +7,7 @@
  */
 namespace Minwork\Database\Object;
 
-use Minwork\Helper\ArrayHelper;
+use Minwork\Helper\Arr;
 use Minwork\Database\Interfaces\TableInterface;
 use Minwork\Database\Utility\Query;
 use Minwork\Database\Interfaces\DatabaseInterface;
@@ -365,7 +365,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         }
         
         $statement = "INSERT INTO {$this->getName()} ";
-        if (ArrayHelper::isAssoc($values)) {
+        if (Arr::isAssoc($values)) {
             $columns = array_map([
                 $this,
                 'escapeColumn'
@@ -739,7 +739,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     protected function prepareColumnsList($columns): string
     {
         if (is_array($columns)) {
-            if (ArrayHelper::isAssoc($columns)) {
+            if (Arr::isAssoc($columns)) {
                 array_walk($columns, function ($v, $k) {
                     return "{$this->escapeColumn($k)} as {$v}";
                 });

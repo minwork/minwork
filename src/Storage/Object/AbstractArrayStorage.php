@@ -2,7 +2,7 @@
 namespace Minwork\Storage\Object;
 
 use Minwork\Storage\Interfaces\StorageInterface;
-use Minwork\Helper\ArrayHelper;
+use Minwork\Helper\Arr;
 
 /**
  * Abstract implementation of array storage
@@ -64,7 +64,7 @@ class AbstractArrayStorage implements StorageInterface
      */
     public function get($key)
     {
-        return $this->decode(ArrayHelper::handleElementByKeys($this->array, ArrayHelper::getKeysArray($key)));
+        return $this->decode(Arr::getNestedElement($this->array, $key));
     }
 
     /**
@@ -75,7 +75,7 @@ class AbstractArrayStorage implements StorageInterface
      */
     public function set($key, $value): StorageInterface
     {
-        ArrayHelper::handleElementByKeys($this->array, ArrayHelper::getKeysArray($key), $this->encode($value));
+        $this->array = Arr::setNestedElement($this->array, $key, $this->encode($value));
         return $this;
     }
 
@@ -87,7 +87,7 @@ class AbstractArrayStorage implements StorageInterface
      */
     public function isset($key): bool
     {
-        return ! is_null(ArrayHelper::handleElementByKeys($this->array, ArrayHelper::getKeysArray($key)));
+        return ! is_null(Arr::getNestedElement($this->array, $key));
     }
 
     /**

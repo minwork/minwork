@@ -12,7 +12,7 @@ use Minwork\Http\Interfaces\RouterInterface;
 use Minwork\Basic\Interfaces\ControllerInterface;
 use Minwork\Http\Utility\LangCode;
 use Minwork\Basic\Traits\Debugger;
-use Minwork\Helper\ArrayHelper;
+use Minwork\Helper\Arr;
 use Minwork\Core\Framework;
 use Minwork\Basic\Controller\Controller;
 
@@ -103,7 +103,7 @@ class Router implements RouterInterface
      */
     public function __construct($routing)
     {
-        $this->reset()->setRouting(ArrayHelper::forceArray($routing));
+        $this->reset()->setRouting(Arr::forceArray($routing));
     }
 
     /**

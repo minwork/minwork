@@ -11,7 +11,7 @@ use Minwork\Basic\Controller\Controller;
 use Example\ApiServer\App\Main\Utility\JSON;
 use Minwork\Http\Utility\HttpCode;
 use Minwork\Http\Interfaces\ResponseInterface;
-use Minwork\Helper\ArrayHelper;
+use Minwork\Helper\Arr;
 
 /**
  * Basic controller providing usefull methods for all derivatives
@@ -70,7 +70,7 @@ class MainController extends Controller
      */
     protected function checkMethod($method): bool
     {
-        if (! in_array($this->getRequest()->getMethod(), ArrayHelper::forceArray($method))) {
+        if (! in_array($this->getRequest()->getMethod(), Arr::forceArray($method))) {
             $this->triggerError(self::ERROR_INVALID_REQUEST_METHOD, HttpCode::METHOD_NOT_ALLOWED);
             return false;
         }

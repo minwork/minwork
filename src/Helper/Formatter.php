@@ -206,7 +206,7 @@ class Formatter
         } elseif (is_callable($var, false, $name)) {
             return $name;
         } elseif (is_array($var)) {
-            $isAssoc = ArrayHelper::isAssoc($var, true);
+            $isAssoc = Arr::isAssoc($var, true);
             $parts = [];
             foreach ($var as $k => $v) {
                 if ($isAssoc) {
@@ -390,7 +390,7 @@ class Formatter
             foreach ($return as $i => &$w) {
                 if (is_array($w)) {
                     $w = self::cleanData($return[$i], $filter);
-                } elseif (! in_array($i, ArrayHelper::forceArray($filter))) {
+                } elseif (! in_array($i, Arr::forceArray($filter))) {
                     $w = self::cleanString(strval($return[$i]));
                 }
             }

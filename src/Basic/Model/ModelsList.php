@@ -11,7 +11,7 @@ use Minwork\Basic\Interfaces\ModelInterface;
 use Minwork\Database\Utility\Query;
 use Minwork\Operation\Basic\Read;
 use Minwork\Operation\Object\OperationEvent;
-use Minwork\Helper\ArrayHelper;
+use Minwork\Helper\Arr;
 use Minwork\Database\Interfaces\TableInterface;
 use Minwork\Storage\Interfaces\DatabaseStorageInterface;
 

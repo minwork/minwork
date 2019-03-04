@@ -10,7 +10,7 @@ namespace Example\ApiClient\App\User\Controller;
 use Example\ApiClient\App\Main\Controller\MainController;
 use Minwork\Http\Object\Request;
 use Example\ApiClient\App\Main\Utility\JsonResponse;
-use Minwork\Helper\ArrayHelper;
+use Minwork\Helper\Arr;
 use Minwork\Http\Utility\cUrl;
 use Example\ApiClient\App\Main\View\Webpage;
 use Minwork\Helper\Formatter;
@@ -98,10 +98,7 @@ class UserController extends MainController
             $response = new JsonResponse($this->makeRequest($request->setBody(Formatter::cleanData($_POST['User'])), 'user/create'));
             if ($response->isSuccess()) {
                 $data = $response->getData();
-                $userId = ArrayHelper::handleElementByKeys($data, [
-                    'user',
-                    'id'
-                ]);
+                $userId = Arr::getNestedElement($data, 'user.id');
                 if (is_null($userId)) {
                     $response->addError('No user id provided');
                 } else {

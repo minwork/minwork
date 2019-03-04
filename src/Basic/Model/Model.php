@@ -17,7 +17,7 @@ use Minwork\Event\Interfaces\EventDispatcherInterface;
 use Minwork\Event\Object\EventDispatcher;
 use Minwork\Event\Traits\Connector;
 use Minwork\Event\Traits\Events;
-use Minwork\Helper\ArrayHelper;
+use Minwork\Helper\Arr;
 use Minwork\Helper\Formatter;
 use Minwork\Operation\Basic\Read;
 use Minwork\Operation\Interfaces\OperationInterface;
@@ -238,9 +238,9 @@ class Model implements ModelInterface, BindableModelInterface
     public function getNormalizedId(): array
     {
         $id = $this->getId();
-        $idFields = ArrayHelper::forceArray($this->getStorage()->getPkField());
+        $idFields = Arr::forceArray($this->getStorage()->getPkField());
         if (is_array($id)) {
-            if (! ArrayHelper::isAssoc($id, true)) {
+            if (! Arr::isAssoc($id, true)) {
                 // If id isnt assoc but has same number of elements as id columns treat it as values to those columns
                 if (count($id) === count($idFields)) {
                     return array_combine($idFields, $id);
@@ -281,8 +281,8 @@ class Model implements ModelInterface, BindableModelInterface
                 if (is_string($idField) && (array_key_exists($idField, $id) || count($id) === 1)) {
                     $this->id = array_key_exists($idField, $id) ? $id[$idField] : reset($id);
                 } else {
-                    $idFields = ArrayHelper::forceArray($idField);
-                    $this->id = ArrayHelper::isAssoc($id, true) ? ArrayHelper::orderByKeys(ArrayHelper::filterByKeys($id, $idFields), $idFields) : $id;
+                    $idFields = Arr::forceArray($idField);
+                    $this->id = Arr::isAssoc($id, true) ? Arr::orderByKeys(Arr::filterByKeys($id, $idFields), $idFields) : $id;
                 }
             } else {
                 $this->id = $id;
@@ -303,7 +303,7 @@ class Model implements ModelInterface, BindableModelInterface
         // Format data according to database columns
         $data = $this->getStorage()->format($data);
         // If we have id in data then set it
-        $ids = ArrayHelper::filterByKeys($data, ArrayHelper::forceArray($this->getStorage()->getPkField()));
+        $ids = Arr::filterByKeys($data, Arr::forceArray($this->getStorage()->getPkField()));
         if (! empty($ids)) {
             $this->setId($ids);
             $data = array_diff_key($data, $ids);
@@ -331,7 +331,7 @@ class Model implements ModelInterface, BindableModelInterface
         }
         
         $data = $this->getStorage()->get($query);
-        if (! empty($data) && ! ArrayHelper::isArrayOfArrays($data)) {
+        if (! empty($data) && ! Arr::isArrayOfArrays($data)) {
             $this->initFromData($data);
             return true;
         }
@@ -533,7 +533,7 @@ class Model implements ModelInterface, BindableModelInterface
                 $filterArray = $fields;
             }
         } else {
-            $filterArray = ArrayHelper::forceArray($filter);
+            $filterArray = Arr::forceArray($filter);
         }
         
         // Check if we have needed data loaded
@@ -554,7 +554,7 @@ class Model implements ModelInterface, BindableModelInterface
             }
         }
         
-        return ! is_null($filter) && (is_string($filter) || is_int($filter)) ? ($this->data[$filter] ?? null) : (is_null($filter) ? $this->data : ArrayHelper::filterByKeys($this->data, $filter));
+        return ! is_null($filter) && (is_string($filter) || is_int($filter)) ? ($this->data[$filter] ?? null) : (is_null($filter) ? $this->data : Arr::filterByKeys($this->data, $filter));
     }
 
     /**
@@ -589,8 +589,8 @@ class Model implements ModelInterface, BindableModelInterface
     public function create(array $data = []): bool
     {
         // When creating search for ids
-        $ids = ArrayHelper::filterByKeys($data, ArrayHelper::forceArray($this->getStorage()->getPkField()));
-        $data = ArrayHelper::filterByKeys($data, $this->getStorage()->getFields());
+        $ids = Arr::filterByKeys($data, Arr::forceArray($this->getStorage()->getPkField()));
+        $data = Arr::filterByKeys($data, $this->getStorage()->getFields());
         
         if (! empty($ids)) {
             $this->setId($ids);
@@ -642,7 +642,7 @@ class Model implements ModelInterface, BindableModelInterface
      */
     public function update(array $data): bool
     {
-        $data = ArrayHelper::filterByKeys($data, $this->getStorage()->getFields());
+        $data = Arr::filterByKeys($data, $this->getStorage()->getFields());
         
         if (! empty($data)) {
             $this->setState(self::STATE_UPDATE)

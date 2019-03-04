@@ -8,7 +8,7 @@
 namespace Minwork\Event\Traits;
 
 use Minwork\Event\Interfaces\EventDispatcherInterface;
-use Minwork\Helper\ArrayHelper;
+use Minwork\Helper\Arr;
 use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
 use Minwork\Event\Object\EventDispatcher;
 use Minwork\Helper\Formatter;
@@ -88,9 +88,9 @@ trait Connector {
             }
             // If connector is array then map it to [event_name => current_object_method, ...]
         } elseif (is_array($connector)) {
-            if (ArrayHelper::isAssoc($connector)) {
+            if (Arr::isAssoc($connector)) {
                 foreach ($connector as $event => $method) {
-                    $mapper[$event] = ArrayHelper::forceArray($method);
+                    $mapper[$event] = Arr::forceArray($method);
                 }
             } else {
                 foreach ($connector as $event) {
