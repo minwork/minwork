@@ -205,8 +205,8 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
         if ($controller->getResponse()->isEmpty()) {
             // Cast whole content to response if it was empty
             $controller->setResponse(Response::createFrom($content));
-        } else {
-            // Or only set it as content if it wasn't
+        } elseif (!$content instanceof ResponseInterface) {
+            // If return value is not response then merge it with controller response
             $controller->getResponse()->setContent($content);
         }
         
