@@ -12,6 +12,7 @@ use Minwork\Basic\Interfaces\ModelInterface;
 use Minwork\Basic\Traits\Debugger;
 use Minwork\Database\Interfaces\TableInterface;
 use Minwork\Database\Utility\Query;
+use Minwork\Error\Interfaces\ErrorsStorageContainerInterface;
 use Minwork\Error\Traits\Errors;
 use Minwork\Event\Interfaces\EventDispatcherInterface;
 use Minwork\Event\Object\EventDispatcher;
@@ -33,7 +34,7 @@ use Minwork\Validation\Interfaces\ValidatorInterface;
  * @author Christopher Kalkhoff
  *        
  */
-class Model implements ModelInterface, BindableModelInterface
+class Model implements ModelInterface, BindableModelInterface, ErrorsStorageContainerInterface
 {
     use Connector, Errors, Events, Debugger, Operations, Storage {
       getStorage as getStorageTrait;
@@ -422,6 +423,7 @@ class Model implements ModelInterface, BindableModelInterface
      *            Operation object
      * @param mixed ...$arguments
      *            Operation arguments
+     * @return mixed
      */
     public function execute(OperationInterface $operation, ...$arguments)
     {
@@ -429,7 +431,7 @@ class Model implements ModelInterface, BindableModelInterface
         
         return $result;
     }
-    
+
     /**
      * Validate using supplied validator then execute operation if validation was successful
      * @param OperationInterface $operation
@@ -438,13 +440,14 @@ class Model implements ModelInterface, BindableModelInterface
      *            Validator object
      * @param mixed ...$arguments
      *            Operation arguments
+     * @return bool|mixed
      */
     public function validateThenExecute(OperationInterface $operation, ValidatorInterface $validator, ...$arguments)
     {
         if (! $validator->setContext($this)
             ->validate(...$arguments)
             ->isValid()) {
-                $this->getErrorsStorage()->merge($validator->getErrors());
+                $this->getErrorsStorage()->merge($validator->getErrorsStorage());
                 return false;
         }
         
@@ -484,8 +487,9 @@ class Model implements ModelInterface, BindableModelInterface
     /**
      * Append id condition to array supplied into storage Query
      *
-     * @param array $conditions            
+     * @param array $conditions
      * @return array
+     * @throws \Exception
      */
     protected function getQueryConditionsWithId(array $conditions = []): array
     {

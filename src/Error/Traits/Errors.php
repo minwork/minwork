@@ -49,7 +49,7 @@ trait Errors
      * @param ErrorsStorageInterface $errors
      * @return ErrorsStorageContainerInterface
      */
-    public function setErrorsStorage(ErrorsStorageInterface $errors): ErrorsStorageContainerInterface
+    public function setErrorsStorage(ErrorsStorageInterface $errors)
     {
         $this->errors = $errors;
         return $this;
