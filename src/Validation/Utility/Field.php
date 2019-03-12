@@ -169,7 +169,7 @@ class Field implements ValidatorInterface, ErrorsStorageContainerInterface
             if (! $rule->validate(...$data)->isValid()) {
                 $this->valid = false;
                 // Add rule errors
-                foreach ($rule->getErrorsStorage()->getErrors(Error::TYPE) as $error) {
+                foreach ($rule->getErrorsStorage()->getErrors() as $error) {
                     $this->addError($this->getName(), $error->getMessage());
                 }
                 
