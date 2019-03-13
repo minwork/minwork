@@ -7,12 +7,11 @@
  */
 namespace Minwork\Error\Traits;
 
-use Minwork\Error\Interfaces\ErrorInterface;
-use Minwork\Error\Interfaces\ErrorsStorageContainerInterface;
-use Minwork\Error\Object\Error;
 use Minwork\Error\Basic\FieldError;
-use Minwork\Error\Object\Errors as ErrorsStorage;
+use Minwork\Error\Interfaces\ErrorInterface;
 use Minwork\Error\Interfaces\ErrorsStorageInterface;
+use Minwork\Error\Object\Error;
+use Minwork\Error\Object\Errors as ErrorsStorage;
 
 /**
  * Trait used for adding, getting and clearing errors using basic storage that implements ErrorsStorageInterface
@@ -47,7 +46,7 @@ trait Errors
      * Set errors storage object
      *
      * @param ErrorsStorageInterface $errors
-     * @return ErrorsStorageContainerInterface
+     * @return Errors
      */
     public function setErrorsStorage(ErrorsStorageInterface $errors)
     {
@@ -77,7 +76,6 @@ trait Errors
                 $this->getErrorsStorage()->addError(new FieldError(...$args));
                 break;
             case 1:
-            default:
                 if ($args[0] instanceof ErrorInterface) {
                     $this->getErrorsStorage()->addError($args[0]);
                 } else {

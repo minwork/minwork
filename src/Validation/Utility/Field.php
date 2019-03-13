@@ -170,7 +170,7 @@ class Field implements ValidatorInterface, ErrorsStorageContainerInterface
                 $this->valid = false;
                 // Add rule errors
                 foreach ($rule->getErrorsStorage()->getErrors() as $error) {
-                    $this->addError($this->getName(), $error->getMessage());
+                    $this->addError($error->setRef($this->getName()));
                 }
                 
                 // If rule has critical error instantly break further errors validation
