@@ -65,13 +65,6 @@ class Validator implements ValidatorInterface, ErrorsStorageContainerInterface
     public function validate(...$data): ValidatorInterface
     {
         $this->clearErrors();
-        
-        if (empty($data)) {
-            $this->addError('No data provided');
-            $this->valid = false;
-            return $this;
-        }
-
         $this->valid = true;
         
         foreach ($this->validators as $validator) {
