@@ -168,12 +168,13 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
      */
     public function run(string $url, bool $return = false, bool $sanitize = true)
     {
-        $controllerName = $this->getRouter()->getControllerName();
         $controller = $this->getRouter()
             ->translateUrl($url, $sanitize)
             ->getController()
             ->setFramework($this);
-        
+
+        $controllerName = $this->getRouter()->getControllerName();
+
         // All events should start here so controller can intercept them
         $this->getEventDispatcher()->dispatch(new Event(self::EVENT_AFTER_URL_TRANSLATION));
 

@@ -5,9 +5,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Minwork\Http\Object;
 
 use Minwork\Helper\Formatter;
+use Minwork\Http\Exceptions\HttpException;
 use Minwork\Http\Interfaces\RouterInterface;
 use Minwork\Basic\Interfaces\ControllerInterface;
 use Minwork\Http\Utility\LangCode;
@@ -20,7 +22,7 @@ use Minwork\Basic\Controller\Controller;
  * Basic implementation of router interface
  *
  * @author Christopher Kalkhoff
- *        
+ *
  */
 class Router implements RouterInterface
 {
@@ -59,14 +61,14 @@ class Router implements RouterInterface
      *
      * @var string
      */
-    protected $controller;
+    protected $controllerName;
 
     /**
      * Controller object
      *
      * @var ControllerInterface
      */
-    protected $controllerObject;
+    protected $controller;
 
     /**
      * Controller method name
@@ -80,7 +82,7 @@ class Router implements RouterInterface
      *
      * @var array
      */
-    protected $methodArguments;
+    protected $methodArguments = [];
 
     /**
      * Page number (by default 1)
@@ -94,12 +96,12 @@ class Router implements RouterInterface
      *
      * @var array
      */
-    protected $routing;
+    protected $routing = [];
 
     /**
      *
      * @see \Minwork\Http\Object\Router::setRouting()
-     * @param array|string $routing            
+     * @param array|string $routing
      */
     public function __construct($routing)
     {
@@ -115,9 +117,9 @@ class Router implements RouterInterface
     {
         $this->url = '';
         $this->lang = '';
-        $this->controller = self::DEFAULT_CONTROLLER_ROUTE_NAME;
-        $this->controllerObject = null;
-        $this->method = self::DEFAULT_CONTROLLER_METHOD;
+        $this->controllerName = null;
+        $this->controller = null;
+        $this->method = null;
         $this->methodArguments = [];
         $this->page = null;
         $this->routing = [];
@@ -127,7 +129,7 @@ class Router implements RouterInterface
     /**
      * Set routing array
      *
-     * @param array $routing            
+     * @param array $routing
      * @return self
      */
     public function setRouting(array $routing): self
@@ -136,9 +138,9 @@ class Router implements RouterInterface
             $curRouting = is_string($route) && is_file($route) ? require_once $route : [
                 $key => $route
             ];
-            
+
             if (is_array($curRouting)) {
-                if (! array_key_exists(self::DEFAULT_CONTROLLER_ROUTE_NAME, $curRouting)) {
+                if (!array_key_exists(self::DEFAULT_CONTROLLER_ROUTE_NAME, $curRouting)) {
                     $this->debug("Routing array should contain default controller route at '" . self::DEFAULT_CONTROLLER_ROUTE_NAME . "' key");
                 }
                 $this->routing = array_merge($this->routing, $curRouting);
@@ -161,16 +163,16 @@ class Router implements RouterInterface
     }
 
     /**
-     * 
+     *
      * {@inheritDoc}
-     * 
+     *
      * @see \Minwork\Http\Interfaces\RouterInterface::hasPage()
      */
     public function hasPage(): bool
     {
-        return ! is_null($this->page);
+        return isset($this->page);
     }
-    
+
     /**
      *
      * {@inheritdoc}
@@ -198,54 +200,13 @@ class Router implements RouterInterface
      * {@inheritdoc}
      *
      * @see \MinWork\Http\Interfaces\RouterInterface::getController()
+     * @throws HttpException
      */
     public function getController(): ControllerInterface
     {
-        if (is_null($this->controllerObject)) {
-            $controllerName = $this->controller;
-            if (! array_key_exists($controllerName, $this->routing)) {
-                // Try text id of controller name
-                $controllerName = Formatter::textId($controllerName);
-                if (! array_key_exists($controllerName, $this->routing)) {
-                    $controllerName = self::DEFAULT_CONTROLLER_ROUTE_NAME;
-                    if (! array_key_exists($controllerName, $this->routing)) {
-                        throw new \DomainException("Cannot load controller object for key: {$this->controller}");
-                    }
-                    
-                    $method = $this->method;
-                    if ($method == self::DEFAULT_CONTROLLER_METHOD) {
-                        $this->addMethodArgument($this->methodArguments, $this->controller, false);
-                    } else {
-                        $this->addMethodArgument($this->methodArguments, $method, false);
-                        $this->method = $this->controller;
-                    }
-                    $this->controller = $controllerName;
-                }
-            }
-            $controllerClass = $this->routing[$controllerName];
-            
-            if (is_string($controllerClass) && class_exists($controllerClass)) {
-                $this->controllerObject = new $controllerClass();
-                if (! $this->controllerObject instanceof ControllerInterface) {
-                    throw new \DomainException("Controller class ({$controllerClass}) must implement ControllerInterface");
-                }
-            } elseif (is_object($controllerClass) && $controllerClass instanceof ControllerInterface) {
-                $this->controllerObject = $controllerClass;
-            } else {
-                throw new \DomainException("Controller class ({$controllerClass}) is invalid");
-            }
+        if (!isset($this->controller)) {
+            throw new HttpException("Cannot map url params to controller object");
         }
-        return $this->controllerObject;
-    }
-
-    /**
-     *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Http\Interfaces\RouterInterface::getControllerName()
-     */
-    public function getControllerName(): string
-    {
         return $this->controller;
     }
 
@@ -253,10 +214,29 @@ class Router implements RouterInterface
      *
      * {@inheritdoc}
      *
+     * @see \Minwork\Http\Interfaces\RouterInterface::getControllerName()
+     * @throws HttpException
+     */
+    public function getControllerName(): string
+    {
+        if (!isset($this->controllerName)) {
+            throw new HttpException("Cannot map url params to controller name");
+        }
+        return $this->controllerName;
+    }
+
+    /**
+     *
+     * {@inheritdoc}
+     *
      * @see \MinWork\Http\Interfaces\RouterInterface::getMethod()
+     * @throws HttpException
      */
     public function getMethod(): string
     {
+        if (!isset($this->method)) {
+            throw new HttpException("Cannot map url params to method name");
+        }
         return $this->method;
     }
 
@@ -287,82 +267,155 @@ class Router implements RouterInterface
      *
      * @param string $url
      *            Url string
-     * @param bool $sanitaze
-     *            If extracted params should be sanitized
+     * @param bool $sanitize If input url should be cleared from potentially dangerous characters
      * @return self
+     * @throws \ReflectionException
+     * @throws HttpException
      */
     public function translateUrl(string $url, bool $sanitize = true): RouterInterface
     {
-        $return = [];
         $this->url = $url;
-        
+
         $routeUrl = $sanitize ? Formatter::removeTrailingSlash(Formatter::removeLeadingSlash($url)) : $url;
         $params = empty($routeUrl) ? [] : explode("/", $routeUrl);
         $params = $sanitize ? Formatter::cleanData($params) : $params;
-        if ($params !== false && count($params) != 0) {
+
+        if ($params !== false && count($params) !== 0) {
+            // Temporary routing copy for internal iteration of prefixes
+            $routing = $this->routing;
             foreach ($params as $param) {
-                $matches = [];
-                if ((preg_match(self::PARAMS_REGEX_PAGE, $param, $matches))) { // Page
-                    $page = intval($matches[1]);
-                    $return['page'] = $page > 0 ? $page : 1;
-                } elseif ((preg_match(self::PARAMS_REGEX_LANG, $param, $matches)) && in_array($matches[1], LangCode::CODES_LIST)) { // Language
-                    $return['lang'] = $matches[1];
-                } elseif (! isset($return['controller'])) { // Module
-                    $return['controller'] = (string) $param;
-                } elseif (! isset($return['method'])) { // Method
-                    $return['method'] = $param;
-                } elseif ($param !== '') { // Method argument
-                    if (! array_key_exists('methodArguments', $return)) {
-                        $return['methodArguments'] = [];
-                    }
-                    $this->addMethodArgument($return['methodArguments'], $param);
-                }
+                $this->parseParam($param, $routing);
             }
         }
-        
-        foreach ($return as $paramName => $paramValue) {
-            $this->$paramName = $paramValue;
-        }
-        
-        $controller = $this->getController();
-        $method = $this->getMethod();
-        $methodNormalized = strtr($method, '-', '_');
-        
-        $controllerMethods = $controller instanceof Controller ? get_class_methods('Minwork\Basic\Controller\Controller') : get_class_methods('Minwork\Basic\Interfaces\ControllerInterface');
-        
-        // Process method name
-        if (! in_array($methodNormalized, Framework::EVENTS) && ! in_array($methodNormalized, $controllerMethods) && is_callable([$controller, $methodNormalized])) {
-            $this->method = $methodNormalized;
-        } elseif (method_exists($controller, self::DEFAULT_CONTROLLER_METHOD)) {
-            $this->addMethodArgument($this->methodArguments, $method, false);
-            $this->method = self::DEFAULT_CONTROLLER_METHOD;
-        } else {
-            throw new \DomainException("Cannot find method {$methodNormalized} inside " . get_class($controller) . " controller");
-        }
-        
-        // Set missing method arguments as null
-        $reflection = new \ReflectionMethod($this->getController(), $this->getMethod());
-        $numRequired = $reflection->getNumberOfRequiredParameters();
-        $numCurrent = count($this->getMethodArguments());
-        if ($numRequired > $numCurrent) {
-            $this->methodArguments = array_merge($this->methodArguments, array_fill(count($this->methodArguments) - 1, $numRequired - $numCurrent, null));
-        }
-        
+
+        $this->normalizeMethodArguments();
+
         return $this;
+    }
+
+    /**
+     * @param string $param
+     * @param array $routing
+     * @return bool
+     * @throws HttpException
+     */
+    protected function parseParam(string $param, array &$routing): bool
+    {
+        if ((preg_match(self::PARAMS_REGEX_PAGE, $param, $matches))) { // Page
+            $page = intval($matches[1]);
+            $this->page = $page > 0 ? $page : 1;
+            return true;
+        }
+
+        if ((preg_match(self::PARAMS_REGEX_LANG, $param, $matches)) && in_array($matches[1], LangCode::CODES_LIST)) { // Language
+            $this->lang = $matches[1];
+            return true;
+        }
+
+        // If param doesnt match any special param type then treat it as controller name
+        if (!isset($this->controller) && $this->parseController($param, $routing)) {
+            return true;
+        }
+
+        // Set it as method name (if not already set)
+        if (!isset($this->method) && $this->parseMethod($param)) {
+            return true;
+        }
+
+        // Otherwise set it as method argument
+        if ($param !== '') {
+            $this->addMethodArgument($param);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $param
+     * @param array $routing
+     * @return bool If param is consumed by this function
+     * @throws HttpException
+     */
+    protected function parseController(string $param, array &$routing): bool
+    {
+        $controller = $param;
+        // If key doesn't exists first try normalized one
+        if (!array_key_exists($controller, $routing)) {
+            $controller = Formatter::textId($controller);
+        }
+        // If it still doesn't exists then fallback to default controller name
+        if (!array_key_exists($controller, $routing)) {
+            $controller = self::DEFAULT_CONTROLLER_ROUTE_NAME;
+            // If cannot find default controller entry in routing
+            if (!array_key_exists($controller, $routing)) {
+                throw new HttpException("Cannot load controller for url param: {$param}");
+            }
+        }
+
+        // At this point controller must be valid entry in routing
+        $entry = $routing[$controller];
+
+        // If routing entry is array of nested routes then treat current param as prefix and continue
+        if (is_array($entry)) {
+            $routing = $entry;
+            return true;
+        }
+
+        // Set controller name
+        $this->controllerName = $controller;
+
+        // Check if controller is valid
+        if (is_string($entry) && class_exists($entry)) {
+            $this->controller = new $entry();
+            if (!$this->controller instanceof ControllerInterface) {
+                throw new HttpException("Controller class ({$entry}) must implement ControllerInterface");
+            }
+        } elseif (is_object($entry) && $entry instanceof ControllerInterface) {
+            $this->controller = $entry;
+        } else {
+            throw new HttpException("Controller " . Formatter::toString($entry) . " at key {$param} is invalid");
+        }
+
+        return $this->controllerName !== self::DEFAULT_CONTROLLER_ROUTE_NAME;
+    }
+
+    /**
+     * @param string $param
+     * @return bool If param is consumed by this function
+     * @throws HttpException
+     */
+    public function parseMethod(string $param): bool
+    {
+        $controller = $this->getController();
+        $method = strtr($param, '-', '_');
+
+        $controllerMethods = $controller instanceof Controller ? get_class_methods('Minwork\Basic\Controller\Controller') : get_class_methods('Minwork\Basic\Interfaces\ControllerInterface');
+
+        // If method name is not internal, then use it
+        if (!in_array($method, Framework::EVENTS) && !in_array($method, $controllerMethods) && is_callable([$controller, $method])) {
+            $this->method = $method;
+            return true;
+        }
+
+        if (method_exists($controller, self::DEFAULT_CONTROLLER_METHOD)) { // Otherwise use default method
+            $this->method = self::DEFAULT_CONTROLLER_METHOD;
+            return false;
+        }
+
+        throw new HttpException("Cannot find method {$method} inside {$this->getControllerName()} controller");
     }
 
     /**
      * Parse additional url param into method argument
      *
-     * @param array $currentArguments            
-     * @param string $newArgument            
-     * @param bool $append            
-     * @return self
+     * @param string $argument
+     * @param bool $append
      */
-    private function addMethodArgument(array &$currentArguments, string $newArgument, bool $append = true): self
+    protected function addMethodArgument(string $argument, bool $append = true): void
     {
-        if (strpos($newArgument, self::PARAMS_ARRAY_SEPARATOR) !== false) {
-            $array = explode(self::PARAMS_ARRAY_SEPARATOR, $newArgument);
+        if (strpos($argument, self::PARAMS_ARRAY_SEPARATOR) !== false) {
+            $array = explode(self::PARAMS_ARRAY_SEPARATOR, $argument);
             $tmp = [];
             foreach ($array as $p) {
                 $matches = [];
@@ -372,18 +425,31 @@ class Router implements RouterInterface
                     $tmp[] = $p;
                 }
             }
-            $newArgument = $tmp;
+            $argument = $tmp;
         }
-        if (is_string($newArgument) && preg_match(self::PARAMS_REGEX_ASSOC_PARAM, $newArgument, $matches)) {
-            $currentArguments[$matches[1]] = $matches[2];
+        if (is_string($argument) && preg_match(self::PARAMS_REGEX_ASSOC_PARAM, $argument, $matches)) {
+            $this->methodArguments[$matches[1]] = $matches[2];
         } else {
             if ($append) {
-                array_push($currentArguments, $newArgument);
+                array_push($this->methodArguments, $argument);
             } else {
-                array_unshift($currentArguments, $newArgument);
+                array_unshift($this->methodArguments, $argument);
             }
         }
-        
-        return $this;
+    }
+
+    /**
+     * @throws HttpException
+     * @throws \ReflectionException
+     */
+    protected function normalizeMethodArguments(): void
+    {
+        // Set missing method arguments as null
+        $reflection = new \ReflectionMethod($this->getController(), $this->getMethod());
+        $numRequired = $reflection->getNumberOfRequiredParameters();
+        $numCurrent = count($this->getMethodArguments());
+        if ($numRequired > $numCurrent) {
+            $this->methodArguments = array_merge($this->methodArguments, array_fill(count($this->methodArguments) - 1, $numRequired - $numCurrent, null));
+        }
     }
 }

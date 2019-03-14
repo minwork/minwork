@@ -63,9 +63,22 @@ class FrameworkTest extends \PHPUnit_Framework_TestCase
             ->getMethodArguments());
     }
 
-    public function testRouting()
+    public function routingUrlProvider()
     {
-        $url = '/test/test-method';
+        return [
+            ['/prefix/test/test-method'], // Nested
+            ['/prefix1/prefix2/test/test-method'], // Nested
+            ['/test-method'], // Default
+            ['/test/test-method'], // Basic
+        ];
+    }
+
+    /**
+     * @dataProvider routingUrlProvider
+     * @param $url
+     */
+    public function testRouting($url)
+    {
         $counter = 0;
         $eventDispatcher = new EventDispatcher();
         $environment = new Environment();
@@ -133,15 +146,24 @@ class FrameworkTest extends \PHPUnit_Framework_TestCase
         };
         
         $router = new Router([
-            'test' => $controller
+            Router::DEFAULT_CONTROLLER_ROUTE_NAME => $controller,
+            'test' => $controller,
+            'prefix' => [
+                'test' => $controller,
+            ],
+            'prefix1' => [
+                'prefix2' => [
+                    'test' => $controller,
+                ],
+            ],
         ]);
         
         $framework = new Framework($router, $environment, $eventDispatcher);
-        
+
         $content = $framework->run($url, TRUE);
         $this->assertEquals(15, $controller->counter);
         $this->assertEquals('TestNormalFlowContent', $content);
-        
+
         $controller->break = true;
         $content = $framework->run($url, TRUE);
         $this->assertEquals('TestBreakFlowContent', $content);
