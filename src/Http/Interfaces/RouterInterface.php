@@ -78,9 +78,9 @@ interface RouterInterface
      * Translate url to set of params accessed by getters
      *
      * @param string $url            
-     * @param bool $sanitize
+     * @param bool $clean
      *            If url should be cleaned from any special chars
      * @return self
      */
-    public function translateUrl(string $url, bool $sanitize = true): self;
+    public function translateUrl(string $url, bool $clean = true): self;
 }

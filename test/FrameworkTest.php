@@ -65,9 +65,12 @@ class FrameworkTest extends \PHPUnit_Framework_TestCase
         return [
             ['/prefix/test/test-method'], // Nested
             ['/prefix1/prefix2/test'], // Nested with default method
+            ['http://username:password@hostname:9090/prefix1/prefix2/test/test-method?arg=value#anchor'], // Extract nested controller and method from full url
             ['/test-method'], // Default controller
             [''], // Default controller and method
             ['/test/test-method'], // Basic
+            ['http://username:password@hostname:9090/?arg=value#anchor'], // Default controller and method from messy url (empty path)
+            ['  in^va*l)(id<tag>  </tag> '], // Default controller and method from invalid url
         ];
     }
 

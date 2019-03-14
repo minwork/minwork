@@ -266,30 +266,42 @@ class Router implements RouterInterface
      *
      * @param string $url
      *            Url string
-     * @param bool $sanitize If input url should be cleared from potentially dangerous characters
+     * @param bool $clean If input url should be cleared from potentially dangerous characters and unnecessary url parts (preserving only path)
      * @return self
      * @throws \ReflectionException
      * @throws HttpException
      */
-    public function translateUrl(string $url, bool $sanitize = true): RouterInterface
+    public function translateUrl(string $url, bool $clean = true): RouterInterface
     {
         $this->url = $url;
 
-        $routeUrl = $sanitize ? Formatter::removeTrailingSlash(Formatter::removeLeadingSlash($url)) : $url;
-        $params = empty($routeUrl) ? [] : explode("/", $routeUrl);
-        $params = $sanitize ? Formatter::cleanData($params) : $params;
+        // Temporary routing copy for internal iteration of prefixes
+        $routing = $this->routing;
+        $params = $this->parseUrl($url, $clean);
 
-        if ($params !== false && count($params) !== 0) {
-            // Temporary routing copy for internal iteration of prefixes
-            $routing = $this->routing;
-            foreach ($params as $param) {
-                $this->parseParam($param, $routing);
-            }
+        foreach ($params as $param) {
+            $this->parseParam($param, $routing);
         }
 
         $this->normalizeMethodArguments();
 
         return $this;
+    }
+
+    protected function parseUrl(string $url, bool $clean): array
+    {
+        if ($clean) {
+            if (!$parsed = parse_url($url, PHP_URL_PATH)) {
+                return [];
+            }
+            $url = Formatter::cleanString(Formatter::removeTrailingSlash(Formatter::removeLeadingSlash($parsed)));
+        }
+
+        if (empty($url)) {
+            return [];
+        }
+
+        return explode(self::PARAMS_SEPARATOR, $url);
     }
 
     /**
