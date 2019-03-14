@@ -3,16 +3,15 @@ namespace Test;
 
 require "vendor/autoload.php";
 
+use Minwork\Basic\Controller\Controller;
 use Minwork\Basic\Utility\FlowEvent;
 use Minwork\Core\Framework;
-use Minwork\Basic\Controller\Controller;
-use Minwork\Http\Object\Response;
-use Minwork\Http\Utility\HttpCode;
-use Minwork\Http\Object\Router;
-use Minwork\Event\Traits\Connector;
 use Minwork\Event\Object\EventDispatcher;
+use Minwork\Event\Traits\Connector;
+use Minwork\Http\Object\Response;
+use Minwork\Http\Object\Router;
 use Minwork\Http\Utility\Environment;
-use Minwork\Http\Utility\Server;
+use Minwork\Http\Utility\HttpCode;
 
 class FrameworkTest extends \PHPUnit_Framework_TestCase
 {
@@ -20,8 +19,6 @@ class FrameworkTest extends \PHPUnit_Framework_TestCase
     public function testUrlParsing()
     {
         $url = '/test/test-method/lang-es/page-5/arg1/arg2:test2/arg3:test3,arg4:test4/arg5,arg6';
-        
-        Server::getDocumentRoot();
         
         $controller = new class() extends Controller {
 
@@ -67,8 +64,9 @@ class FrameworkTest extends \PHPUnit_Framework_TestCase
     {
         return [
             ['/prefix/test/test-method'], // Nested
-            ['/prefix1/prefix2/test/test-method'], // Nested
-            ['/test-method'], // Default
+            ['/prefix1/prefix2/test'], // Nested with default method
+            ['/test-method'], // Default controller
+            [''], // Default controller and method
             ['/test/test-method'], // Basic
         ];
     }
@@ -142,6 +140,11 @@ class FrameworkTest extends \PHPUnit_Framework_TestCase
             public function test_method()
             {
                 return 'TestNormalFlowContent';
+            }
+
+            public function show()
+            {
+                return $this->test_method();
             }
         };
         

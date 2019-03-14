@@ -205,7 +205,14 @@ class Router implements RouterInterface
     public function getController(): ControllerInterface
     {
         if (!isset($this->controller)) {
-            throw new HttpException("Cannot map url params to controller object");
+            // Try fallback to default controller
+            $routing = $this->routing;
+            $this->parseController($this->getControllerName(), $routing);
+
+            // If controller still doesnt exists then throw error
+            if (!isset($this->controller)) {
+                throw new HttpException("Cannot map url params to controller object");
+            }
         }
         return $this->controller;
     }
@@ -215,29 +222,21 @@ class Router implements RouterInterface
      * {@inheritdoc}
      *
      * @see \Minwork\Http\Interfaces\RouterInterface::getControllerName()
-     * @throws HttpException
      */
     public function getControllerName(): string
     {
-        if (!isset($this->controllerName)) {
-            throw new HttpException("Cannot map url params to controller name");
-        }
-        return $this->controllerName;
+        return $this->controllerName ?? self::DEFAULT_CONTROLLER_ROUTE_NAME;
     }
 
     /**
      *
      * {@inheritdoc}
      *
-     * @see \MinWork\Http\Interfaces\RouterInterface::getMethod()
-     * @throws HttpException
+     * @see \Minwork\Http\Interfaces\RouterInterface::getMethod()
      */
     public function getMethod(): string
     {
-        if (!isset($this->method)) {
-            throw new HttpException("Cannot map url params to method name");
-        }
-        return $this->method;
+        return $this->method ?? self::DEFAULT_CONTROLLER_METHOD;
     }
 
     /**
