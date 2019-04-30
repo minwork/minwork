@@ -174,30 +174,28 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
             ->setFramework($this);
 
         $controllerName = $this->getRouter()->getControllerName();
+        $method = $this->getRouter()->getMethod();
+        $arguments = $this->getRouter()->getMethodArguments();
 
         // All events should start here so controller can intercept them
         $this->getEventDispatcher()->dispatch(new Event(self::EVENT_AFTER_URL_TRANSLATION));
 
-        $event = new FlowEvent(self::EVENT_BEFORE_CONTROLLER_RUN, $controllerName);
-        $controller->getEventDispatcher()->dispatch($event);
-        
-        // If response was set by any event listener then directly output content of the response
-        if ($event->shouldBreakFlow()) {
-            return $this->output($controller->getResponse(), $return);
-        }
-        
-        $method = $this->getRouter()->getMethod();
-
-        $arguments = $this->getRouter()->getMethodArguments();
-
-        $event = new FlowEvent(self::EVENT_BEFORE_METHOD_RUN, $method, $arguments);
+        $event = new FlowEvent(self::EVENT_BEFORE_CONTROLLER_RUN, $controllerName, $method, $arguments);
         $controller->getEventDispatcher()->dispatch($event);
 
         // If response was set by any event listener then directly output content of the response
         if ($event->shouldBreakFlow()) {
             return $this->output($controller->getResponse(), $return);
         }
-        
+
+        $event = new FlowEvent(self::EVENT_BEFORE_METHOD_RUN, $controllerName, $method, $arguments);
+        $controller->getEventDispatcher()->dispatch($event);
+
+        // If response was set by any event listener then directly output content of the response
+        if ($event->shouldBreakFlow()) {
+            return $this->output($controller->getResponse(), $return);
+        }
+
         // Get content
         $args = array_values($arguments);
         $content = $controller->$method(...$args);
@@ -210,11 +208,11 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
             // If return value is not response then merge it with controller response
             $controller->getResponse()->setContent($content);
         }
-        
-        $controller->getEventDispatcher()->dispatch(new FlowEvent(self::EVENT_AFTER_METHOD_RUN, $method, $arguments));
-        
-        $controller->getEventDispatcher()->dispatch(new FlowEvent(self::EVENT_AFTER_CONTROLLER_RUN, $controllerName));
-        
+
+        $controller->getEventDispatcher()->dispatch(new FlowEvent(self::EVENT_AFTER_METHOD_RUN, $controllerName, $method, $arguments));
+
+        $controller->getEventDispatcher()->dispatch(new FlowEvent(self::EVENT_AFTER_CONTROLLER_RUN, $controllerName, $method, $arguments));
+
         return $this->output($controller->getResponse(), $return);
     }
 
