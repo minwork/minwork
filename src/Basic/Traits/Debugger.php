@@ -27,20 +27,18 @@ trait Debugger
     /**
      * Save debug message with corresponding function call in internal array
      *
-     * @param string $message            
+     * @param mixed ...$message
+     * @return self
      */
-    protected function debug(string $message): self
+    protected function debug(...$message): self
     {
         $backtrace = debug_backtrace(0, 2);
         $selfData = $backtrace[0];
         $methodData = $backtrace[1];
         $args = $methodData['args'];
         
-        $key = "{$methodData['function']}(" . implode(', ', array_map([
-            '\Minwork\Helper\Formatter',
-            'toString'
-        ], $args)) . "):{$selfData['line']}";
-        $this->debug[$key] = $message;
+        $key = "{$methodData['function']}(" . implode(', ', array_map('\Minwork\Helper\Formatter::toString', $args)) . "):{$selfData['line']}";
+        $this->debug[$key] = implode("\n", array_map('strval', $message));
         
         return $this;
     }
