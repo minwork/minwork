@@ -72,7 +72,7 @@ class Request implements RequestInterface, ErrorsStorageContainerInterface
      *            By default it should be data from $_POST
      * @param array $headers
      *            Headers to send
-     *            
+     * @param string $method
      */
     public function __construct(array $query = [], $body = null, array $headers = [], string $method = cUrl::METHOD_POST)
     {
@@ -92,7 +92,7 @@ class Request implements RequestInterface, ErrorsStorageContainerInterface
         $body = $_POST;
         // If body is empty try getting data from input
         if (empty($body)) {
-            parse_str(file_get_contents('php://input'), $body);
+            $body = file_get_contents('php://input');
         }
         return new self($_GET, $body, Server::getHeaders(), Server::getRequestMethod());
     }
