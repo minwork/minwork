@@ -37,7 +37,8 @@ interface DatabaseInterface
     /**
      * Cross-platform string escaping for preventing SQL injection (usually by sanitizing data and surrounding it with quotes)
      *
-     * @param mixed $value            
+     * @param mixed $value
+     * @return string
      */
     public function escape($value): string;
 
@@ -75,4 +76,30 @@ interface DatabaseInterface
      * @return mixed
      */
     public function getLastInsertId();
+
+    /**
+     * Method to start database transaction
+     *
+     * @return mixed
+     */
+    public function startTransaction();
+    /**
+     * Method to commit database transaction
+     *
+     * @return mixed
+     */
+    public function finishTransaction();
+    /**
+     * Method to abort database transaction
+     *
+     * @return mixed
+     */
+    public function abortTransaction();
+    /**
+     * If database has active transaction
+     *
+     * @return mixed
+     */
+    public function hasActiveTransaction(): bool;
+
 }

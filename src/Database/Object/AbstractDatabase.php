@@ -1,4 +1,7 @@
 <?php
+/** @noinspection PhpSignatureMismatchDuringInheritanceInspection */
+/** @noinspection PhpMissingParentConstructorInspection */
+
 /*
  * This file is part of the Minwork package.
  *
@@ -7,8 +10,10 @@
  */
 namespace Minwork\Database\Object;
 
+use InvalidArgumentException;
 use Minwork\Helper\Formatter;
 use Minwork\Database\Interfaces\DatabaseInterface;
+use PDO;
 
 /**
  * Abstract database interface implementation extending PDO
@@ -16,7 +21,7 @@ use Minwork\Database\Interfaces\DatabaseInterface;
  * @author Christopher Kalkhoff
  *        
  */
-abstract class AbstractDatabase extends \PDO implements DatabaseInterface
+abstract class AbstractDatabase extends PDO implements DatabaseInterface
 {
 
     const DEFAULT_CHARSET = 'utf8';
@@ -162,7 +167,7 @@ abstract class AbstractDatabase extends \PDO implements DatabaseInterface
             if (method_exists($value, '__toString')) {
                 $value = strval($value);
             } else {
-                throw new \InvalidArgumentException('Object passed to escape method must be convertable to string');
+                throw new InvalidArgumentException('Object passed to escape method must be convertable to string');
             }
         } elseif (is_int($value) || is_float($value) || is_double($value)) {
             return $value;
@@ -175,10 +180,11 @@ abstract class AbstractDatabase extends \PDO implements DatabaseInterface
     }
 
     /**
-     * Initialize database setting all neccessary options and calling PDO constructor
+     * Initialize database by setting all neccessary options and calling PDO constructor
      *
-     * @param string $user            
-     * @param string $password            
+     * @param string $user
+     * @param string $password
+     * @return DatabaseInterface
      */
     abstract protected function init(string $user, string $password): DatabaseInterface;
 
@@ -234,5 +240,25 @@ abstract class AbstractDatabase extends \PDO implements DatabaseInterface
             $this->options = array_merge($this->options, $options);
         }
         return $this;
+    }
+
+    public function startTransaction()
+    {
+        return $this->beginTransaction();
+    }
+
+    public function finishTransaction()
+    {
+        return $this->commit();
+    }
+
+    public function abortTransaction()
+    {
+        return $this->rollBack();
+    }
+
+    public function hasActiveTransaction(): bool
+    {
+        return $this->inTransaction();
     }
 }

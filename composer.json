@@ -23,6 +23,7 @@
   "require": {
     "php": ">=7.1",
     "ext-json": "*",
+    "ext-pdo": "*",
     "minwork/array": "^1.1"
   },
   "require-dev": {
