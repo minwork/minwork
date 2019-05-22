@@ -57,6 +57,12 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
     protected $options;
 
     /**
+     * Transactions counter for supporting nested transactions
+     * @var int
+     */
+    protected $transactions = 0;
+
+    /**
      *
      * @param string $host            
      * @param string $name            
@@ -244,16 +250,28 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
 
     public function startTransaction()
     {
-        return $this->beginTransaction();
+        // If already in transaction then increment transactions counter to silently support nested transactions
+        if ($this->hasActiveTransaction()) {
+            ++$this->transactions;
+        } else {
+            $this->beginTransaction();
+        }
     }
 
     public function finishTransaction()
     {
-        return $this->commit();
+        // If have nested transactions then just decrement counter instead of actually committing
+        if ($this->transactions > 0) {
+            --$this->transactions;
+        } else {
+            $this->commit();
+        }
     }
 
     public function abortTransaction()
     {
+        // Reset transactions counter
+        $this->transactions = 0;
         return $this->rollBack();
     }
 
