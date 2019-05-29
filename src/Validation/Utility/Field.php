@@ -1,6 +1,7 @@
 <?php
 namespace Minwork\Validation\Utility;
 
+use InvalidArgumentException;
 use Minwork\Error\Interfaces\ErrorInterface;
 use Minwork\Error\Interfaces\ErrorsStorageContainerInterface;
 use Minwork\Error\Traits\Errors;
@@ -92,7 +93,7 @@ class Field implements ValidatorInterface, ErrorsStorageContainerInterface
     {
         foreach ($rules as $rule) {
             if (! is_object($rule) || ! $rule instanceof Rule) {
-                throw new \InvalidArgumentException('Field rule must be an Rule object');
+                throw new InvalidArgumentException('Field rule must be an Rule object');
             }
         }
         $this->rules = $rules;
@@ -122,9 +123,9 @@ class Field implements ValidatorInterface, ErrorsStorageContainerInterface
     /**
      * Get field error to display when it is mandatory but wasn't found
      * 
-     * @return string
+     * @return ErrorInterface
      */
-    public function getError(): string
+    public function getError(): ErrorInterface
     {
         return $this->error;
     }
