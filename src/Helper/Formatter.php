@@ -50,11 +50,12 @@ class Formatter
     {
         return self::sign($number, true) . abs($number);
     }
-    
+
     /**
      * Make string float replacing any commas with dots
      *
-     * @param string $string            
+     * @param string $string
+     * @return float
      */
     public static function makeFloat(string $string): float
     {
@@ -64,8 +65,9 @@ class Formatter
     /**
      * Return $source or $value if source is empty
      *
-     * @param mixed $source            
-     * @param mixed $value            
+     * @param mixed $source
+     * @param mixed $value
+     * @return mixed
      */
     public static function default($source, $value)
     {
@@ -305,9 +307,9 @@ class Formatter
     /**
      * Check if string ends with a given pharase
      *
-     * @param string $haystack            
-     * @param string $needle            
-     * @param bool $caseSensitive            
+     * @param string $source
+     * @param string $phrase
+     * @param bool $caseSensitive
      * @return bool
      */
     public static function endsWith(string $source, string $phrase, bool $caseSensitive = false): bool
@@ -379,11 +381,12 @@ class Formatter
     /**
      * Clean form or request data using strip_tags and trim<br>
      *
-     * @param array|string $data            
+     * @param array|string $data
      * @param array $filter Skip keys present in this array
+     * @param bool $stringOnly If only string values should be cleaned
      * @return array|string
      */
-    public static function cleanData($data, $filter = [])
+    public static function cleanData($data, $filter = [], bool $stringOnly = false)
     {
         $return = $data;
         if (is_array($return)) {
@@ -391,7 +394,10 @@ class Formatter
                 if (is_array($w)) {
                     $w = self::cleanData($return[$i], $filter);
                 } elseif (! in_array($i, Arr::forceArray($filter))) {
-                    $w = self::cleanString(strval($return[$i]));
+                    // Preserve boolean, numbers and null cause they are safe by design
+                    if (!is_int($return[$i]) && !is_float($return[$i]) && !is_null($return[$i]) && !is_bool($return[$i])) {
+                        $w = $stringOnly ? (is_string($return[$i]) ? self::cleanString($return[$i]) : $return[$i]) : self::cleanString(strval($return[$i]));
+                    }
                 }
             }
         } elseif (is_string($return)) {
@@ -403,7 +409,7 @@ class Formatter
     /**
      * Make supplied text inline by removing any newline char
      *
-     * @param string $content            
+     * @param string $text
      * @return string
      */
     public static function inline(string $text): string
