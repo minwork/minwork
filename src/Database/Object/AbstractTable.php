@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection SqlNoDataSourceInspection */
+
 /*
  * This file is part of the Minwork package.
  *
@@ -7,6 +8,7 @@
  */
 namespace Minwork\Database\Object;
 
+use InvalidArgumentException;
 use Minwork\Helper\Arr;
 use Minwork\Database\Interfaces\TableInterface;
 use Minwork\Database\Utility\Query;
@@ -17,6 +19,7 @@ use Minwork\Helper\Formatter;
 use Minwork\Database\Interfaces\ColumnInterface;
 use Minwork\Database\Utility\Condition;
 use Minwork\Basic\Traits\Debugger;
+use PDO;
 
 /**
  * Abtract table used both as prototype for driver specific table implementation and model storage
@@ -63,8 +66,8 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      */
     public function __construct(DatabaseInterface $database, string $name, array $columns = [])
     {
-        $this->setDatabase($database)
-            ->setName($name)
+        $this->setName($name)
+            ->setDatabase($database)
             ->setColumns($columns);
     }
 
@@ -72,7 +75,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * Set database object
      *
      * @param DatabaseInterface $database            
-     * @return TableInterface
+     * @return TableInterface|self
      */
     protected function setDatabase(DatabaseInterface $database): TableInterface
     {
@@ -84,7 +87,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * Set table name in database
      *
      * @param string $name            
-     * @return TableInterface
+     * @return TableInterface|self
      */
     protected function setName(string $name): TableInterface
     {
@@ -109,6 +112,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         
         if ($filter & static::COLUMNS_FLAG_PRIMARY_KEYS) {
             $columns = array_filter($columns, function ($column) {
+                /** @var ColumnInterface $column */
                 return $column->isPrimaryKey();
             });
         }
@@ -119,6 +123,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         
         if ($filter & static::COLUMNS_FLAG_NAMES_WITHOUT_PRIMARY_KEYS) {
             $columns = array_keys(array_filter($columns, function ($column) {
+                /** @var ColumnInterface $column */
                 return ! $column->isPrimaryKey();
             }));
         }
@@ -137,7 +142,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         $this->columns = [];
         foreach ($columns as $column) {
             if (! $column instanceof ColumnInterface) {
-                throw new \InvalidArgumentException('Columns array element must implement ColumnInterface');
+                throw new InvalidArgumentException('Columns array element must implement ColumnInterface');
             }
             $this->columns[$column->getName(false)] = $column;
         }
@@ -206,7 +211,8 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     /**
      * Return column database definition used for table creation and altering
      *
-     * @param ColumnInterface $column            
+     * @param ColumnInterface $column
+     * @return string
      */
     abstract protected function getColumnDefinition(ColumnInterface $column): string;
 
@@ -262,6 +268,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         if (array_keys($pk) != array_keys($curPk)) {
             $query[] = 'DROP PRIMARY KEY';
             $query[] = 'ADD PRIMARY KEY(' . implode(', ', array_map(function ($column) {
+                /** @var ColumnInterface $column */
                 return $column->getName();
             }, $pk)) . ')';
         }
@@ -292,6 +299,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
             $query[key($pk)] .= ' PRIMARY KEY';
         } elseif (count($pk) > 1) {
             $query[] = 'PRIMARY KEY(' . implode(',', array_map(function ($column) {
+                /** @var ColumnInterface $column */
                 return $column->getName();
             }, $pk)) . ')';
         }
@@ -361,7 +369,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     public function insert(array $values)
     {
         if (empty($values)) {
-            throw new \InvalidArgumentException('Insert values cannot be empty');
+            throw new InvalidArgumentException('Insert values cannot be empty');
         }
         
         $statement = "INSERT INTO {$this->getName()} ";
@@ -392,11 +400,12 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     public function update(array $values, $conditions = [], $limit = null)
     {
         if (empty($values)) {
-            throw new \InvalidArgumentException('Update values cannot be empty');
+            throw new InvalidArgumentException('Update values cannot be empty');
         }
         array_walk($values, function (&$v, $k) {
             $v = "{$this->escapeColumn($k)} = {$this->getDatabase()->escape($v)}";
         });
+        /** @noinspection SqlWithoutWhere */
         $statement = "UPDATE {$this->getName()} SET " . implode(', ', $values) . " ";
         $statement .= ! empty($conditions) ? "{$this->getConditionsQuery($conditions)} " : "";
         $statement .= ! is_null($limit) ? "{$this->getLimitQuery($limit)} " : "";
@@ -414,6 +423,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      */
     public function delete($conditions = [], $limit = null)
     {
+        /** @noinspection SqlWithoutWhere */
         $statement = "DELETE FROM {$this->getName()} ";
         $statement .= ! empty($conditions) ? "{$this->getConditionsQuery($conditions)} " : "";
         $statement .= ! is_null($limit) ? "{$this->getLimitQuery($limit)} " : "";
@@ -488,7 +498,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     public function get($key)
     {
         $sql = $this->select($key->getConditions(), $key->getColumns(), $key->getOrder(), $key->getLimit());
-        $result = $sql->fetchAll(\PDO::FETCH_ASSOC);
+        $result = $sql->fetchAll(PDO::FETCH_ASSOC);
         if (! is_array($result)) {
             return null;
         }
@@ -520,7 +530,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
             } elseif (is_array($columns)) {
                 $values = array_combine($columns, $value);
             } else {
-                throw new \InvalidArgumentException('Insert query columns must be either string indicating all columns (TableInterface::COLUMNS_ALL) or array of column names');
+                throw new InvalidArgumentException('Insert query columns must be either string indicating all columns (TableInterface::COLUMNS_ALL) or array of column names');
             }
             $this->insert($values);
         }
@@ -582,6 +592,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      *
      * @param array|int|string $limit
      *            It can also be an object that is convertable to string
+     * @return string
      */
     protected function getLimitQuery($limit): string
     {
@@ -660,7 +671,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     /**
      * Prepare WHERE clausule conditions query string from given params
      *
-     * @param array|string|\Minwork\Database\Utility\Condition $conditions
+     * @param array|string|Condition $conditions
      *            It can also be an object that is convertable to string
      * @return string
      */
@@ -700,7 +711,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
                 return 'WHERE ' . strval($conditions);
             }
         }
-        throw new \InvalidArgumentException('Conditions must be either string, array or object convertable to string');
+        throw new InvalidArgumentException('Conditions must be either string, array or object convertable to string');
     }
 
     /**

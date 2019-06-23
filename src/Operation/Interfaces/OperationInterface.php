@@ -19,7 +19,8 @@ interface OperationInterface
     /**
      * Execute operation
      *
-     * @param mixed ...$arguments            
+     * @param ObjectOperationInterface $object
+     * @param mixed ...$arguments
      * @return mixed
      */
     public function execute(ObjectOperationInterface $object, ...$arguments);

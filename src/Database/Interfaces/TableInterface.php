@@ -189,6 +189,7 @@ interface TableInterface
      *            Keys of data array should be corresponding column names (same as in getColumns method)
      * @param bool $defaults
      *            If columns unexisting in $data array should be appended with their default values
+     * @return array
      */
     public function format(array $data, bool $defaults = false): array;
 }

@@ -7,6 +7,7 @@
  */
 namespace Minwork\Basic\Model;
 
+use Exception;
 use Minwork\Basic\Interfaces\BindableModelInterface;
 use Minwork\Basic\Interfaces\ModelInterface;
 use Minwork\Basic\Traits\Debugger;
@@ -14,6 +15,7 @@ use Minwork\Database\Interfaces\TableInterface;
 use Minwork\Database\Utility\Query;
 use Minwork\Error\Interfaces\ErrorsStorageContainerInterface;
 use Minwork\Error\Traits\Errors;
+use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
 use Minwork\Event\Interfaces\EventDispatcherInterface;
 use Minwork\Event\Object\EventDispatcher;
 use Minwork\Event\Traits\Connector;
@@ -25,6 +27,7 @@ use Minwork\Operation\Interfaces\OperationInterface;
 use Minwork\Operation\Object\OperationEvent;
 use Minwork\Operation\Traits\Operations;
 use Minwork\Storage\Interfaces\DatabaseStorageInterface;
+use Minwork\Storage\Interfaces\StorageInterface;
 use Minwork\Storage\Traits\Storage;
 use Minwork\Validation\Interfaces\ValidatorInterface;
 
@@ -98,13 +101,14 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
 
     /**
      *
-     * @param DatabaseStorageInterface $storage            
+     * @param DatabaseStorageInterface|TableInterface|StorageInterface $storage
      * @param int|string|array|null $id            
      * @param bool $buffering            
      * @param EventDispatcherInterface $eventDispatcher            
      */
     public function __construct(DatabaseStorageInterface $storage, $id = null, bool $buffering = true, EventDispatcherInterface $eventDispatcher = null)
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->reset()
             ->setBuffering($buffering)
             ->setStorage($storage)
@@ -119,6 +123,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
      */
     public function __clone()
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->setStorage(clone $this->getStorage())
             ->setEventDispatcher((clone $this->getEventDispatcher())->reset())
             ->connect();
@@ -165,13 +170,14 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
      *
      * {@inheritdoc}
      *
+     * @throws Exception
      * @see \Minwork\Basic\Interfaces\BindableModelInterface::getBindingFieldName()
      */
     public function getBindingFieldName(): string
     {
         $idField = $this->getStorage()->getPkField();
         if (! is_string($idField)) {
-            throw new \Exception('Cannot bind model with multiple id fields');
+            throw new Exception('Cannot bind model with multiple id fields');
         }
         if ($this->getStorage() instanceof TableInterface) {
             $name = $this->getStorage()->getName(false);
@@ -185,7 +191,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
      *
      * {@inheritdoc}
      *
-     * @return \Minwork\Storage\Interfaces\DatabaseStorageInterface
+     * @return DatabaseStorageInterface|TableInterface|StorageInterface
      */
     public function getStorage(): DatabaseStorageInterface
     {
@@ -273,14 +279,16 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
      */
     public function setId($id): ModelInterface
     {
+        $storage = $this->getStorage();
+        $idField = $storage->getPkField();
+
         if (is_null($id)) {
             $this->id = $id;
             $this->exists = false;
         } else {
             if (is_array($id)) {
-                $idField = $this->getStorage()->getPkField();
-                if (is_string($idField) && (array_key_exists($idField, $id) || count($id) === 1)) {
-                    $this->id = array_key_exists($idField, $id) ? $id[$idField] : reset($id);
+                if (is_string($idField) && (($keyExists = array_key_exists($idField, $id)) || count($id) === 1)) {
+                    $this->id = $keyExists ? $id[$idField] : reset($id);
                 } else {
                     $idFields = Arr::forceArray($idField);
                     $this->id = Arr::isAssoc($id, true) ? Arr::orderByKeys(Arr::filterByKeys($id, $idFields), $idFields) : $id;
@@ -290,6 +298,19 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
             }
             $this->exists = null;
         }
+
+        // If build-in table handler then automatically format id
+        if (!is_null($this->id) && $storage instanceof TableInterface) {
+            // Format id field according to column config
+            if (is_array($this->id) && Arr::isAssoc($this->id, true)) {
+                // If id is assoc array then just format
+                $this->id = $storage->format($this->id);
+            } elseif (!is_array($this->id) && is_string($idField)) {
+                $this->id = $storage->format([ $idField => $this->id ])[$idField];
+            }
+            // Don't format otherwise cause we don't know exact mapping of id fields to current id
+        }
+
         return $this;
     }
 
@@ -351,7 +372,11 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
         if (is_null($this->getId())) {
             $this->exists = false;
         } elseif (is_null($this->exists)) {
-            $this->exists = $this->getStorage()->isset(new Query($this->getQueryConditionsWithId()));
+            try {
+                $this->exists = $this->getStorage()->isset(new Query($this->getQueryConditionsWithId()));
+            } catch (Exception $e) {
+                return false;
+            }
         }
         
         return $this->exists;
@@ -406,7 +431,11 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
                     break;
                 case self::STATE_UPDATE:
                     if ($updateData = $this->getChangedData()) {
-                        $this->getStorage()->set(new Query($this->getQueryConditionsWithId()), $updateData);
+                        try {
+                            $this->getStorage()->set(new Query($this->getQueryConditionsWithId()), $updateData);
+                        } catch (Exception $e) {
+                            return false;
+                        }
                     }
                     return true;
                     break;
@@ -419,15 +448,17 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
     /**
      * Execute supplied operation
      *
-     * @param OperationInterface $operation
-     *            Operation object
-     * @param mixed ...$arguments
-     *            Operation arguments
+     * @param OperationInterface $operation Operation object
+     * @param mixed ...$arguments Operation arguments
      * @return mixed
      */
     public function execute(OperationInterface $operation, ...$arguments)
     {
-        $result = $this->executeOperation($operation->setEventDispatcher($this->getEventDispatcher()), ...$arguments);
+        if ($operation instanceof EventDispatcherContainerInterface) {
+            $operation->setEventDispatcher($this->getEventDispatcher());
+        }
+
+        $result = $this->executeOperation($operation, ...$arguments);
         
         return $result;
     }
@@ -489,12 +520,12 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
      *
      * @param array $conditions
      * @return array
-     * @throws \Exception
+     * @throws Exception
      */
     protected function getQueryConditionsWithId(array $conditions = []): array
     {
         if (is_null($this->getId())) {
-            throw new \Exception('Cannot append id to conditions when no id is set');
+            throw new Exception('Cannot append id to conditions when no id is set');
         }
         
         $id = $this->getNormalizedId();
@@ -599,11 +630,11 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
         if (! empty($ids)) {
             $this->setId($ids);
         }
-        
+
         $this->setState(self::STATE_CREATE)
-            ->setData($data, false)
-            ->markAsChanged($data);
-        
+            ->markAsChanged($data)
+            ->setData($data, false);
+
         if (! $this->buffering) {
             $this->synchronize();
         }
@@ -614,8 +645,9 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
     /**
      * Read operation (get data from storage then set it to model)
      *
-     * @param array $filter   
+     * @param array $filter
      * @return self
+     * @throws Exception
      */
     public function read(array $filter = []): self
     {
@@ -623,7 +655,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
         // If data from storage is same as current data and current data is in changed list then remove it from that list
         $toRemove = [];
         
-        // Initialize data array if neccessary
+        // Initialize data array if necessary
         if (is_null($this->data)) {
             $this->data = [];
         }
@@ -650,9 +682,9 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
         
         if (! empty($data)) {
             $this->setState(self::STATE_UPDATE)
-            ->setData($data)
-            ->markAsChanged($data);
-            
+            ->markAsChanged($data)
+            ->setData($data);
+
             if (! $this->buffering) {
                 $this->synchronize();
             }
@@ -669,7 +701,11 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
     public function delete(): bool
     {
         if ($this->exists()) {
-            $this->getStorage()->unset(new Query($this->getQueryConditionsWithId()));
+            try {
+                $this->getStorage()->unset(new Query($this->getQueryConditionsWithId()));
+            } catch (Exception $e) {
+                return false;
+            }
         }
         
         $this->reset();

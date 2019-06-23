@@ -3,7 +3,11 @@ namespace Test;
 
 require "vendor/autoload.php";
 
+use Exception;
 use Minwork\Basic\Model\Model;
+use Minwork\Database\Interfaces\DatabaseInterface;
+use Minwork\Database\Interfaces\TableInterface;
+use Minwork\Storage\Interfaces\DatabaseStorageInterface;
 use Minwork\Validation\Object\Validator;
 use Minwork\Validation\Utility\Rule;
 use Minwork\Operation\Basic\Create;
@@ -18,11 +22,20 @@ use Minwork\Database\Object\Column;
 use Minwork\Helper\Random;
 use Minwork\Database\MySql\Database as MySqlDatabase;
 use Minwork\Database\Sqlite\Database as SqliteDatabase;
+use PDOException;
+use PHPUnit_Framework_TestCase;
 
-class ModelTest extends \PHPUnit_Framework_TestCase
+class ModelTest extends PHPUnit_Framework_TestCase
 {
 
-    protected static $database, $table;
+    /**
+     * @var DatabaseInterface
+     */
+    protected static $database;
+    /**
+     * @var TableInterface
+     */
+    protected static $table;
 
     public static function setUpBeforeClass()
     {
@@ -52,7 +65,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
                     break;
             }
             self::$table = 'Minwork\Database\MySql\Table';
-        } catch (\PDOException $e) {
+        } catch (PDOException $e) {
             echo "\n\nModel test: Cannot connect to MySQL server, using SQLite instead.\nTry specifing connection parameters via phpunit arguments like:\nvendor/bin/phpunit test/ModelTest.php [DBName|DBHost DBName|DBHost DBUser DBPassword|DBHost DBName DBUser DBPassword]\n\n";
             // If MySQL is unaccessible connect to SQLite
             self::$database = new SqliteDatabase(':memory:');
@@ -75,7 +88,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             'change_date' => DateHelper::addHours(2, DateHelper::now())
         ];
         $newId = 'unexisting';
-        /** @var $table \Minwork\Database\Interfaces\TableInterface */
+        /** @var $table TableInterface|DatabaseStorageInterface */
         $table = new self::$table(self::$database, 'test', [
             new Column('id', 'INT', null, false, true, true),
             new Column('name', 'VARCHAR(255)'),
@@ -101,6 +114,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($model->validateThenExecute(new Create(), $validator, $data));
         $this->assertTrue($model->exists());
         $this->assertNotNull($model->getId());
+        $this->assertInternalType('int', $model->getId());
         $this->assertEquals([
             'id' => 1
         ], $model->getNormalizedId());
@@ -136,7 +150,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $table->remove();
         
         // Test multiple columns id
-        /** @var $table \Minwork\Database\Interfaces\TableInterface */
+        /** @var $table TableInterface */
         $table = new self::$table(self::$database, 'test', [
             new Column('id_1', 'INT', null, false, true),
             new Column('id_2', 'VARCHAR(255)', null, false, true),
@@ -156,6 +170,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($model->execute(new Create(), $data));
         $this->assertTrue($model->exists());
         $this->assertNotNull($model->getId());
+        $this->assertInternalType('int', $model->getId()['id_1']);
+        $this->assertInternalType('string', $model->getId()['id_2']);
+        $this->assertInternalType('bool', $model->getId()['id_3']);
         $ids = array_diff_key($data, array_flip([
             'data'
         ]));
@@ -189,7 +206,8 @@ class ModelTest extends \PHPUnit_Framework_TestCase
                 'key' => 2
             ]
         ];
-        
+
+        /** @var TableInterface $table */
         $table = new self::$table(self::$database, 'test', [
             new Column('id', 'INT', null, false, true, true),
             new Column('name', 'VARCHAR(255)'),
@@ -267,8 +285,12 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $table->remove();
     }
 
+    /**
+     * @throws Exception
+     */
     public function testModelsBinder()
     {
+        /** @var TableInterface $table */
         $table = new self::$table(self::$database, 'test', [
             new Column('id', 'INT', null, false, true, true),
             new Column('name', 'VARCHAR(255)')
@@ -284,7 +306,8 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $model2->execute(new Create(), [
             'name' => 'Test 2'
         ]);
-        
+
+        /** @var TableInterface|DatabaseStorageInterface $table2 */
         $table2 = new self::$table(self::$database, 'test3', [
             new Column('test_id_1', 'INT', null, false, true),
             new Column('test_id_2', 'INT', null, false, true),
