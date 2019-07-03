@@ -5,6 +5,7 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Minwork\Http\Utility;
 
 /**
@@ -12,7 +13,7 @@ namespace Minwork\Http\Utility;
  * Returns default value if specified option is not present in $_SERVER array
  *
  * @author Christopher Kalkhoff
- *        
+ *
  */
 class Server
 {
@@ -20,7 +21,7 @@ class Server
     const HTTPS_DISABLED = "off";
 
     const HTTPS_PORT = '443';
-    
+
     const HTTPS_PROTOCOL = 'https';
 
     const DEFAULT_PORT = '80';
@@ -116,7 +117,6 @@ class Server
     public static function getRelativeUrl(): string
     {
         return array_key_exists('REQUEST_URI', $_SERVER) ? $_SERVER['REQUEST_URI'] : '/';
-        ;
     }
 
     /**
@@ -131,7 +131,7 @@ class Server
         }
         return strtolower(substr(self::getProtocol(), 0, strpos(self::getProtocol(), '/')));
     }
-    
+
     public static function getReferer(): string
     {
         return $_SERVER['HTTP_REFERER'] ?? '';
@@ -144,11 +144,11 @@ class Server
      */
     public static function isSecure(): bool
     {
-        return 
-            (! empty(self::getHttps()) && self::getHttps() !== self::HTTPS_DISABLED) || 
-            self::getPort() == self::HTTPS_PORT || 
+        return
+            (!empty(self::getHttps()) && self::getHttps() !== self::HTTPS_DISABLED) ||
+            self::getPort() == self::HTTPS_PORT ||
             // Case for SSL gateway
-            ($_SERVER['HTTP_X_FORWARDED_PORT'] ?? '') == self::HTTPS_PORT || 
+            ($_SERVER['HTTP_X_FORWARDED_PORT'] ?? '') == self::HTTPS_PORT ||
             ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') == self::HTTPS_PROTOCOL;
     }
 
@@ -161,8 +161,9 @@ class Server
     public static function getDomain(): string
     {
         $pageUrl = self::getProtocolName() . "://";
-        
-        if (self::getPort() != self::DEFAULT_PORT && ! self::isSecure()) {
+
+        // If not using default port then append specific port
+        if (!self::isDefaultPort()) {
             $pageUrl .= self::getServerName() . ":" . self::getPort();
         } else {
             $pageUrl .= self::getServerName();
@@ -202,13 +203,24 @@ class Server
     }
 
     /**
+     * If server use default port for it's protocol (80 for http, 443 for https)
+     *
+     * @return bool
+     */
+    public static function isDefaultPort(): bool
+    {
+        $port = self::getPort();
+        return (self::isSecure() && $port === self::HTTPS_PORT) || (!self::isSecure() && $port === self::DEFAULT_PORT);
+    }
+
+    /**
      * Get server request headers
      *
      * @return array
      */
     public static function getHeaders(): array
     {
-        if (! function_exists('getallheaders')) {
+        if (!function_exists('getallheaders')) {
             $headers = [];
             if (is_array($_SERVER)) {
                 foreach ($_SERVER as $name => $value) {
@@ -219,6 +231,7 @@ class Server
             }
             return $headers;
         } else {
+            /** @noinspection PhpComposerExtensionStubsInspection */
             return getallheaders();
         }
     }
