@@ -270,9 +270,14 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
 
     public function abortTransaction()
     {
-        // Reset transactions counter
-        $this->transactions = 0;
-        return $this->rollBack();
+        if ($this->hasActiveTransaction()) {
+            // Reset transactions counter
+            $this->transactions = 0;
+            return $this->rollBack();
+        } else {
+            --$this->transactions;
+            return false;
+        }
     }
 
     public function hasActiveTransaction(): bool
