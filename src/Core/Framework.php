@@ -200,6 +200,8 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
         $args = array_values($arguments);
         $content = $controller->$method(...$args);
 
+        $controller->getEventDispatcher()->dispatch(new FlowEvent(self::EVENT_AFTER_METHOD_RUN, $controllerName, $method, $arguments));
+
         // If controller returned some value then convert it to response
         if ($controller->getResponse()->isEmpty()) {
             // Cast whole content to response if it was empty
@@ -208,8 +210,6 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
             // If return value is not response then merge it with controller response
             $controller->getResponse()->setContent($content);
         }
-
-        $controller->getEventDispatcher()->dispatch(new FlowEvent(self::EVENT_AFTER_METHOD_RUN, $controllerName, $method, $arguments));
 
         $controller->getEventDispatcher()->dispatch(new FlowEvent(self::EVENT_AFTER_CONTROLLER_RUN, $controllerName, $method, $arguments));
 
