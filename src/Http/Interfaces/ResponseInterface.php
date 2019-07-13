@@ -64,12 +64,40 @@ interface ResponseInterface
     /**
      * Add or replace headers array
      *
-     * @param string|array $header            
-     * @param bool $merge
-     *            If this parameter is true this will append header to the headers array (in case of string) or merge (in case of array)
+     * @param string $name
+     * @param mixed|null $value If value is null then header name is treated as header value
+     * @param bool $caseInsensitive If header name should be treated as case insensitive and possibly replace previous set header with different case
      * @return self
      */
-    public function setHeader($header, bool $merge = true): self;
+    public function setHeader(string $name, $value = null, bool $caseInsensitive = true): self;
+
+    /**
+     * Manually set array of headers in form of:
+     * [header_name => header_value, ...] or
+     * [header_string, ...] or
+     * both combined
+     *
+     * @param array $headers
+     * @return ResponseInterface
+     */
+    public function setHeaders(array $headers): self;
+
+    /**
+     * Clear array of headers effectively removing all headers from it
+     *
+     * @return ResponseInterface
+     */
+    public function clearHeaders(): self;
+
+    /**
+     * Remove header with specified name
+     *
+     * @param string $name Header name used as key in headers array
+     * @param bool $caseInsensitive If header name should be treated case insensitively
+     * @return ResponseInterface
+     * @see ResponseInterface::setHeader()
+     */
+    public function removeHeader(string $name, bool $caseInsensitive = true): self;
 
     /**
      * Set http code
@@ -97,7 +125,7 @@ interface ResponseInterface
     /**
      * Get response headers
      *
-     * @return array
+     * @return array Map of headers names to their values (header_name => header_value)
      */
     public function getHeaders(): array;
 }

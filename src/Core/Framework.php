@@ -143,8 +143,12 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
             return $response;
         }
 
-        foreach ($response->getHeaders() as $header) {
-            header($header);
+        foreach ($response->getHeaders() as $name => $value) {
+            if (!is_string($name) && is_string($value)) {
+                header($value);
+            } else {
+                header("{$name}: $value");
+            }
         }
         
         http_response_code($response->getHttpCode());
@@ -205,9 +209,7 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
         // If returned response then set it as controller response
         if ($content instanceof ResponseInterface) {
             $controller->setResponse($content);
-        } else {
-            // Otherwise handle content adequate to it's type and response status
-
+        } else { // Otherwise handle content adequate to it's type and response status
             // Create response from content if current controller response is empty
             if ($controller->getResponse()->isEmpty()) {
                 $controller->setResponse(Response::createFrom($content));
@@ -233,6 +235,6 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
         $this->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_REDIRECT));
         $address = $external ? Formatter::makeUrl($address) : $this->getEnvironment()->getDomain() . $address;
 
-        return (new Response())->setHttpCode(HttpCode::FOUND)->setHeader("Location: {$address}", false);
+        return (new Response())->setHttpCode(HttpCode::FOUND)->clearHeaders()->setHeader('Location', $address);
     }
 }

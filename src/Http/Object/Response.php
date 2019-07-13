@@ -114,30 +114,63 @@ class Response implements ResponseInterface
     }
 
     /**
-     *
      * {@inheritdoc}
-     *
-     * @see \Minwork\Http\Interfaces\ResponseInterface::setHeader($header, $append)
      */
-    public function setHeader($header, bool $merge = true): ResponseInterface
+    public function setHeader(string $name, $value = null, bool $caseInsensitive = true): ResponseInterface
     {
-        if ($merge) {
-            if (is_string($header)) {
-                $this->headers[] = $header;
-            } elseif (is_array($header)) {
-                $this->headers = array_merge($this->headers, $header);
-            }
+        if (is_null($value)) {
+            $this->headers[] = $name;
         } else {
-            if (is_string($header)) {
-                $header = [
-                    $header
-                ];
+            if ($caseInsensitive) {
+                $nameLc = strtolower($name);
+                foreach (array_keys($this->headers) as $key) {
+                    if (strtolower($key) === $nameLc) {
+                        unset($this->headers[$key]);
+                    }
+                }
             }
-            if (is_array($header)) {
-                $this->headers = $header;
-            }
+            $this->headers[$name] = $value;
         }
         $this->empty = false;
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setHeaders(array $headers): ResponseInterface
+    {
+        $this->headers = $headers;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function removeHeader(string $name, bool $caseInsensitive = true): ResponseInterface
+    {
+        if ($caseInsensitive) {
+            $nameLc = strtolower($name);
+            foreach (array_keys($this->headers) as $key) {
+                if (strtolower($key) === $nameLc) {
+                    unset($this->headers[$key]);
+                }
+            }
+        } else {
+            unset($this->headers[$name]);
+        }
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clearHeaders(): ResponseInterface
+    {
+        $this->headers = [];
+
         return $this;
     }
 

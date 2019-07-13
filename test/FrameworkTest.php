@@ -1,4 +1,5 @@
 <?php
+
 namespace Test;
 
 require "vendor/autoload.php";
@@ -20,8 +21,9 @@ class FrameworkTest extends PHPUnit_Framework_TestCase
     public function testUrlParsing()
     {
         $url = '/test/test-method/lang-es/page-5/arg1/arg2:test2/arg3:test3,arg4:test4/arg5,arg6';
-        
-        $controller = new class() extends Controller {
+
+        $controller = new class() extends Controller
+        {
 
             public function test_method()
             {
@@ -33,9 +35,9 @@ class FrameworkTest extends PHPUnit_Framework_TestCase
         ]);
         $environment = new Environment();
         $framework = new Framework($router, $environment);
-        
+
         $framework->run($url, true);
-        
+
         $this->assertEquals('es', $framework->getRouter()
             ->getLang());
         $this->assertEquals(5, $framework->getRouter()
@@ -86,7 +88,8 @@ class FrameworkTest extends PHPUnit_Framework_TestCase
         $environment = new Environment();
         $breakFlowResponse = new Response('TestBreakFlowContent', Response::CONTENT_TYPE_JSON, HttpCode::BAD_REQUEST);
 
-        $controller = new class($eventDispatcher, $counter, $breakFlowResponse) extends Controller {
+        $controller = new class($eventDispatcher, $counter, $breakFlowResponse) extends Controller
+        {
             /* @var $this self */
             use Connector;
 
@@ -154,7 +157,7 @@ class FrameworkTest extends PHPUnit_Framework_TestCase
                 return $this->test_method();
             }
         };
-        
+
         $router = new Router([
             Router::DEFAULT_CONTROLLER_ROUTE_NAME => $controller,
             'test' => $controller,
@@ -167,7 +170,7 @@ class FrameworkTest extends PHPUnit_Framework_TestCase
                 ],
             ],
         ]);
-        
+
         $framework = new Framework($router, $environment, $eventDispatcher);
 
         $content = $framework->run($url, TRUE)->getContent();
@@ -183,5 +186,35 @@ class FrameworkTest extends PHPUnit_Framework_TestCase
         $response = $framework->run($url, TRUE);
         $this->assertSame(201, $response->getHttpCode());
         $this->assertSame('PostProcessedContent', $response->getContent());
+    }
+
+    public function testResponse()
+    {
+        $response = new Response();
+        $basicHeaders = $response->getHeaders();
+
+        $response->setHeader('Test', 'abc');
+        $this->assertSame(array_merge($basicHeaders, ['Test' => 'abc']), $response->getHeaders());
+
+        $response->setHeader('test', 'def');
+        $this->assertSame(array_merge($basicHeaders, ['test' => 'def']), $response->getHeaders());
+
+        $response->setHeader('Foo: Bar');
+        $this->assertSame(array_merge($basicHeaders, ['test' => 'def', 'Foo: Bar']), $response->getHeaders());
+
+        $response->setHeader('TEST', 'xyz', false);
+        $this->assertSame(array_merge($basicHeaders, ['test' => 'def', 'Foo: Bar', 'TEST' => 'xyz']), $response->getHeaders());
+
+        $response->setHeader('TEst', 123, false);
+        $this->assertSame(array_merge($basicHeaders, ['test' => 'def', 'Foo: Bar', 'TEST' => 'xyz', 'TEst' => 123]), $response->getHeaders());
+
+        $response->removeHeader('TEst', false);
+        $this->assertSame(array_merge($basicHeaders, ['test' => 'def', 'Foo: Bar', 'TEST' => 'xyz']), $response->getHeaders());
+
+        $response->removeHeader('TEsT');
+        $this->assertSame(array_merge($basicHeaders, ['Foo: Bar']), $response->getHeaders());
+
+        $response->clearHeaders();
+        $this->assertSame([], $response->getHeaders());
     }
 }
