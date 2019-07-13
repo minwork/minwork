@@ -15,4 +15,4 @@ $controller = new class() extends Controller {
     }
 };
 $framework = new Framework(new Router(['default_controller' => $controller]), new Environment());
-echo $framework->run('/World', true);
+echo $framework->run('/World', true)->getContent();

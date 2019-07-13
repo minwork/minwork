@@ -12,8 +12,9 @@ use Minwork\Http\Object\Response;
 use Minwork\Http\Object\Router;
 use Minwork\Http\Utility\Environment;
 use Minwork\Http\Utility\HttpCode;
+use PHPUnit_Framework_TestCase;
 
-class FrameworkTest extends \PHPUnit_Framework_TestCase
+class FrameworkTest extends PHPUnit_Framework_TestCase
 {
 
     public function testUrlParsing()
@@ -125,7 +126,9 @@ class FrameworkTest extends \PHPUnit_Framework_TestCase
 
             public function afterRun()
             {
-                $this->counter += 4;
+                if ($this->postProcess) {
+                    $this->getResponse()->setContent('PostProcessedContent');
+                }
             }
 
             public function beforeOutput()
@@ -135,8 +138,9 @@ class FrameworkTest extends \PHPUnit_Framework_TestCase
 
             public function afterMethodRun()
             {
+                $this->counter += 4;
                 if ($this->postProcess) {
-                    $this->getResponse()->setContent('PostProcessedContent');
+                    $this->getResponse()->setHttpCode(201);
                 }
             }
 
@@ -166,17 +170,18 @@ class FrameworkTest extends \PHPUnit_Framework_TestCase
         
         $framework = new Framework($router, $environment, $eventDispatcher);
 
-        $content = $framework->run($url, TRUE);
-        $this->assertEquals(15, $controller->counter);
-        $this->assertEquals('TestNormalFlowContent', $content);
+        $content = $framework->run($url, TRUE)->getContent();
+        $this->assertSame(15, $controller->counter);
+        $this->assertSame('TestNormalFlowContent', $content);
 
         $controller->break = true;
-        $content = $framework->run($url, TRUE);
-        $this->assertEquals('TestBreakFlowContent', $content);
+        $content = $framework->run($url, TRUE)->getContent();
+        $this->assertSame('TestBreakFlowContent', $content);
 
         $controller->break = false;
         $controller->postProcess = true;
-        $content = $framework->run($url, TRUE);
-        $this->assertEquals('PostProcessedContent', $content);
+        $response = $framework->run($url, TRUE);
+        $this->assertSame(201, $response->getHttpCode());
+        $this->assertSame('PostProcessedContent', $response->getContent());
     }
 }

@@ -1,4 +1,9 @@
-# README
+# Minwork - PHP Framework
+## Disclaimer
+Currently minwork framework is in alpha stage and can have breaking changes between releases, which also means that examples may be out of date.
+
+It is **not recommended** to use it in production environment, but if you still want to, then specify exact library version to avoid updates that can break your application. 
+
 ## What is Minwork?
 Minwork is a PHP 7 micro framework designed to be fast, compact, easy to use, with interchangeable modules.
 
@@ -18,7 +23,7 @@ This is how to create simple Hello World application
 require 'vendor/autoload.php';
 
 use Minwork\Core\Framework;
-use Minwork\Basic\Utility\Environment;
+use Minwork\Http\Utility\Environment;
 use Minwork\Http\Object\Router;
 use Minwork\Basic\Controller\Controller;
 
@@ -44,7 +49,7 @@ And your index.php should look like this
 require 'vendor/autoload.php';
 
 use Minwork\Core\Framework;
-use Minwork\Basic\Utility\Environment;
+use Minwork\Http\Utility\Environment;
 use Minwork\Http\Object\Router;
 use Minwork\Basic\Controller\Controller;
 

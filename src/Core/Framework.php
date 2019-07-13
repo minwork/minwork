@@ -135,12 +135,12 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
      * @param bool $return
      * @return mixed
      */
-    protected function output(ResponseInterface $response, bool $return)
+    protected function output(ResponseInterface $response, bool $return): ResponseInterface
     {
         $this->getEventDispatcher()->dispatch(new Event(self::EVENT_BEFORE_CONTENT_OUTPUT));
 
         if ($return) {
-            return $response->getContent();
+            return $response;
         }
 
         foreach ($response->getHeaders() as $header) {
@@ -166,7 +166,7 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
      *            If url should be sanitized
      * @return mixed
      */
-    public function run(string $url, bool $return = false, bool $sanitize = true)
+    public function run(string $url, bool $return = false, bool $sanitize = true): ResponseInterface
     {
         $controller = $this->getRouter()
             ->translateUrl($url, $sanitize)
@@ -202,13 +202,19 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
 
         $controller->getEventDispatcher()->dispatch(new FlowEvent(self::EVENT_AFTER_METHOD_RUN, $controllerName, $method, $arguments));
 
-        // If controller returned some value then convert it to response
-        if ($controller->getResponse()->isEmpty()) {
-            // Cast whole content to response if it was empty
-            $controller->setResponse(Response::createFrom($content));
-        } elseif (!$content instanceof ResponseInterface) {
-            // If return value is not response then merge it with controller response
-            $controller->getResponse()->setContent($content);
+        // If returned response then set it as controller response
+        if ($content instanceof ResponseInterface) {
+            $controller->setResponse($content);
+        } else {
+            // Otherwise handle content adequate to it's type and response status
+
+            // Create response from content if current controller response is empty
+            if ($controller->getResponse()->isEmpty()) {
+                $controller->setResponse(Response::createFrom($content));
+            } else {
+                // Otherwise just set it as response content
+                $controller->getResponse()->setContent($content);
+            }
         }
 
         $controller->getEventDispatcher()->dispatch(new FlowEvent(self::EVENT_AFTER_CONTROLLER_RUN, $controllerName, $method, $arguments));
