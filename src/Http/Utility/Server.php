@@ -156,14 +156,15 @@ class Server
      * Get current page domain
      * <pre>protocol://server_name[:port]</pre>
      *
+     * @param bool $port If domain address should have port in it (if not default)
      * @return string
      */
-    public static function getDomain(): string
+    public static function getDomain(bool $port = false): string
     {
         $pageUrl = self::getProtocolName() . "://";
 
         // If not using default port then append specific port
-        if (!self::isDefaultPort()) {
+        if (!self::isDefaultPort() && $port) {
             $pageUrl .= self::getServerName() . ":" . self::getPort();
         } else {
             $pageUrl .= self::getServerName();
@@ -210,7 +211,7 @@ class Server
     public static function isDefaultPort(): bool
     {
         $port = self::getPort();
-        return (self::isSecure() && $port === self::HTTPS_PORT) || (!self::isSecure() && $port === self::DEFAULT_PORT);
+        return $port === self::HTTPS_PORT || $port === self::DEFAULT_PORT;
     }
 
     /**
