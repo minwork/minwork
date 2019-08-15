@@ -23,6 +23,9 @@ interface TableInterface
     const DEFAULT_ESCAPE_CHAR = '"';
 
     const COLUMNS_ALL = '*';
+    public const COLUMNS_NO_PK = 2;
+    public const COLUMN_NAMES = 1;
+    public const COLUMNS_PK_ONLY = 4;
 
     /**
      * ***************** Table operations *******************
@@ -110,7 +113,7 @@ interface TableInterface
      * @param int|array|string $limit            
      * @return mixed
      */
-    public function delete($conditions = [], $limit = null);
+    public function delete($conditions, $limit = null);
 
     /**
      * Check if row(s) exists in table
@@ -152,18 +155,24 @@ interface TableInterface
     /**
      * Get table name
      *
-     * @param bool $escaped
+     * @param bool $quoted
      *            If table name should be enclosed with quotation corresponding to database driver
      * @return string
      */
-    public function getName(bool $escaped = true): string;
+    public function getName(bool $quoted = true): string;
 
     /**
      * Get primary key field name or array of names representing specific column names in database
      *
      * @return string|array
      */
-    public function getPkField();
+    public function getPrimaryKey();
+
+    /**
+     * @param string|string[] $columns Name(s) of primary key column(s)
+     * @return TableInterface
+     */
+    public function setPrimaryKeys($columns): TableInterface;
 
     /**
      * Return list of columns depending on specified filter<br>

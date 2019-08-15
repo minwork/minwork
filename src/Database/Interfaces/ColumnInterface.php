@@ -16,8 +16,6 @@ namespace Minwork\Database\Interfaces;
 interface ColumnInterface
 {
 
-    const DEFAULT_ESCAPE_CHAR = '"';
-
     const TYPE_INTEGER = 'int';
 
     const TYPE_DOUBLE = 'double';
@@ -36,11 +34,9 @@ interface ColumnInterface
     /**
      * Get column name
      *
-     * @param $escaped bool
-     *            If table name should be enclosed with quotation corresponding to database driver
      * @return string
      */
-    public function getName($escaped = true): string;
+    public function getName(): string;
 
     /**
      * Set column name
@@ -56,13 +52,6 @@ interface ColumnInterface
      * @return string
      */
     public function getType(): string;
-
-    /**
-     * Get column PHP data type (one of the type constants)
-     *
-     * @return string
-     */
-    public function getInternalType(): string;
 
     /**
      * Set column type
@@ -133,10 +122,11 @@ interface ColumnInterface
     public function setAutoIncrement(bool $autoIncrement = true): self;
 
     /**
-     * Format value according to column PHP type
+     * Format value according to mapped PHP type depending on database platform
      *
-     * @param mixed $value            
+     * @param mixed $value
+     * @param DatabaseInterface $database
      * @return mixed
      */
-    public function format($value);
+    public function format($value, DatabaseInterface $database);
 }

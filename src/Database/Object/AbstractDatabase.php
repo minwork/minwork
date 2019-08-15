@@ -11,6 +11,7 @@
 namespace Minwork\Database\Object;
 
 use InvalidArgumentException;
+use Minwork\Database\Exceptions\DatabaseException;
 use Minwork\Helper\Formatter;
 use Minwork\Database\Interfaces\DatabaseInterface;
 use PDO;
@@ -61,6 +62,12 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
      * @var int
      */
     protected $transactions = 0;
+
+    /**
+     * If transactions can only roll back cause one of nested transactions failed
+     * @var bool
+     */
+    protected $isRollbackOnly = false;
 
     /**
      *
@@ -164,7 +171,7 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
      *
      * @see \Minwork\Database\Interfaces\DatabaseInterface::escape()
      */
-    public function escape($value): string
+    public function escape($value, $type = null): string
     {
         // Convert null to string null
         if (is_null($value)) {
@@ -251,32 +258,42 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
     public function startTransaction()
     {
         // If already in transaction then increment transactions counter to silently support nested transactions
-        if ($this->hasActiveTransaction()) {
-            ++$this->transactions;
-        } else {
+        if (!$this->hasActiveTransaction()) {
             $this->beginTransaction();
         }
+        ++$this->transactions;
     }
 
-    public function finishTransaction()
+    /**
+     * @return void
+     * @throws DatabaseException
+     */
+    public function finishTransaction(): void
     {
+        if ($this->isRollbackOnly) {
+            throw DatabaseException::transactionRollbackOnly();
+        }
         // If have nested transactions then just decrement counter instead of actually committing
-        if ($this->transactions > 0) {
-            --$this->transactions;
-        } else {
+        if (--$this->transactions <= 0) {
             $this->commit();
         }
     }
 
-    public function abortTransaction()
+    /**
+     * @return bool|mixed
+     * @throws DatabaseException
+     */
+    public function abortTransaction(): void
     {
-        if ($this->hasActiveTransaction()) {
-            // Reset transactions counter
-            $this->transactions = 0;
-            return $this->rollBack();
+        if (!$this->hasActiveTransaction()) {
+            throw DatabaseException::noTransaction();
+        }
+
+        if (--$this->transactions <= 0) {
+            $this->isRollbackOnly = false;
+            $this->rollBack();
         } else {
-            --$this->transactions;
-            return false;
+            $this->isRollbackOnly = true;
         }
     }
 

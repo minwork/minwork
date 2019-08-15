@@ -7,6 +7,7 @@
  */
 namespace Minwork\Database\Sqlite;
 
+use Exception;
 use Minwork\Database\Object\AbstractTable;
 use Minwork\Database\Interfaces\ColumnInterface;
 use Minwork\Database\Object\Column;
@@ -19,6 +20,10 @@ use Minwork\Database\Object\Column;
  */
 class Table extends AbstractTable
 {
+    public function escapeColumn(string $column): string
+    {
+        return "\"{$column}\"";
+    }
 
     /**
      *
@@ -47,11 +52,11 @@ class Table extends AbstractTable
     protected function getColumnDefinition(ColumnInterface $column): string
     {
         // If column is rowid
-        if ($column->isAutoIncrement() && $column->isPrimaryKey() && $column->getInternalType() == ColumnInterface::TYPE_INTEGER) {
-            return "{$column->getName()} INTEGER PRIMARY KEY AUTOINCREMENT";
+        if ($column->isAutoIncrement() && $column->isPrimaryKey()) {
+            return "{$this->escapeColumn($column->getName())} INTEGER PRIMARY KEY AUTOINCREMENT";
         }
         
-        $definition = "{$column->getName()} {$column->getType()}";
+        $definition = "{$this->escapeColumn($column->getName())} {$column->getType()}";
         $definition .= $column->isNullable() ? " NULL" : " NOT NULL";
         
         if (is_null($column->getDefaultValue()) && $column->isNullable()) {
@@ -71,6 +76,8 @@ class Table extends AbstractTable
      */
     public function clear(): int
     {
+        /** @noinspection SqlNoDataSourceInspection */
+        /** @noinspection SqlWithoutWhere */
         $result = $this->getDatabase()->exec("DELETE FROM {$this->getName()}");
         $this->getDatabase()->exec("VACUUM");
         return $result;
@@ -80,6 +87,7 @@ class Table extends AbstractTable
      *
      * {@inheritdoc}
      *
+     * @throws Exception
      * @see \Minwork\Database\Interfaces\TableInterface::create()
      */
     public function create(bool $replace = false): bool
@@ -88,13 +96,13 @@ class Table extends AbstractTable
         $pk = [];
         $columns = $this->getColumns();
         foreach ($columns as $column) {
-            $query[$column->getName(false)] = $this->getColumnDefinition($column);
+            $query[$column->getName()] = $this->getColumnDefinition($column);
             if ($column->isPrimaryKey()) {
-                $pk[$column->getName(false)] = $column;
+                $pk[$column->getName()] = $column;
             }
         }
         if (empty($pk)) {
-            throw new \Exception("Table {$this->getName()} doesn't have primary key");
+            throw new Exception("Table {$this->getName()} doesn't have primary key");
         }
         if (count($pk) === 1) {
             if (! $columns[key($pk)]->isAutoIncrement()) {
@@ -102,10 +110,11 @@ class Table extends AbstractTable
             }
         } elseif (count($pk) > 1) {
             $query[] = 'PRIMARY KEY(' . implode(', ', array_map(function ($column) {
-                return $column->getName();
+                /** @var ColumnInterface $column */
+                return $this->escapeColumn($column->getName());
             }, $pk)) . ')';
         } else {
-            throw new \Exception('Cannot create table without specifying primary key');
+            throw new Exception('Cannot create table without specifying primary key');
         }
         
         $statement = "CREATE";
@@ -124,6 +133,7 @@ class Table extends AbstractTable
      *
      * {@inheritdoc}
      *
+     * @throws Exception
      * @see \Minwork\Database\Object\AbstractTable::synchronize()
      */
     public function synchronize(): bool

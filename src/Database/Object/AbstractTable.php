@@ -31,12 +31,6 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
 {
     use Debugger;
 
-    const COLUMNS_FLAG_NAMES = 2;
-
-    const COLUMNS_FLAG_NAMES_WITHOUT_PRIMARY_KEYS = 4;
-
-    const COLUMNS_FLAG_PRIMARY_KEYS = 8;
-
     /**
      * Database object
      *
@@ -57,6 +51,11 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * @var ColumnInterface[]
      */
     protected $columns;
+
+    /**
+     * @var string[]
+     */
+    protected $primaryKeys;
 
     /**
      *
@@ -100,6 +99,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * {@inheritdoc}
      *
      * @see \Minwork\Database\Interfaces\TableInterface::getColumns()
+     * @return ColumnInterface[]
      */
     public function getColumns($filter = null): array
     {
@@ -109,25 +109,17 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         }
         
         $columns = $this->columns;
-        
-        if ($filter & static::COLUMNS_FLAG_PRIMARY_KEYS) {
-            $columns = array_filter($columns, function ($column) {
-                /** @var ColumnInterface $column */
-                return $column->isPrimaryKey();
-            });
+
+        if ($filter & TableInterface::COLUMNS_NO_PK) {
+            $columns = Arr::filterByKeys($columns, $this->primaryKeys, true);
+        } elseif ($filter & TableInterface::COLUMNS_PK_ONLY) {
+            $columns = Arr::filterByKeys($columns, $this->primaryKeys);
         }
-        
-        if ($filter & static::COLUMNS_FLAG_NAMES) {
-            $columns = array_keys($columns);
+
+        if ($filter & TableInterface::COLUMN_NAMES) {
+            return array_keys($columns);
         }
-        
-        if ($filter & static::COLUMNS_FLAG_NAMES_WITHOUT_PRIMARY_KEYS) {
-            $columns = array_keys(array_filter($columns, function ($column) {
-                /** @var ColumnInterface $column */
-                return ! $column->isPrimaryKey();
-            }));
-        }
-        
+
         return $columns;
     }
 
@@ -140,12 +132,19 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     public function setColumns(array $columns): TableInterface
     {
         $this->columns = [];
+        $primaryKeys = [];
         foreach ($columns as $column) {
             if (! $column instanceof ColumnInterface) {
                 throw new InvalidArgumentException('Columns array element must implement ColumnInterface');
             }
-            $this->columns[$column->getName(false)] = $column;
+            $name = $column->getName();
+            $this->columns[$name] = $column;
+            if ($column->isPrimaryKey()) {
+                $primaryKeys[] = $name;
+            }
         }
+
+        $this->setPrimaryKeys($primaryKeys);
         return $this;
     }
 
@@ -161,7 +160,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         $columns = $this->getColumns();
         foreach ($data as $column => $value) {
             if (array_key_exists($column, $columns)) {
-                $return[$column] = $columns[$column]->format($value);
+                $return[$column] = $columns[$column]->format($value, $this->getDatabase());
             } else {
                 $return[$column] = $value;
             }
@@ -171,7 +170,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
             $toFill = array_keys(array_diff_key($columns, $return));
             foreach ($toFill as $column) {
                 $columnObj = $columns[$column];
-                $return[$column] = $columnObj->format($columnObj->getDefaultValue());
+                $return[$column] = $columnObj->format($columnObj->getDefaultValue(), $this->getDatabase());
             }
         }
         
@@ -195,9 +194,9 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      *
      * @see \Minwork\Database\Interfaces\TableInterface::getName()
      */
-    public function getName(bool $escaped = true): string
+    public function getName(bool $quoted = true): string
     {
-        return $escaped ? static::DEFAULT_ESCAPE_CHAR . $this->name . static::DEFAULT_ESCAPE_CHAR : $this->name;
+        return $quoted ? static::DEFAULT_ESCAPE_CHAR . $this->name . static::DEFAULT_ESCAPE_CHAR : $this->name;
     }
 
     /**
@@ -234,14 +233,14 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         foreach ($curColumns as $name => $column) {
             if (array_key_exists($name, $dbColumns)) {
                 if ($dbColumns[$name] != $column) {
-                    $modify[$column->getName(false)] = $this->getColumnDefinition($column);
+                    $modify[$column->getName()] = $this->getColumnDefinition($column);
                 }
             } else {
-                $add[$column->getName(false)] = $this->getColumnDefinition($column);
+                $add[$column->getName()] = $this->getColumnDefinition($column);
             }
-            
+
             if ($column->isPrimaryKey()) {
-                $pk[$column->getName(false)] = $column;
+                $pk[$column->getName()] = $column;
             }
         }
         $remove = array_diff_key($dbColumns, $curColumns);
@@ -261,15 +260,15 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         }
         
         foreach ($remove as $name => $column) {
-            $query[] = "DROP COLUMN {$column->getName()}";
+            $query[] = "DROP COLUMN {$this->escapeColumn($column->getName())}";
         }
         
-        $curPk = $this->getColumns(self::COLUMNS_FLAG_PRIMARY_KEYS);
+        $curPk = $this->getColumns(TableInterface::COLUMNS_PK_ONLY);
         if (array_keys($pk) != array_keys($curPk)) {
             $query[] = 'DROP PRIMARY KEY';
             $query[] = 'ADD PRIMARY KEY(' . implode(', ', array_map(function ($column) {
                 /** @var ColumnInterface $column */
-                return $column->getName();
+                return $this->escapeColumn($column->getName());
             }, $pk)) . ')';
         }
         $statement .= implode(', ', $query);
@@ -287,9 +286,9 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         $query = [];
         $pk = [];
         foreach ($this->getColumns() as $column) {
-            $query[$column->getName(false)] = $this->getColumnDefinition($column);
+            $query[$column->getName()] = $this->getColumnDefinition($column);
             if ($column->isPrimaryKey()) {
-                $pk[$column->getName(false)] = $column;
+                $pk[$column->getName()] = $column;
             }
         }
         if (empty($pk)) {
@@ -300,7 +299,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         } elseif (count($pk) > 1) {
             $query[] = 'PRIMARY KEY(' . implode(',', array_map(function ($column) {
                 /** @var ColumnInterface $column */
-                return $column->getName();
+                return $this->escapeColumn($column->getName());
             }, $pk)) . ')';
         }
         
@@ -356,7 +355,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         $statement .= ! is_null($group) ? "{$this->getGroupQuery($group)} " : "";
         $statement .= ! is_null($order) ? "{$this->getOrderQuery($order)} " : "";
         $statement .= ! is_null($limit) ? "{$this->getLimitQuery($limit)} " : "";
-        
+
         return $this->getDatabase()->query($statement);
     }
 
@@ -421,7 +420,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
      * @see \Minwork\Database\Object\AbstractTable::getLimitQuery()
      */
-    public function delete($conditions = [], $limit = null)
+    public function delete($conditions, $limit = null)
     {
         /** @noinspection SqlWithoutWhere */
         $statement = "DELETE FROM {$this->getName()} ";
@@ -444,6 +443,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         if (empty($conditions)) {
             return false;
         } else {
+            /** @noinspection SqlRedundantLimit */
             return boolval($this->getDatabase()
                 ->query("SELECT EXISTS(SELECT 1 FROM {$this->getName()} {$this->getConditionsQuery($conditions)} LIMIT 1) as e")
                 ->fetchColumn());
@@ -469,13 +469,26 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Storage\Interfaces\DatabaseStorageInterface::getPkField()
+     * @see \Minwork\Storage\Interfaces\DatabaseStorageInterface::getPrimaryKey()
      */
-    public function getPkField()
+    public function getPrimaryKey()
     {
-        $pkFields = $this->getColumns(self::COLUMNS_FLAG_PRIMARY_KEYS | self::COLUMNS_FLAG_NAMES);
-        return count($pkFields) === 1 ? reset($pkFields) : $pkFields;
+        return count($this->primaryKeys) === 1 ? reset($this->primaryKeys) : $this->primaryKeys;
     }
+
+    /**
+     *
+     * {@inheritdoc}
+     *
+     * @see \Minwork\Storage\Interfaces\DatabaseStorageInterface::setPkField()
+     */
+    public function setPrimaryKeys($columns): TableInterface
+    {
+        $this->primaryKeys = Arr::forceArray($columns);
+
+        return $this;
+    }
+
 
     /**
      *
@@ -485,7 +498,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      */
     public function getFields(): array
     {
-        return $this->getColumns(self::COLUMNS_FLAG_NAMES_WITHOUT_PRIMARY_KEYS);
+        return $this->getColumns(TableInterface::COLUMNS_NO_PK | TableInterface::COLUMN_NAMES);
     }
 
     /**
@@ -580,11 +593,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      *
      * @see \Minwork\Database\Interfaces\TableInterface::escapeColumn()
      */
-    public function escapeColumn(string $column): string
-    {
-        $columns = $this->getColumns();
-        return array_key_exists($column, $columns) ? $columns[$column]->getName() : static::DEFAULT_ESCAPE_CHAR . $column . static::DEFAULT_ESCAPE_CHAR;
-    }
+    abstract public function escapeColumn(string $column): string;
 
     /**
      * Get LIMIT part of sql query<br>

@@ -175,7 +175,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
      */
     public function getBindingFieldName(): string
     {
-        $idField = $this->getStorage()->getPkField();
+        $idField = $this->getStorage()->getPrimaryKey();
         if (! is_string($idField)) {
             throw new Exception('Cannot bind model with multiple id fields');
         }
@@ -245,7 +245,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
     public function getNormalizedId(): array
     {
         $id = $this->getId();
-        $idFields = Arr::forceArray($this->getStorage()->getPkField());
+        $idFields = Arr::forceArray($this->getStorage()->getPrimaryKey());
         if (is_array($id)) {
             if (! Arr::isAssoc($id, true)) {
                 // If id isnt assoc but has same number of elements as id columns treat it as values to those columns
@@ -259,7 +259,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
                 return $id;
             }
         } elseif (is_string($id) || is_numeric($id)) {
-            $pkField = $this->getStorage()->getPkField();
+            $pkField = $this->getStorage()->getPrimaryKey();
             if (is_array($pkField)) {
                 $this->debug('Model id value is singular while storage have multiple primary key fields: ' . Formatter::toString($pkField));
                 $pkField = reset($pkField);
@@ -280,7 +280,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
     public function setId($id): ModelInterface
     {
         $storage = $this->getStorage();
-        $idField = $storage->getPkField();
+        $idField = $storage->getPrimaryKey();
 
         if (is_null($id)) {
             $this->id = $id;
@@ -325,7 +325,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
         // Format data according to database columns
         $data = $this->getStorage()->format($data);
         // If we have id in data then set it
-        $ids = Arr::filterByKeys($data, Arr::forceArray($this->getStorage()->getPkField()));
+        $ids = Arr::filterByKeys($data, Arr::forceArray($this->getStorage()->getPrimaryKey()));
         if (! empty($ids)) {
             $this->setId($ids);
             $data = array_diff_key($data, $ids);
@@ -624,7 +624,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
     public function create(array $data = []): bool
     {
         // When creating search for ids
-        $ids = Arr::filterByKeys($data, Arr::forceArray($this->getStorage()->getPkField()));
+        $ids = Arr::filterByKeys($data, Arr::forceArray($this->getStorage()->getPrimaryKey()));
         $data = Arr::filterByKeys($data, $this->getStorage()->getFields());
         
         if (! empty($ids)) {

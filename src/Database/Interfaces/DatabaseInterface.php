@@ -38,9 +38,10 @@ interface DatabaseInterface
      * Cross-platform string escaping for preventing SQL injection (usually by sanitizing data and surrounding it with quotes)
      *
      * @param mixed $value
+     * @param mixed|null $type
      * @return string
      */
-    public function escape($value): string;
+    public function escape($value, $type = null): string;
 
     /**
      * Get database host address
@@ -85,16 +86,12 @@ interface DatabaseInterface
     public function startTransaction();
     /**
      * Method to commit database transaction
-     *
-     * @return mixed
      */
-    public function finishTransaction();
+    public function finishTransaction(): void;
     /**
      * Method to abort database transaction
-     *
-     * @return mixed
      */
-    public function abortTransaction();
+    public function abortTransaction(): void ;
     /**
      * If database has active transaction
      *

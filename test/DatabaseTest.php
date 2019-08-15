@@ -1,26 +1,50 @@
-<?php
+<?php /** @noinspection PhpUnhandledExceptionInspection */
+
 namespace Test;
 
-require "vendor/autoload.php";
-
-use Minwork\Helper\DateHelper;
-use Minwork\Database\Object\Column;
+use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Types\Type;
+use Exception;
+use Minwork\Database\Interfaces\TableInterface;
 use Minwork\Database\MySql\Database as MySqlDatabase;
 use Minwork\Database\MySql\Table as MySqlTable;
+use Minwork\Database\Object\Column;
 use Minwork\Database\Sqlite\Database as SqliteDatabase;
 use Minwork\Database\Sqlite\Table as SqliteTable;
-use Minwork\Database\Interfaces\TableInterface;
-use Minwork\Helper\Formatter;
-use Minwork\Database\Object\AbstractTable;
+use Minwork\Database\Doctrine\Database as DoctrineDatabase;
+use Minwork\Database\Doctrine\Table as DoctrineTable;
+use Minwork\Database\Doctrine\Column as DocColumn;
 use Minwork\Database\Utility\Condition;
+use Minwork\Helper\DateHelper;
+use Minwork\Helper\Formatter;
 use Minwork\Helper\Random;
+use PDO;
+use PDOException;
+use PHPUnit_Framework_TestCase;
+use Test\Utils\DatabaseProvider;
+use Throwable;
 
-class DatabaseTest extends \PHPUnit_Framework_TestCase
+class DatabaseTest extends PHPUnit_Framework_TestCase
 {
 
-    const TABLE_NAME = '#!@$%^&*()_+[];./,`~<>:?"\'}{|\\';
+    const TABLE_NAME = '#!@$%^&*()_+;/,`~<>:"\'}{|\\';
 
-    protected $database, $table, $secondPkColumn, $newDataColumn;
+    /**
+     * @var MySqlDatabase|SqliteDatabase|DoctrineDatabase
+     */
+    private $database;
+    /**
+     * @var MySqlTable|SqliteTable|DoctrineTable
+     */
+    private $table;
+    /**
+     * @var Column|DocColumn
+     */
+    private $secondPkColumn;
+    /**
+     * @var Column|DocColumn
+     */
+    private $newDataColumn;
 
     public function testSqlite()
     {
@@ -32,39 +56,32 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         ]);
         $this->secondPkColumn = new Column(TableInterface::DEFAULT_PK_FIELD . '2', 'VARCHAR(10)', null, false, true);
         $this->newDataColumn = new Column('data2', 'VARCHAR(511)');
-        
+
         $this->databaseTest();
+        $this->transactionsTest();
     }
 
     public function testMysql()
     {
-        global $argv, $argc;
+        $config = DatabaseProvider::getConfig();
+
         try {
-            switch ($argc) {
-                // Database host, name, user and password specified in arguments
-                case 6:
-                    $this->database = new MySqlDatabase($argv[2], $argv[3], $argv[4], $argv[5]);
-                    break;
-                // Database host, user and password specified in arguments
-                case 5:
-                    $this->database = new MySqlDatabase($argv[2], 'test', $argv[3], $argv[4]);
-                    break;
-                // Database host and name specified in arguments
-                case 4:
-                    $this->database = new MySqlDatabase($argv[2], $argv[3], 'root', '');
-                    break;
-                // Database name specified in arguments
-                case 3:
-                    $this->database = new MySqlDatabase('localhost', $argv[2], 'root', '');
-                    break;
-                // If no database configuration arguments specified then fallback to default settings
-                case 2:
-                default:
-                    $this->database = new MySqlDatabase('localhost', 'test', 'root', '');
-                    break;
-            }
-        } catch (\PDOException $e) {
-            echo "\n\nDatabase test: Cannot connect to MySQL server.\nTry specifing connection parameters via phpunit arguments like:\nvendor/bin/phpunit test/DatabaseTest.php [DBName|DBHost DBName|DBHost DBUser DBPassword|DBHost DBName DBUser DBPassword]\n\n";
+            $this->database = new MySqlDatabase($config['host'], $config['dbname'], $config['user'], $config['password'], $config['charset']);
+        } catch (PDOException $e) {
+            echo <<<EOT
+Database test: Cannot connect to MySQL server using default params.
+Error({$e->getCode()}): {$e->getMessage()}
+
+Try specifying connection parameters via environment variables.
+
+Currently used:
+DB_HOST = '{$config['host']}' (default: 'localhost')
+DB_NAME = '{$config['dbname']}' (default: 'test')
+DB_USER = '{$config['user']}' (default: 'root')
+DB_PASS = '{$config['password']}' (default: '')
+DB_CHARSET = '{$config['charset']}' (default: '{$config['defaultCharset']}')
+
+EOT;
             return;
         }
         $this->table = new MySqlTable($this->database, self::TABLE_NAME, [
@@ -74,11 +91,54 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         ]);
         $this->secondPkColumn = new Column(TableInterface::DEFAULT_PK_FIELD . '2', 'VARCHAR(10)', null, false, true);
         $this->newDataColumn = new Column('data2', 'VARCHAR(511)');
-        
+
         $this->databaseTest();
+        $this->transactionsTest();
     }
 
-    protected function databaseTest()
+    public function testDoctrine()
+    {
+        $config = DatabaseProvider::getConfig();
+
+        try {
+            $config['driverOptions '] = $config['options'];
+            unset($config['options']);
+            $this->database = new DoctrineDatabase($config);
+
+            $this->table = new DoctrineTable($this->database, self::TABLE_NAME, [
+                new DocColumn(TableInterface::DEFAULT_PK_FIELD, Type::INTEGER, null, false, true),
+                new DocColumn('data', Type::STRING, 'test'),
+                new DocColumn('date', Type::DATETIME, null, true)
+            ]);
+            $this->secondPkColumn = new DocColumn(TableInterface::DEFAULT_PK_FIELD . '2', Type::STRING, null, false, true);
+            $this->secondPkColumn->getDoctrineColumn()->setLength(10);
+
+            $this->newDataColumn = new DocColumn('data2', Type::STRING);
+            $this->newDataColumn->getDoctrineColumn()->setLength(511);
+        } catch (DBALException $e) {
+            echo <<<EOT
+Database test: Cannot connect to Doctrine database platform using default params.
+Error({$e->getCode()}): {$e->getMessage()}
+
+Try specifying connection parameters via environment variables.
+
+Currently used:
+DB_HOST = '{$config['host']}' (default: 'localhost')
+DB_NAME = '{$config['dbname']}' (default: 'test')
+DB_USER = '{$config['user']}' (default: 'root')
+DB_PASS = '{$config['password']}' (default: '')
+DB_CHARSET = '{$config['charset']}' (default: '{$config['defaultCharset']}')
+DB_DRIVER = '{$config['driver']}' (default: '{$config['defaultDriver']}')
+
+EOT;
+
+        }
+
+        $this->databaseTest();
+        $this->transactionsTest();
+    }
+
+    private function databaseTest()
     {
         // Test data
         $data = [
@@ -100,16 +160,17 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
             'data' => Random::string(255),
             'date' => DateHelper::addDays(2)
         ];
-        
+
+        /** @noinspection PhpUnhandledExceptionInspection */
         $this->assertTrue($this->table->create(true));
-        
+
         // Basic check on empty table
         $this->assertEquals(false, $this->table->exists($data));
         $this->assertEquals(0, $this->table->countRows());
         $this->assertEquals(0, $this->table->countRows($data));
         $this->assertEquals(Formatter::removeQuotes(self::TABLE_NAME), $this->table->getName(false));
-        $this->assertEquals(TableInterface::DEFAULT_PK_FIELD, $this->table->getPkField());
-        
+        $this->assertEquals(TableInterface::DEFAULT_PK_FIELD, $this->table->getPrimaryKey());
+
         // Insert
         $this->table->insert($data);
         $this->assertEquals(true, $this->table->exists([
@@ -117,10 +178,10 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         ]));
         $this->assertEquals(1, $this->table->countRows());
         $this->assertEquals(1, $this->table->countRows($data));
-        
+
         $this->assertEquals($data, $this->table->select($data, array_keys($data))
-            ->fetch(\PDO::FETCH_ASSOC));
-        
+            ->fetch(PDO::FETCH_ASSOC));
+
         // Check if data column has its default value
         $this->assertEquals([
             'data' => $this->table->getColumns()['data']->getDefaultValue()
@@ -129,8 +190,9 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         ], [
             'data'
         ])
-            ->fetch(\PDO::FETCH_ASSOC));
+            ->fetch(PDO::FETCH_ASSOC));
         // Check if insert data with default value from schema is same as table data
+        /** @noinspection PhpUnhandledExceptionInspection */
         $this->assertSame($this->table->format($data, true), $this->table->format($this->table->select([
             TableInterface::DEFAULT_PK_FIELD => $data[TableInterface::DEFAULT_PK_FIELD]
         ], [
@@ -138,8 +200,8 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
             'date',
             'data'
         ])
-            ->fetch(\PDO::FETCH_ASSOC)));
-        
+            ->fetch(PDO::FETCH_ASSOC)));
+
         // Update
         $this->table->update($updateData, [
             TableInterface::DEFAULT_PK_FIELD => $data[TableInterface::DEFAULT_PK_FIELD]
@@ -149,11 +211,11 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         ], array_keys($updateData), [
             'date' => -1
         ], 1, TableInterface::DEFAULT_PK_FIELD)
-            ->fetch(\PDO::FETCH_ASSOC));
-        
+            ->fetch(PDO::FETCH_ASSOC));
+
         // Insert another row and check condition building
         $this->table->insert($data3);
-        
+
         $conditions = (new Condition())->column(TableInterface::DEFAULT_PK_FIELD)
             ->in([
                 $updateData[TableInterface::DEFAULT_PK_FIELD],
@@ -164,28 +226,28 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
             ->gte(0)
             ->and()
             ->condition((new Condition())->column('date')
-            ->isNull()
-            ->or()
-            ->column('date')
-            ->between(DateHelper::now(), DateHelper::addDays(20)))
+                ->isNull()
+                ->or()
+                ->column('date')
+                ->between(DateHelper::now(), DateHelper::addDays(20)))
             ->and()
             ->column('data')
             ->isNotNull();
-        
+
         $result = $this->table->select($conditions, TableInterface::COLUMNS_ALL, [
-            'date' => - 1,
+            'date' => -1,
             TableInterface::DEFAULT_PK_FIELD => 1,
             'data' => 'DESC'
-        ], 2, TableInterface::DEFAULT_PK_FIELD)->fetchAll(\PDO::FETCH_ASSOC);
-        
+        ], 2, TableInterface::DEFAULT_PK_FIELD)->fetchAll(PDO::FETCH_ASSOC);
+
         $this->assertEquals(2, count($result));
         $this->assertEquals($updateData[TableInterface::DEFAULT_PK_FIELD], $result[0][TableInterface::DEFAULT_PK_FIELD]);
         $this->assertEquals($data3[TableInterface::DEFAULT_PK_FIELD], $result[1][TableInterface::DEFAULT_PK_FIELD]);
-        
+
         // Clean up table
         $this->table->clear();
         $this->assertEquals(0, $this->table->countRows());
-        
+
         // Change table schema
         $columns = $this->table->getColumns();
         $columns = array_merge(array_slice($columns, 0, 1, true), [
@@ -195,22 +257,86 @@ class DatabaseTest extends \PHPUnit_Framework_TestCase
         $columns['data'] = $this->newDataColumn;
         $this->table->setColumns($columns);
         $this->assertTrue($this->table->synchronize());
-        
-        $this->assertEquals(array_keys($data2), $this->table->getColumns(AbstractTable::COLUMNS_FLAG_NAMES));
+
+        $this->assertEquals(array_keys($data2), $this->table->getColumns(TableInterface::COLUMN_NAMES));
         $this->assertEquals(0, $this->table->countRows());
         $this->assertEquals([
             TableInterface::DEFAULT_PK_FIELD,
             TableInterface::DEFAULT_PK_FIELD . '2'
-        ], $this->table->getPkField());
-        
+        ], $this->table->getPrimaryKey());
+
         $this->table->insert($data2);
-        
+
         $currentData = $this->table->select([
             TableInterface::DEFAULT_PK_FIELD => $data2[TableInterface::DEFAULT_PK_FIELD],
             TableInterface::DEFAULT_PK_FIELD . '2' => $data2[TableInterface::DEFAULT_PK_FIELD . '2']
-        ])->fetch(\PDO::FETCH_ASSOC);
-        
+        ])->fetch(PDO::FETCH_ASSOC);
+
+        /** @noinspection PhpUnhandledExceptionInspection */
         $this->assertSame($data2, $this->table->format($currentData));
         $this->assertTrue($this->table->remove());
+    }
+
+    private function transactionsTest()
+    {
+        $db = $this->database;
+
+        $db->startTransaction(); // 1
+        $this->assertTrue($db->hasActiveTransaction());
+
+        $db->startTransaction(); // 2
+        $db->startTransaction(); // 3
+        $db->startTransaction(); // 4
+
+        $db->abortTransaction(); // 4
+        $this->assertTrue($db->hasActiveTransaction());
+
+        $db->abortTransaction(); // 3
+        $this->assertTrue($db->hasActiveTransaction());
+
+        $db->abortTransaction(); // 2
+        $this->assertTrue($db->hasActiveTransaction());
+
+        $db->abortTransaction(); // 1
+        $this->assertFalse($db->hasActiveTransaction());
+
+        $db->startTransaction(); // 1
+        $this->assertTrue($db->hasActiveTransaction());
+
+        $db->startTransaction(); // 2
+        $this->assertTrue($db->hasActiveTransaction());
+
+        $db->startTransaction(); // 3
+        $this->assertTrue($db->hasActiveTransaction());
+
+        $db->finishTransaction(); // 3
+        $this->assertTrue($db->hasActiveTransaction());
+
+        $db->finishTransaction(); // 2
+        $this->assertTrue($db->hasActiveTransaction());
+
+        $db->finishTransaction(); // 1
+        $this->assertFalse($db->hasActiveTransaction());
+
+        $db->startTransaction(); // 1
+        $db->startTransaction(); // 2
+        $db->startTransaction(); // 3
+        $this->assertTrue($db->hasActiveTransaction());
+
+        $db->finishTransaction(); // 3
+        $this->assertTrue($db->hasActiveTransaction());
+
+        $db->abortTransaction(); // 2
+        $this->assertTrue($db->hasActiveTransaction());
+
+        try {
+            $db->finishTransaction(); // 1
+        } catch (Throwable $e) {
+            $db->abortTransaction();
+        }
+        $this->assertFalse($db->hasActiveTransaction());
+
+        $this->expectException(Exception::class);
+        $db->abortTransaction();
     }
 }

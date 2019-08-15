@@ -8,6 +8,7 @@
 namespace Minwork\Database\Object;
 
 use Minwork\Database\Interfaces\ColumnInterface;
+use Minwork\Database\Interfaces\DatabaseInterface;
 
 /**
  * Column object used by table for creation, synchronization with database or formatting its value using appropiate PHP type
@@ -94,7 +95,7 @@ class Column implements ColumnInterface
      */
     public function __toString(): string
     {
-        return $this->getName(false);
+        return $this->getName();
     }
 
     /**
@@ -103,9 +104,9 @@ class Column implements ColumnInterface
      *
      * @see \Minwork\Database\Interfaces\ColumnInterface::getName()
      */
-    public function getName($escaped = true): string
+    public function getName(): string
     {
-        return $escaped ? static::DEFAULT_ESCAPE_CHAR . $this->name . static::DEFAULT_ESCAPE_CHAR : $this->name;
+        return $this->name;
     }
 
     /**
@@ -140,16 +141,6 @@ class Column implements ColumnInterface
     public function setType(string $type): ColumnInterface
     {
         $this->type = $type;
-        
-        if ($this->hasType('int')) {
-            $this->internalType = self::TYPE_INTEGER;
-        } elseif ($this->hasType('float') || $this->hasType('decimal') || $this->hasType('double')) {
-            $this->internalType = self::TYPE_DOUBLE;
-        } elseif ($this->hasType('bool')) {
-            $this->internalType = self::TYPE_BOOLEAN;
-        } else {
-            $this->internalType = self::TYPE_STRING;
-        }
         
         return $this;
     }
@@ -262,26 +253,26 @@ class Column implements ColumnInterface
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Database\Interfaces\ColumnInterface::getInternalType()
-     */
-    public function getInternalType(): string
-    {
-        return $this->internalType;
-    }
-
-    /**
-     *
-     * {@inheritdoc}
-     *
      * @see \Minwork\Database\Interfaces\ColumnInterface::format()
      */
-    public function format($value)
+    public function format($value, DatabaseInterface $database)
     {
         if ((is_null($value) || strcasecmp($value, 'null') === 0) && $this->isNullable()) {
             return null;
         }
-        
-        settype($value, $this->getInternalType());
+
+        if ($this->hasType('int')) {
+            $internalType = self::TYPE_INTEGER;
+        } elseif ($this->hasType('float') || $this->hasType('decimal') || $this->hasType('double')) {
+            $internalType = self::TYPE_DOUBLE;
+        } elseif ($this->hasType('bool')) {
+            $internalType = self::TYPE_BOOLEAN;
+        } else {
+            $internalType = self::TYPE_STRING;
+        }
+
+        settype($value, $internalType);
+
         return $value;
     }
 }

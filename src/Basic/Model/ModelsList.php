@@ -7,12 +7,10 @@
  */
 namespace Minwork\Basic\Model;
 
+use InvalidArgumentException;
 use Minwork\Basic\Interfaces\ModelInterface;
-use Minwork\Database\Utility\Query;
-use Minwork\Operation\Basic\Read;
-use Minwork\Operation\Object\OperationEvent;
-use Minwork\Helper\Arr;
 use Minwork\Database\Interfaces\TableInterface;
+use Minwork\Database\Utility\Query;
 use Minwork\Storage\Interfaces\DatabaseStorageInterface;
 
 /**
@@ -53,7 +51,10 @@ class ModelsList
      * @var ModelInterface|callable|array
      */
     protected $prototype;
-    
+
+    /**
+     * @var DatabaseStorageInterface|TableInterface
+     */
     protected $storage;
 
     /**
@@ -133,7 +134,7 @@ class ModelsList
             }
             $model = $function(...$arguments);
         } else {
-            throw new \InvalidArgumentException('Model prototype must be either ModelInterface object, callable or array containing callable and its arguments');
+            throw new InvalidArgumentException('Model prototype must be either ModelInterface object, callable or array containing callable and its arguments');
         }
         
         if (! is_null($data)) {

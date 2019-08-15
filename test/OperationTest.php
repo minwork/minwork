@@ -1,8 +1,6 @@
 <?php
 namespace Test;
 
-require "vendor/autoload.php";
-
 use Minwork\Operation\Object\Operation;
 use Minwork\Event\Object\EventDispatcher;
 use Minwork\Operation\Interfaces\RevertableObjectOperationInterface;
@@ -10,8 +8,9 @@ use Minwork\Operation\Traits\Operations;
 use Minwork\Operation\Interfaces\RevertableOperationInterface;
 use Minwork\Event\Traits\Connector;
 use Minwork\Operation\Object\OperationEvent;
+use PHPUnit_Framework_TestCase;
 
-class OperationTest extends \PHPUnit_Framework_TestCase
+class OperationTest extends PHPUnit_Framework_TestCase
 {
 
     public function test()

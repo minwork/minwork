@@ -27,9 +27,9 @@ interface DatabaseStorageInterface extends StorageInterface
     /**
      * Get primary key field name or array of names
      *
-     * @return string|array
+     * @return string|string[]
      */
-    public function getPkField();
+    public function getPrimaryKey();
 
     /**
      * Get array of field names (excluding primary keys)

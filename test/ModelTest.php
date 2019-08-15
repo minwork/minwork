@@ -1,33 +1,33 @@
 <?php
 namespace Test;
 
-require "vendor/autoload.php";
-
+use Doctrine\DBAL\Types\Type;
 use Exception;
 use Minwork\Basic\Model\Model;
+use Minwork\Basic\Model\ModelBinder;
+use Minwork\Basic\Model\ModelsList;
+use Minwork\Database\Doctrine\Database as DoctrineDatabase;
+use Minwork\Database\Interfaces\ColumnInterface;
 use Minwork\Database\Interfaces\DatabaseInterface;
 use Minwork\Database\Interfaces\TableInterface;
-use Minwork\Storage\Interfaces\DatabaseStorageInterface;
-use Minwork\Validation\Object\Validator;
-use Minwork\Validation\Utility\Rule;
-use Minwork\Operation\Basic\Create;
-use Minwork\Helper\DateHelper;
-use Minwork\Operation\Basic\Update;
-use Minwork\Operation\Basic\Delete;
-use Minwork\Basic\Model\ModelsList;
-use Minwork\Database\Utility\Query;
-use Minwork\Basic\Model\ModelBinder;
-use Minwork\Validation\Utility\Field;
-use Minwork\Database\Object\Column;
-use Minwork\Helper\Random;
 use Minwork\Database\MySql\Database as MySqlDatabase;
 use Minwork\Database\Sqlite\Database as SqliteDatabase;
-use PDOException;
+use Minwork\Database\Utility\Query;
+use Minwork\Helper\DateHelper;
+use Minwork\Helper\Random;
+use Minwork\Operation\Basic\Create;
+use Minwork\Operation\Basic\Delete;
+use Minwork\Operation\Basic\Update;
+use Minwork\Storage\Interfaces\DatabaseStorageInterface;
+use Minwork\Validation\Object\Validator;
+use Minwork\Validation\Utility\Field;
+use Minwork\Validation\Utility\Rule;
 use PHPUnit_Framework_TestCase;
+use Test\Utils\DatabaseProvider;
+use Throwable;
 
 class ModelTest extends PHPUnit_Framework_TestCase
 {
-
     /**
      * @var DatabaseInterface
      */
@@ -36,40 +36,96 @@ class ModelTest extends PHPUnit_Framework_TestCase
      * @var TableInterface
      */
     protected static $table;
+    /**
+     * @var ColumnInterface
+     */
+    protected static $column;
+
+    /**
+     * @var array
+     */
+    protected static $columnTypes;
+
+    private static function setupMysql(array $config) {
+        self::$database = new MySqlDatabase($config['host'], $config['dbname'], $config['user'], $config['password'], $config['charset']);
+        self::$table = 'Minwork\Database\MySql\Table';
+        self::$column = 'Minwork\Database\Object\Column';
+        self::$columnTypes = [
+            'int' => 'INT',
+            'string' => 'VARCHAR(255)',
+            'datetime' => 'DATETIME',
+            'bool' => 'BOOL',
+            'text' => 'TEXT',
+        ];
+    }
+
+    private static function setupSqlite() {
+        self::$database = new SqliteDatabase(':memory:');
+        self::$table = 'Minwork\Database\Sqlite\Table';
+        self::$column = 'Minwork\Database\Object\Column';
+        self::$columnTypes = [
+            'int' => 'INT',
+            'string' => 'VARCHAR(255)',
+            'datetime' => 'DATETIME',
+            'bool' => 'BOOL',
+            'text' => 'TEXT',
+        ];
+    }
+
+    /**
+     * @param array $config
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    private static function setupDoctrine(array $config) {
+        self::$database = new DoctrineDatabase($config);
+        self::$table = 'Minwork\Database\Doctrine\Table';
+        self::$column = 'Minwork\Database\Doctrine\Column';
+        self::$columnTypes = [
+            'int' => Type::INTEGER,
+            'string' => Type::STRING,
+            'datetime' => Type::DATETIME,
+            'bool' => Type::BOOLEAN,
+            'text' => Type::TEXT,
+        ];
+    }
 
     public static function setUpBeforeClass()
     {
-        global $argv, $argc;
+        $config = DatabaseProvider::getConfig();
+        $type = getenv('DB_TYPE');
+
         try {
-            switch ($argc) {
-                // Database host, name, user and password specified in arguments
-                case 6:
-                    self::$database = new MySqlDatabase($argv[2], $argv[3], $argv[4], $argv[5]);
+            switch ($type) {
+                case 'mysql':
+                    self::setupMysql($config);
                     break;
-                // Database host, user and password specified in arguments
-                case 5:
-                    self::$database = new MySqlDatabase($argv[2], 'test', $argv[3], $argv[4]);
+                case 'doctrine':
+                    self::setupDoctrine($config);
                     break;
-                // Database host and name specified in arguments
-                case 4:
-                    self::$database = new MySqlDatabase($argv[2], $argv[3], 'root', '');
-                    break;
-                // Database name specified in arguments
-                case 3:
-                    self::$database = new MySqlDatabase('localhost', $argv[2], 'root', '');
-                    break;
-                // If no database configuration arguments specified then fallback to default settings
-                case 2:
+                case 'sqlite':
                 default:
-                    self::$database = new MySqlDatabase('localhost', 'test', 'root', '');
+                    self::setupSqlite();
                     break;
             }
-            self::$table = 'Minwork\Database\MySql\Table';
-        } catch (PDOException $e) {
-            echo "\n\nModel test: Cannot connect to MySQL server, using SQLite instead.\nTry specifing connection parameters via phpunit arguments like:\nvendor/bin/phpunit test/ModelTest.php [DBName|DBHost DBName|DBHost DBUser DBPassword|DBHost DBName DBUser DBPassword]\n\n";
-            // If MySQL is unaccessible connect to SQLite
-            self::$database = new SqliteDatabase(':memory:');
-            self::$table = 'Minwork\Database\Sqlite\Table';
+            echo "\nUsing {$type} database...\n";
+
+        } catch (Throwable $e) {
+            echo <<<EOT
+Database test: Cannot connect to database server ($type), used sqlite instead.
+Error({$e->getCode()}): {$e->getMessage()}
+
+Try specifying connection parameters via environment variables.
+
+Currently used:
+DB_HOST = '{$config['host']}' (default: 'localhost')
+DB_NAME = '{$config['dbname']}' (default: 'test')
+DB_USER = '{$config['user']}' (default: 'root')
+DB_PASS = '{$config['password']}' (default: '')
+DB_CHARSET = '{$config['charset']}' (default: '{$config['defaultCharset']}')
+DB_TYPE = '{$type}' (available: mysql|sqlite|doctrine)
+
+EOT;
+            self::setupSqlite();
         }
     }
 
@@ -90,10 +146,10 @@ class ModelTest extends PHPUnit_Framework_TestCase
         $newId = 'unexisting';
         /** @var $table TableInterface|DatabaseStorageInterface */
         $table = new self::$table(self::$database, 'test', [
-            new Column('id', 'INT', null, false, true, true),
-            new Column('name', 'VARCHAR(255)'),
-            new Column('email', 'VARCHAR(255)'),
-            new Column('change_date', 'DATETIME')
+            new self::$column('id', self::$columnTypes['int'], null, false, true, true),
+            new self::$column('name', self::$columnTypes['string']),
+            new self::$column('email', self::$columnTypes['string']),
+            new self::$column('change_date', self::$columnTypes['datetime'])
         ]);
         $table->create(true);
         
@@ -152,10 +208,10 @@ class ModelTest extends PHPUnit_Framework_TestCase
         // Test multiple columns id
         /** @var $table TableInterface */
         $table = new self::$table(self::$database, 'test', [
-            new Column('id_1', 'INT', null, false, true),
-            new Column('id_2', 'VARCHAR(255)', null, false, true),
-            new Column('id_3', 'BOOLEAN', null, false, true),
-            new Column('data', 'TEXT')
+            new self::$column('id_1', self::$columnTypes['int'], null, false, true),
+            new self::$column('id_2', self::$columnTypes['string'], null, false, true),
+            new self::$column('id_3', self::$columnTypes['bool'], null, false, true),
+            new self::$column('data', self::$columnTypes['text'])
         ]);
         $table->create(true);
         
@@ -185,7 +241,8 @@ class ModelTest extends PHPUnit_Framework_TestCase
         
         $model = new Model($table, $ids);
         $this->assertEquals($data['data'], $model->getData('data'));
-        
+
+        unset($model);
         // Clean up table
         $table->remove();
     }
@@ -209,9 +266,9 @@ class ModelTest extends PHPUnit_Framework_TestCase
 
         /** @var TableInterface $table */
         $table = new self::$table(self::$database, 'test', [
-            new Column('id', 'INT', null, false, true, true),
-            new Column('name', 'VARCHAR(255)'),
-            new Column('key', 'INT(1)')
+            new self::$column('id', self::$columnTypes['int'], null, false, true, true),
+            new self::$column('name', self::$columnTypes['string']),
+            new self::$column('key', self::$columnTypes['int'])
         ]);
         $table->create(true);
         
@@ -292,8 +349,8 @@ class ModelTest extends PHPUnit_Framework_TestCase
     {
         /** @var TableInterface $table */
         $table = new self::$table(self::$database, 'test', [
-            new Column('id', 'INT', null, false, true, true),
-            new Column('name', 'VARCHAR(255)')
+            new self::$column('id', self::$columnTypes['int'], null, false, true, true),
+            new self::$column('name', self::$columnTypes['string'])
         ]);
         $table->create(true);
         
@@ -309,9 +366,9 @@ class ModelTest extends PHPUnit_Framework_TestCase
 
         /** @var TableInterface|DatabaseStorageInterface $table2 */
         $table2 = new self::$table(self::$database, 'test3', [
-            new Column('test_id_1', 'INT', null, false, true),
-            new Column('test_id_2', 'INT', null, false, true),
-            new Column('data', 'VARCHAR(255)')
+            new self::$column('test_id_1', self::$columnTypes['int'], null, false, true),
+            new self::$column('test_id_2', self::$columnTypes['int'], null, false, true),
+            new self::$column('data', self::$columnTypes['string'])
         ]);
         $table2->create(true);
         

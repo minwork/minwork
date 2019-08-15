@@ -2,13 +2,12 @@
 
 namespace Test;
 
-require "vendor/autoload.php";
-
 use Minwork\Error\Object\Errors;
 use Minwork\Error\Basic\FieldError;
 use Minwork\Error\Object\Error;
+use PHPUnit_Framework_TestCase;
 
-class ErrorTest extends \PHPUnit_Framework_TestCase
+class ErrorTest extends PHPUnit_Framework_TestCase
 {
 
     public function test()

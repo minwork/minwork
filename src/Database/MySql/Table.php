@@ -21,6 +21,10 @@ use Minwork\Database\Interfaces\ColumnInterface;
  */
 class Table extends AbstractTable
 {
+    public function escapeColumn(string $column): string
+    {
+        return "`$column`";
+    }
 
     /**
      *
@@ -43,11 +47,14 @@ class Table extends AbstractTable
     protected function getDbColumns(): array
     {
         $columns = [];
+        /** @noinspection SqlNoDataSourceInspection */
+        /** @noinspection SqlResolve */
         $result = $this->getDatabase()
             ->query("SELECT * FROM information_schema.COLUMNS WHERE TABLE_SCHEMA={$this->getDatabase()->escape($this->getDatabase()->getName())} AND TABLE_NAME={$this->getDatabase()->escape($this->getName(false))}")
             ->fetchAll(Database::FETCH_ASSOC);
         foreach ($result as $column) {
-            $c = new Column($column['COLUMN_NAME'], $column['COLUMN_TYPE'], $column['COLUMN_DEFAULT'], $column['IS_NULLABLE'] == 'YES', $column['COLUMN_KEY'] == 'PRI', strpos($column['EXTRA'], 'auto_increment') !== false, $column['CHARACTER_SET_NAME'] ?? '');
+            //$column['CHARACTER_SET_NAME'] ?? ''
+            $c = new Column($column['COLUMN_NAME'], $column['COLUMN_TYPE'], $column['COLUMN_DEFAULT'], $column['IS_NULLABLE'] == 'YES', $column['COLUMN_KEY'] == 'PRI', strpos($column['EXTRA'], 'auto_increment') !== false);
             $columns[strval($c)] = $c;
         }
         return $columns;
@@ -61,7 +68,7 @@ class Table extends AbstractTable
      */
     protected function getColumnDefinition(ColumnInterface $column): string
     {
-        $definition = "{$column->getName()} {$column->getType()}";
+        $definition = "{$this->escapeColumn($column->getName())} {$column->getType()}";
         $definition .= $column->isNullable() ? " NULL" : " NOT NULL";
         
         if (is_null($column->getDefaultValue()) && $column->isNullable()) {

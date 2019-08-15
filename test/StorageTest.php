@@ -1,15 +1,13 @@
 <?php
 namespace Test;
 
-require "vendor/autoload.php";
-
-use Minwork\Storage\Object\AbstractArrayStorage;
-use Minwork\Storage\Basic\Cookie;
-use Minwork\Storage\Basic\Session;
 use Minwork\Storage\Basic\Get;
 use Minwork\Storage\Basic\Post;
+use Minwork\Storage\Basic\Session;
+use Minwork\Storage\Object\AbstractArrayStorage;
+use PHPUnit_Framework_TestCase;
 
-class StorageTest extends \PHPUnit_Framework_TestCase {
+class StorageTest extends PHPUnit_Framework_TestCase {
     public function test()
     {
         $array = [];

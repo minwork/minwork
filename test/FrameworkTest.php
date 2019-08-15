@@ -2,8 +2,6 @@
 
 namespace Test;
 
-require "vendor/autoload.php";
-
 use Minwork\Basic\Controller\Controller;
 use Minwork\Basic\Utility\FlowEvent;
 use Minwork\Core\Framework;

@@ -1,12 +1,11 @@
 <?php
 namespace Test;
 
-require "vendor/autoload.php";
-
 use Minwork\Event\Object\Event;
 use Minwork\Event\Object\EventDispatcher;
+use PHPUnit_Framework_TestCase;
 
-class EventTest extends \PHPUnit_Framework_TestCase
+class EventTest extends PHPUnit_Framework_TestCase
 {
 
     public function testDispatcher()
@@ -41,7 +40,7 @@ class EventTest extends \PHPUnit_Framework_TestCase
                 return $this->propagated;
             }
 
-            public function update(Event $e)
+            public function update()
             {
                 $this->propagated = true;
             }
@@ -120,6 +119,7 @@ class EventTest extends \PHPUnit_Framework_TestCase
             }
         };
         $this->assertEquals('TestEvent', $event->getName());
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->assertEquals('test', $event->getData()[0]
             ->test());
         $dispatcher->addListener($event, [
