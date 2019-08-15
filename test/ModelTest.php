@@ -24,6 +24,7 @@ use Minwork\Validation\Utility\Field;
 use Minwork\Validation\Utility\Rule;
 use PHPUnit_Framework_TestCase;
 use Test\Utils\DatabaseProvider;
+use Test\Utils\Timer;
 use Throwable;
 
 class ModelTest extends PHPUnit_Framework_TestCase
@@ -144,6 +145,8 @@ EOT;
             'change_date' => DateHelper::addHours(2, DateHelper::now())
         ];
         $newId = 'unexisting';
+
+        Timer::start("#1 Table creation");
         /** @var $table TableInterface|DatabaseStorageInterface */
         $table = new self::$table(self::$database, 'test', [
             new self::$column('id', self::$columnTypes['int'], null, false, true, true),
@@ -152,7 +155,8 @@ EOT;
             new self::$column('change_date', self::$columnTypes['datetime'])
         ]);
         $table->create(true);
-        
+        Timer::start("#1 Model operations");
+
         $model = new Model($table);
         $validator = new Validator(
             new Field('name', [
@@ -206,6 +210,7 @@ EOT;
         $table->remove();
         
         // Test multiple columns id
+        Timer::start("#2 Table creation");
         /** @var $table TableInterface */
         $table = new self::$table(self::$database, 'test', [
             new self::$column('id_1', self::$columnTypes['int'], null, false, true),
@@ -214,7 +219,8 @@ EOT;
             new self::$column('data', self::$columnTypes['text'])
         ]);
         $table->create(true);
-        
+        Timer::start("#2 Model operations");
+
         $model = new Model($table, null, false);
         $data = [
             'id_1' => Random::int(),
@@ -242,6 +248,7 @@ EOT;
         $model = new Model($table, $ids);
         $this->assertEquals($data['data'], $model->getData('data'));
 
+        Timer::finish();
         unset($model);
         // Clean up table
         $table->remove();
@@ -264,6 +271,7 @@ EOT;
             ]
         ];
 
+        Timer::start("#1 Models List - table creation");
         /** @var TableInterface $table */
         $table = new self::$table(self::$database, 'test', [
             new self::$column('id', self::$columnTypes['int'], null, false, true, true),
@@ -271,7 +279,9 @@ EOT;
             new self::$column('key', self::$columnTypes['int'])
         ]);
         $table->create(true);
-        
+
+        Timer::start("#1 Models List - operations");
+
         foreach ($dataList as $data) {
             $table->insert($data);
         }
@@ -339,6 +349,8 @@ EOT;
         foreach ($list as $model) {
             $model->synchronize();
         }
+        Timer::finish();
+
         $table->remove();
     }
 
@@ -347,12 +359,23 @@ EOT;
      */
     public function testModelsBinder()
     {
+        Timer::start("#1 Models binder - table creation");
         /** @var TableInterface $table */
         $table = new self::$table(self::$database, 'test', [
             new self::$column('id', self::$columnTypes['int'], null, false, true, true),
             new self::$column('name', self::$columnTypes['string'])
         ]);
         $table->create(true);
+
+        /** @var TableInterface|DatabaseStorageInterface $table2 */
+        $table2 = new self::$table(self::$database, 'test3', [
+            new self::$column('test_id_1', self::$columnTypes['int'], null, false, true),
+            new self::$column('test_id_2', self::$columnTypes['int'], null, false, true),
+            new self::$column('data', self::$columnTypes['string'])
+        ]);
+        $table2->create(true);
+
+        Timer::start("#1 Models binder - operations");
         
         $model1 = new Model($table);
         $model2 = new Model($table);
@@ -364,14 +387,6 @@ EOT;
             'name' => 'Test 2'
         ]);
 
-        /** @var TableInterface|DatabaseStorageInterface $table2 */
-        $table2 = new self::$table(self::$database, 'test3', [
-            new self::$column('test_id_1', self::$columnTypes['int'], null, false, true),
-            new self::$column('test_id_2', self::$columnTypes['int'], null, false, true),
-            new self::$column('data', self::$columnTypes['string'])
-        ]);
-        $table2->create(true);
-        
         $data = [
             'data' => 'Test 3'
         ];
@@ -397,7 +412,9 @@ EOT;
         $this->assertFalse($modelBinder->exists());
         $this->assertEmpty($modelBinder->getData());
         $this->assertNull($modelBinder->getId());
-        
+
+        Timer::finish();
+
         // Clean up tables
         $table->remove();
         $table2->remove();
