@@ -1,12 +1,10 @@
 <?php
 namespace Test;
 
-use Doctrine\DBAL\Types\Type;
 use Exception;
 use Minwork\Basic\Model\Model;
 use Minwork\Basic\Model\ModelBinder;
 use Minwork\Basic\Model\ModelsList;
-use Minwork\Database\Doctrine\Database as DoctrineDatabase;
 use Minwork\Database\Interfaces\ColumnInterface;
 use Minwork\Database\Interfaces\DatabaseInterface;
 use Minwork\Database\Interfaces\TableInterface;
@@ -73,23 +71,6 @@ class ModelTest extends PHPUnit_Framework_TestCase
         ];
     }
 
-    /**
-     * @param array $config
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    private static function setupDoctrine(array $config) {
-        self::$database = new DoctrineDatabase($config);
-        self::$table = 'Minwork\Database\Doctrine\Table';
-        self::$column = 'Minwork\Database\Doctrine\Column';
-        self::$columnTypes = [
-            'int' => Type::INTEGER,
-            'string' => Type::STRING,
-            'datetime' => Type::DATETIME,
-            'bool' => Type::BOOLEAN,
-            'text' => Type::TEXT,
-        ];
-    }
-
     public static function setUpBeforeClass()
     {
         $config = DatabaseProvider::getConfig();
@@ -99,9 +80,6 @@ class ModelTest extends PHPUnit_Framework_TestCase
             switch ($type) {
                 case 'mysql':
                     self::setupMysql($config);
-                    break;
-                case 'doctrine':
-                    self::setupDoctrine($config);
                     break;
                 case 'sqlite':
                 default:

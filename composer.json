@@ -29,19 +29,18 @@
     "ext-iconv": "*"
   },
   "require-dev": {
-    "phpunit/phpunit": "^5.0",
-    "minwork/doctrine-db": "^1.0"
+    "phpunit/phpunit": "^5.0"
   },
   "autoload": {
     "psr-4": {
-      "Minwork\\": "src/",
-      "Test\\": "test/"
+      "Minwork\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
       "Example\\ApiServer\\": "example/api/server/",
-      "Example\\ApiClient\\": "example/api/client/"
+      "Example\\ApiClient\\": "example/api/client/",
+      "Test\\": "test/"
     }
   }
 }

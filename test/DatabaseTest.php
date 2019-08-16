@@ -2,8 +2,6 @@
 
 namespace Test;
 
-use Doctrine\DBAL\DBALException;
-use Doctrine\DBAL\Types\Type;
 use Exception;
 use Minwork\Database\Interfaces\TableInterface;
 use Minwork\Database\MySql\Database as MySqlDatabase;
@@ -11,9 +9,6 @@ use Minwork\Database\MySql\Table as MySqlTable;
 use Minwork\Database\Object\Column;
 use Minwork\Database\Sqlite\Database as SqliteDatabase;
 use Minwork\Database\Sqlite\Table as SqliteTable;
-use Minwork\Database\Doctrine\Database as DoctrineDatabase;
-use Minwork\Database\Doctrine\Table as DoctrineTable;
-use Minwork\Database\Doctrine\Column as DocColumn;
 use Minwork\Database\Utility\Condition;
 use Minwork\Helper\DateHelper;
 use Minwork\Helper\Formatter;
@@ -30,19 +25,19 @@ class DatabaseTest extends PHPUnit_Framework_TestCase
     const TABLE_NAME = '#!@$%^&*()_+;/,`~<>:"\'}{|\\';
 
     /**
-     * @var MySqlDatabase|SqliteDatabase|DoctrineDatabase
+     * @var MySqlDatabase|SqliteDatabase
      */
     private $database;
     /**
-     * @var MySqlTable|SqliteTable|DoctrineTable
+     * @var MySqlTable|SqliteTable
      */
     private $table;
     /**
-     * @var Column|DocColumn
+     * @var Column
      */
     private $secondPkColumn;
     /**
-     * @var Column|DocColumn
+     * @var Column
      */
     private $newDataColumn;
 
@@ -91,48 +86,6 @@ EOT;
         ]);
         $this->secondPkColumn = new Column(TableInterface::DEFAULT_PK_FIELD . '2', 'VARCHAR(10)', null, false, true);
         $this->newDataColumn = new Column('data2', 'VARCHAR(511)');
-
-        $this->databaseTest();
-        $this->transactionsTest();
-    }
-
-    public function testDoctrine()
-    {
-        $config = DatabaseProvider::getConfig();
-
-        try {
-            $config['driverOptions '] = $config['options'];
-            unset($config['options']);
-            $this->database = new DoctrineDatabase($config);
-
-            $this->table = new DoctrineTable($this->database, self::TABLE_NAME, [
-                new DocColumn(TableInterface::DEFAULT_PK_FIELD, Type::INTEGER, null, false, true),
-                new DocColumn('data', Type::STRING, 'test'),
-                new DocColumn('date', Type::DATETIME, null, true)
-            ]);
-            $this->secondPkColumn = new DocColumn(TableInterface::DEFAULT_PK_FIELD . '2', Type::STRING, null, false, true);
-            $this->secondPkColumn->getDoctrineColumn()->setLength(10);
-
-            $this->newDataColumn = new DocColumn('data2', Type::STRING);
-            $this->newDataColumn->getDoctrineColumn()->setLength(511);
-        } catch (DBALException $e) {
-            echo <<<EOT
-Database test: Cannot connect to Doctrine database platform using default params.
-Error({$e->getCode()}): {$e->getMessage()}
-
-Try specifying connection parameters via environment variables.
-
-Currently used:
-DB_HOST = '{$config['host']}' (default: 'localhost')
-DB_NAME = '{$config['dbname']}' (default: 'test')
-DB_USER = '{$config['user']}' (default: 'root')
-DB_PASS = '{$config['password']}' (default: '')
-DB_CHARSET = '{$config['charset']}' (default: '{$config['defaultCharset']}')
-DB_DRIVER = '{$config['driver']}' (default: '{$config['defaultDriver']}')
-
-EOT;
-
-        }
 
         $this->databaseTest();
         $this->transactionsTest();
