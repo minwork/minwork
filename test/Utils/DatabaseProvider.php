@@ -6,7 +6,7 @@ use Minwork\Helper\Arr;
 
 class DatabaseProvider
 {
-    const DEFAULT_DATABASE_DRIVER = 'pdo_mysql';
+    const DEFAULT_DATABASE_DRIVER = 'pdo_sqlite';
 
     public static function getConfig(): array
     {
