@@ -26,11 +26,11 @@
     "ext-pdo": "*",
     "minwork/array": "^1.1",
     "ext-mbstring": "*",
-    "ext-iconv": "*",
-    "doctrine/dbal": "^2.9"
+    "ext-iconv": "*"
   },
   "require-dev": {
-    "phpunit/phpunit": "^5.0"
+    "phpunit/phpunit": "^5.0",
+    "minwork/doctrine-db": "^1.0"
   },
   "autoload": {
     "psr-4": {
