@@ -5,26 +5,32 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 namespace Minwork\Database\Utility;
 
+use InvalidArgumentException;
 use Minwork\Helper\Formatter;
 
 /**
  * Helper class for storing complex query conditions and then converting them to string
  *
  * @author Christopher Kalkhoff
- *        
+ *
  */
 class Condition
 {
 
-    const TYPE_COLUMN = 'column';
+    private const TYPE_COLUMN = 'column';
 
-    const TYPE_VALUE = 'value';
+    private const TYPE_VALUE = 'value';
 
-    const TYPE_EXPRESSION = 'expression';
+    private const TYPE_EXPRESSION = 'expression';
 
-    const TYPE_CONDITION = 'condition';
+    private const TYPE_CONDITION = 'condition';
+
+    const WILDCARD_LEFT = 'left';
+    const WILDCARD_RIGHT = 'right';
+    const WILDCARD_BOTH = 'both';
 
     /**
      * Array containing parts of query in form of list of 2 elements lists (type and value)
@@ -49,17 +55,11 @@ class Condition
 
     /**
      *
-     * @param callable $valueEscapeFunction            
-     * @param callable $columnEscapeFunction            
+     * @param callable $valueEscapeFunction
+     * @param callable $columnEscapeFunction
      */
-    public function __construct(callable $valueEscapeFunction = null, callable $columnEscapeFunction = null)
+    public function __construct(?callable $valueEscapeFunction = null, ?callable $columnEscapeFunction = null)
     {
-        $valueEscapeFunction = is_null($valueEscapeFunction) ? function ($value) {
-            return "'" . Formatter::cleanData(Formatter::removeQuotes($value)) . "'";
-        } : $valueEscapeFunction;
-        $columnEscapeFunction = is_null($columnEscapeFunction) ? function ($column) {
-            return Formatter::cleanData(Formatter::removeQuotes($column));
-        } : $columnEscapeFunction;
         $this->setValueEscapeFunction($valueEscapeFunction)->setColumnEscapeFunction($columnEscapeFunction);
     }
 
@@ -82,7 +82,7 @@ class Condition
     /**
      * Add condition object to query array
      *
-     * @param self $condition            
+     * @param self $condition
      * @return self
      */
     protected function addCondition(self $condition): self
@@ -135,7 +135,7 @@ class Condition
     {
         return $this->parse();
     }
-    
+
     public function parse(): string
     {
         $stringArray = [];
@@ -163,24 +163,28 @@ class Condition
     /**
      * Set value escape function
      *
-     * @param callable $function            
+     * @param callable $function
      * @return self
      */
-    public function setValueEscapeFunction(callable $function): self
+    public function setValueEscapeFunction(?callable $function): self
     {
-        $this->valueEscapeFunction = $function;
+        $this->valueEscapeFunction = $function ?? function ($value) {
+                return "'" . Formatter::cleanData(Formatter::removeQuotes($value)) . "'";
+            };
         return $this;
     }
 
     /**
      * Set column escape function
      *
-     * @param callable $function            
+     * @param callable $function
      * @return self
      */
-    public function setColumnEscapeFunction(callable $function): self
+    public function setColumnEscapeFunction(?callable $function): self
     {
-        $this->columnEscapeFunction = $function;
+        $this->columnEscapeFunction = $function ?? function ($column) {
+                return Formatter::cleanData($column);
+            };
         return $this;
     }
 
@@ -201,7 +205,7 @@ class Condition
      * Append condition to query to create complex conditions.
      * This object string value will be enclosed within brackets.
      *
-     * @param self $condition            
+     * @param self $condition
      * @return self
      */
     public function condition(self $condition): self
@@ -212,7 +216,7 @@ class Condition
     /**
      * Append expression (convertable to string) to query.
      *
-     * @param mixed $expression            
+     * @param mixed $expression
      * @return self
      */
     public function expression($expression): self
@@ -224,8 +228,8 @@ class Condition
      * Append AND syntax to qurey.
      * Must be preceded by column method.
      *
-     * @see \Minwork\Database\Utility\Condition::column()
      * @return self
+     * @see \Minwork\Database\Utility\Condition::column()
      */
     public function and(): self
     {
@@ -236,8 +240,8 @@ class Condition
      * Append OR syntax to qurey.
      * Must be preceded by column method.
      *
-     * @see \Minwork\Database\Utility\Condition::column()
      * @return self
+     * @see \Minwork\Database\Utility\Condition::column()
      */
     public function or(): self
     {
@@ -248,12 +252,12 @@ class Condition
      * Append BETWEEN 'value1' AND 'value2' syntax to qurey.
      * Must be preceded by column method.
      *
-     * @see \Minwork\Database\Utility\Condition::column()
      * @param mixed $value1
      *            Must be valid escape value function argument
      * @param mixed $value2
      *            Must be valid escape value function argument
      * @return self
+     * @see \Minwork\Database\Utility\Condition::column()
      */
     public function between($value1, $value2): self
     {
@@ -267,16 +271,16 @@ class Condition
      * Append IN('value1', 'value2', ...) syntax to qurey.
      * Must be preceded by column method.
      *
-     * @see \Minwork\Database\Utility\Condition::column()
      * @param array $array
      *            Array of unescaped values
-     * @throws \InvalidArgumentException
      * @return self
+     * @throws InvalidArgumentException
+     * @see \Minwork\Database\Utility\Condition::column()
      */
     public function in(array $array): self
     {
         if (empty($array)) {
-            throw new \InvalidArgumentException('Array can not be empty');
+            throw new InvalidArgumentException('Array can not be empty');
         }
         $this->addExpression('IN (');
         $arrayKeys = array_keys($array);
@@ -294,16 +298,16 @@ class Condition
      * Append NOT IN('value1', 'value2', ...) syntax to qurey.
      * Must be preceded by column method.
      *
-     * @see \Minwork\Database\Utility\Condition::column()
      * @param array $array
      *            Array of unescaped values
-     * @throws \InvalidArgumentException
      * @return self
+     * @throws InvalidArgumentException
+     * @see \Minwork\Database\Utility\Condition::column()
      */
     public function notIn(array $array): self
     {
         if (empty($array)) {
-            throw new \InvalidArgumentException('Array can not be empty');
+            throw new InvalidArgumentException('Array can not be empty');
         }
         $this->addExpression('NOT IN (');
         $arrayKeys = array_keys($array);
@@ -321,8 +325,8 @@ class Condition
      * Append IS NULL syntax to qurey.
      * Must be preceded by column method.
      *
-     * @see \Minwork\Database\Utility\Condition::column()
      * @return self
+     * @see \Minwork\Database\Utility\Condition::column()
      */
     public function isNull(): self
     {
@@ -333,8 +337,8 @@ class Condition
      * Append IS NOT NULL syntax to qurey.
      * Must be preceded by column method.
      *
-     * @see \Minwork\Database\Utility\Condition::column()
      * @return self
+     * @see \Minwork\Database\Utility\Condition::column()
      */
     public function isNotNull(): self
     {
@@ -345,38 +349,61 @@ class Condition
      * Append equal to value (column = value) expression to query.
      * Must be preceded by column method.
      *
-     * @see \Minwork\Database\Utility\Condition::column()
      * @param mixed $value
      *            Must be valid escape value function argument
      * @return self
+     * @see \Minwork\Database\Utility\Condition::column()
      */
     public function equal($value): self
     {
         return $this->addExpression('=')->addValue($value);
     }
-    
+
+    /**
+     * Alias to equal
+     * @param $value
+     * @return Condition
+     * @see \Minwork\Database\Utility\Condition::equal()
+     */
+    public function eq($value): self
+    {
+        return $this->equal($value);
+    }
+
     /**
      * Append like value (column LIKE %value%) expression to query.
      * Must be preceded by column method.
      *
-     * @see \Minwork\Database\Utility\Condition::column()
      * @param mixed $value
      *            Must be valid escape value function argument
+     * @param string|null $wildcard If to use wildcard (percent sign - '%') in like condition. Available options: 'left', 'right', 'both' or null (use class WILDCARD_* constants).
      * @return self
+     * @see \Minwork\Database\Utility\Condition::column()
      */
-    public function like($value): self
+    public function like($value, ?string $wildcard = null): self
     {
-        return $this->addExpression('LIKE')->addValue("%$value%");
+        switch ($wildcard) {
+            case self::WILDCARD_LEFT:
+                $value = "%$value";
+                break;
+            case self::WILDCARD_RIGHT:
+                $value = "$value%";
+                break;
+            case self::WILDCARD_BOTH:
+                $value = "%$value%";
+                break;
+        }
+        return $this->addExpression('LIKE')->addValue($value);
     }
 
     /**
      * Append not equal to value (column <> value) expression to qurey.
      * Must be preceded by column method.
      *
-     * @see \Minwork\Database\Utility\Condition::column()
      * @param mixed $value
      *            Must be valid escape value function argument
      * @return self
+     * @see \Minwork\Database\Utility\Condition::column()
      */
     public function notEqual($value): self
     {
@@ -384,13 +411,24 @@ class Condition
     }
 
     /**
+     * Alias to not equal
+     * @param $value
+     * @return Condition
+     * @see \Minwork\Database\Utility\Condition::notEqual()
+     */
+    public function ne($value): self
+    {
+        return $this->notEqual($value);
+    }
+
+    /**
      * Append greater than value (column > value) expression to qurey.
      * Must be preceded by column method.
      *
-     * @see \Minwork\Database\Utility\Condition::column()
      * @param mixed $value
      *            Must be valid escape value function argument
      * @return self
+     * @see \Minwork\Database\Utility\Condition::column()
      */
     public function gt($value): self
     {
@@ -401,10 +439,10 @@ class Condition
      * Append greater than or equal to value (column >= value) expression to qurey.
      * Must be preceded by column method.
      *
-     * @see \Minwork\Database\Utility\Condition::column()
      * @param mixed $value
      *            Must be valid escape value function argument
      * @return self
+     * @see \Minwork\Database\Utility\Condition::column()
      */
     public function gte($value): self
     {
@@ -415,10 +453,10 @@ class Condition
      * Append lower than value (column < value) expression to qurey.
      * Must be preceded by column method.
      *
-     * @see \Minwork\Database\Utility\Condition::column()
      * @param mixed $value
      *            Must be valid escape value function argument
      * @return self
+     * @see \Minwork\Database\Utility\Condition::column()
      */
     public function lt($value): self
     {
@@ -429,13 +467,71 @@ class Condition
      * Append lower than or equal to value (column <= value) expression to qurey.
      * Must be preceded by column method.
      *
-     * @see \Minwork\Database\Utility\Condition::column()
      * @param mixed $value
      *            Must be valid escape value function argument
      * @return self
+     * @see \Minwork\Database\Utility\Condition::column()
      */
     public function lte($value): self
     {
         return $this->addExpression('<=')->addValue($value);
+    }
+
+    // Static shortcuts
+    public static function andX(Condition ...$conditions): self
+    {
+        $self = new self();
+        $count = count($conditions);
+        foreach ($conditions as $index => $condition) {
+            $self->addCondition($condition);
+            if ($index < $count - 1) {
+                $self->and();
+            }
+        }
+
+        return $self;
+    }
+
+    public static function orX(Condition ...$conditions): self
+    {
+        $self = new self();
+        $count = count($conditions);
+        foreach ($conditions as $index => $condition) {
+            $self->addCondition($condition);
+            if ($index < $count - 1) {
+                $self->or();
+            }
+        }
+
+        return $self;
+    }
+
+    public static function col(string $column): self
+    {
+        return (new self())->column($column);
+    }
+
+    public static function colLt(string $column, $value, $equal = false): self
+    {
+        $self = (new self())->column($column);
+        return $equal ? $self->lte($value) : $self->lt($value);
+    }
+
+    public static function colGt(string $column, $value, $equal = false): self
+    {
+        $self = (new self())->column($column);
+        return $equal ? $self->gte($value) : $self->gt($value);
+    }
+
+    public static function colEq(string $column, $value, $not = false): self
+    {
+        $self = (new self())->column($column);
+        return $not ? $self->ne($value) : $self->eq($value);
+    }
+
+    public static function colIsNull(string $column, $not = false): self
+    {
+        $self = (new self())->column($column);
+        return $not ? $self->isNotNull() : $self->isNull();
     }
 }
