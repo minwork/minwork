@@ -296,4 +296,30 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
             $this->isRollbackOnly = true;
         }
     }
+
+    public function startTransaction()
+    {
+        return $this->beginTransaction();
+    }
+
+    /**
+     * @throws DatabaseException
+     */
+    public function finishTransaction()
+    {
+        $this->commit();
+    }
+
+    /**
+     * @throws DatabaseException
+     */
+    public function abortTransaction()
+    {
+        $this->rollBack();
+    }
+
+    public function hasActiveTransaction(): bool
+    {
+        return $this->inTransaction();
+    }
 }
