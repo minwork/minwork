@@ -450,7 +450,7 @@ class Condition
     }
 
     /**
-     * Append lower than value (column < value) expression to qurey.
+     * Append less than value (column < value) expression to query.
      * Must be preceded by column method.
      *
      * @param mixed $value
@@ -464,7 +464,7 @@ class Condition
     }
 
     /**
-     * Append lower than or equal to value (column <= value) expression to qurey.
+     * Append less than or equal to value (column <= value) expression to query.
      * Must be preceded by column method.
      *
      * @param mixed $value
@@ -477,7 +477,11 @@ class Condition
         return $this->addExpression('<=')->addValue($value);
     }
 
-    // Static shortcuts
+    /**
+     * Shortcut for creating new condition with nested conditions joined by and() method
+     * @param Condition ...$conditions
+     * @return Condition
+     */
     public static function andX(Condition ...$conditions): self
     {
         $self = new self();
@@ -492,6 +496,11 @@ class Condition
         return $self;
     }
 
+    /**
+     * Shortcut for creating new condition with nested conditions joined by or() method
+     * @param Condition ...$conditions
+     * @return Condition
+     */
     public static function orX(Condition ...$conditions): self
     {
         $self = new self();
@@ -506,29 +515,88 @@ class Condition
         return $self;
     }
 
+    /**
+     * Create new condition and immediately add nested condition
+     * @param Condition $condition
+     * @return Condition
+     */
+    public static function nest(Condition $condition): self
+    {
+        return (new self())->condition($condition);
+    }
+
+    /**
+     * Create new condition and immediately set column
+     * @param string $column
+     * @return Condition
+     */
     public static function col(string $column): self
     {
         return (new self())->column($column);
     }
 
+
+    /**
+     * Shortcut for creating less than (or equal) condition.<br>
+     * <br>
+     * <code>column < value</code><br>
+     * <code>column <= value</code>
+     *
+     * @param string $column
+     * @param $value
+     * @param bool $equal
+     * @return Condition
+     */
     public static function colLt(string $column, $value, $equal = false): self
     {
         $self = (new self())->column($column);
         return $equal ? $self->lte($value) : $self->lt($value);
     }
 
+    /**
+     * Shortcut for creating greater than (or equal) condition.<br>
+     * <br>
+     * <code>column > value</code><br>
+     * <code>column >= value</code>
+     *
+     * @param string $column
+     * @param $value
+     * @param bool $equal
+     * @return Condition
+     */
     public static function colGt(string $column, $value, $equal = false): self
     {
         $self = (new self())->column($column);
         return $equal ? $self->gte($value) : $self->gt($value);
     }
 
+    /**
+     * Shortcut for creating (not) equal condition.<br>
+     * <br>
+     * <code>column = value</code><br>
+     * <code>column <> value</code>
+     *
+     * @param string $column
+     * @param $value
+     * @param bool $not
+     * @return Condition
+     */
     public static function colEq(string $column, $value, $not = false): self
     {
         $self = (new self())->column($column);
         return $not ? $self->ne($value) : $self->eq($value);
     }
 
+    /**
+     * Shortcut for creating is (not) null condition.<br>
+     * <br>
+     * <code>column IS NULL</code><br>
+     * <code>column IS NOT NULL</code>
+     *
+     * @param string $column
+     * @param bool $not
+     * @return Condition
+     */
     public static function colIsNull(string $column, $not = false): self
     {
         $self = (new self())->column($column);
