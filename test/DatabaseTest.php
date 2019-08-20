@@ -234,62 +234,62 @@ EOT;
     {
         $db = $this->database;
 
-        $db->startTransaction(); // 1
-        $this->assertTrue($db->hasActiveTransaction());
+        $db->beginTransaction(); // 1
+        $this->assertTrue($db->inTransaction());
 
-        $db->startTransaction(); // 2
-        $db->startTransaction(); // 3
-        $db->startTransaction(); // 4
+        $db->beginTransaction(); // 2
+        $db->beginTransaction(); // 3
+        $db->beginTransaction(); // 4
 
-        $db->abortTransaction(); // 4
-        $this->assertTrue($db->hasActiveTransaction());
+        $db->rollBack(); // 4
+        $this->assertTrue($db->inTransaction());
 
-        $db->abortTransaction(); // 3
-        $this->assertTrue($db->hasActiveTransaction());
+        $db->rollBack(); // 3
+        $this->assertTrue($db->inTransaction());
 
-        $db->abortTransaction(); // 2
-        $this->assertTrue($db->hasActiveTransaction());
+        $db->rollBack(); // 2
+        $this->assertTrue($db->inTransaction());
 
-        $db->abortTransaction(); // 1
-        $this->assertFalse($db->hasActiveTransaction());
+        $db->rollBack(); // 1
+        $this->assertFalse($db->inTransaction());
 
-        $db->startTransaction(); // 1
-        $this->assertTrue($db->hasActiveTransaction());
+        $db->beginTransaction(); // 1
+        $this->assertTrue($db->inTransaction());
 
-        $db->startTransaction(); // 2
-        $this->assertTrue($db->hasActiveTransaction());
+        $db->beginTransaction(); // 2
+        $this->assertTrue($db->inTransaction());
 
-        $db->startTransaction(); // 3
-        $this->assertTrue($db->hasActiveTransaction());
+        $db->beginTransaction(); // 3
+        $this->assertTrue($db->inTransaction());
 
-        $db->finishTransaction(); // 3
-        $this->assertTrue($db->hasActiveTransaction());
+        $db->commit(); // 3
+        $this->assertTrue($db->inTransaction());
 
-        $db->finishTransaction(); // 2
-        $this->assertTrue($db->hasActiveTransaction());
+        $db->commit(); // 2
+        $this->assertTrue($db->inTransaction());
 
-        $db->finishTransaction(); // 1
-        $this->assertFalse($db->hasActiveTransaction());
+        $db->commit(); // 1
+        $this->assertFalse($db->inTransaction());
 
-        $db->startTransaction(); // 1
-        $db->startTransaction(); // 2
-        $db->startTransaction(); // 3
-        $this->assertTrue($db->hasActiveTransaction());
+        $db->beginTransaction(); // 1
+        $db->beginTransaction(); // 2
+        $db->beginTransaction(); // 3
+        $this->assertTrue($db->inTransaction());
 
-        $db->finishTransaction(); // 3
-        $this->assertTrue($db->hasActiveTransaction());
+        $db->commit(); // 3
+        $this->assertTrue($db->inTransaction());
 
-        $db->abortTransaction(); // 2
-        $this->assertTrue($db->hasActiveTransaction());
+        $db->rollBack(); // 2
+        $this->assertTrue($db->inTransaction());
 
         try {
-            $db->finishTransaction(); // 1
+            $db->commit(); // 1
         } catch (Throwable $e) {
-            $db->abortTransaction();
+            $db->rollBack();
         }
-        $this->assertFalse($db->hasActiveTransaction());
+        $this->assertFalse($db->inTransaction());
 
         $this->expectException(Exception::class);
-        $db->abortTransaction();
+        $db->rollBack();
     }
 }

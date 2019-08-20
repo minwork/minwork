@@ -83,20 +83,20 @@ interface DatabaseInterface
      *
      * @return mixed
      */
-    public function startTransaction();
+    public function beginTransaction();
     /**
      * Method to commit database transaction
      */
-    public function finishTransaction(): void;
+    public function commit();
     /**
      * Method to abort database transaction
      */
-    public function abortTransaction(): void ;
+    public function rollBack();
     /**
      * If database has active transaction
      *
      * @return mixed
      */
-    public function hasActiveTransaction(): bool;
+    public function inTransaction();
 
 }

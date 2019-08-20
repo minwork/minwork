@@ -255,11 +255,11 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
         return $this;
     }
 
-    public function startTransaction()
+    public function beginTransaction()
     {
         // If already in transaction then increment transactions counter to silently support nested transactions
-        if (!$this->hasActiveTransaction()) {
-            $this->beginTransaction();
+        if (!$this->inTransaction()) {
+            parent::beginTransaction();
         }
         ++$this->transactions;
     }
@@ -268,14 +268,14 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
      * @return void
      * @throws DatabaseException
      */
-    public function finishTransaction(): void
+    public function commit(): void
     {
         if ($this->isRollbackOnly) {
             throw DatabaseException::transactionRollbackOnly();
         }
         // If have nested transactions then just decrement counter instead of actually committing
         if (--$this->transactions <= 0) {
-            $this->commit();
+            parent::commit();
         }
     }
 
@@ -283,22 +283,17 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
      * @return bool|mixed
      * @throws DatabaseException
      */
-    public function abortTransaction(): void
+    public function rollBack(): void
     {
-        if (!$this->hasActiveTransaction()) {
+        if (!$this->inTransaction()) {
             throw DatabaseException::noTransaction();
         }
 
         if (--$this->transactions <= 0) {
             $this->isRollbackOnly = false;
-            $this->rollBack();
+            parent::rollBack();
         } else {
             $this->isRollbackOnly = true;
         }
-    }
-
-    public function hasActiveTransaction(): bool
-    {
-        return $this->inTransaction();
     }
 }
