@@ -7,6 +7,7 @@
  */
 namespace Minwork\Core;
 
+use Minwork\Basic\Exceptions\FlowException;
 use Minwork\Basic\Interfaces\FrameworkInterface;
 use Minwork\Basic\Utility\FlowEvent;
 use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
@@ -185,19 +186,19 @@ class Framework implements FrameworkInterface, EventDispatcherContainerInterface
         $this->getEventDispatcher()->dispatch(new Event(self::EVENT_AFTER_URL_TRANSLATION));
 
         $event = new FlowEvent(self::EVENT_BEFORE_CONTROLLER_RUN, $controllerName, $method, $arguments);
-        $controller->getEventDispatcher()->dispatch($event);
-
-        // If response was set by any event listener then directly output content of the response
-        if ($event->shouldBreakFlow()) {
-            return $this->output($controller->getResponse(), $return);
+        try {
+            $controller->getEventDispatcher()->dispatch($event);
+        } /** @noinspection PhpRedundantCatchClauseInspection */ catch (FlowException $exception) {
+            // If response was set by any event listener then directly output content of the response
+            return $this->output($exception->getResponse() ?? $controller->getResponse(), $return);
         }
 
         $event = new FlowEvent(self::EVENT_BEFORE_METHOD_RUN, $controllerName, $method, $arguments);
-        $controller->getEventDispatcher()->dispatch($event);
-
-        // If response was set by any event listener then directly output content of the response
-        if ($event->shouldBreakFlow()) {
-            return $this->output($controller->getResponse(), $return);
+        try {
+            $controller->getEventDispatcher()->dispatch($event);
+        } /** @noinspection PhpRedundantCatchClauseInspection */ catch (FlowException $exception) {
+            // If response was set by any event listener then directly output content of the response
+            return $this->output($exception->getResponse() ?? $controller->getResponse(), $return);
         }
 
         // Get content

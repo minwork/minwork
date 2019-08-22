@@ -115,8 +115,7 @@ class FrameworkTest extends PHPUnit_Framework_TestCase
             {
                 $this->counter += 2;
                 if ($this->break) {
-                    $event->breakFlow();
-                    $this->setResponse($this->breakFlowResponse);
+                    $event->breakFlow($this->breakFlowResponse);
                 }
             }
 

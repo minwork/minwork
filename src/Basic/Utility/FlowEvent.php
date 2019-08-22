@@ -4,19 +4,18 @@
 namespace Minwork\Basic\Utility;
 
 
+use Minwork\Basic\Exceptions\FlowException;
 use Minwork\Event\Object\Event;
+use Minwork\Http\Interfaces\ResponseInterface;
 
 class FlowEvent extends Event
 {
-    protected $break = false;
-
-    public function breakFlow(): void
+    /**
+     * @param ResponseInterface|null $response
+     * @throws FlowException
+     */
+    public function breakFlow(?ResponseInterface $response = null): void
     {
-        $this->break = true;
-    }
-
-    public function shouldBreakFlow(): bool
-    {
-        return $this->break;
+        throw FlowException::breakFlow($response);
     }
 }
