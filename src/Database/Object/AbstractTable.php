@@ -63,11 +63,11 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * @param string $name            
      * @param ColumnInterface[] $columns            
      */
-    public function __construct(DatabaseInterface $database, string $name, array $columns = [])
+    public function __construct(DatabaseInterface $database, string $name, ?array $columns = null)
     {
         $this->setName($name)
             ->setDatabase($database)
-            ->setColumns($columns);
+            ->setColumns($columns ?? $this->getDbColumns());
     }
 
     /**
@@ -103,11 +103,6 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      */
     public function getColumns($filter = null): array
     {
-        // If columns wasn't specified in constructor load them from database schema
-        if (empty($this->columns)) {
-            $this->setColumns($this->getDbColumns());
-        }
-        
         $columns = $this->columns;
 
         if ($filter & TableInterface::COLUMNS_NO_PK) {
