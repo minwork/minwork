@@ -11,6 +11,7 @@ use Minwork\Database\Interfaces\TableInterface;
 use Minwork\Database\MySql\Database as MySqlDatabase;
 use Minwork\Database\Sqlite\Database as SqliteDatabase;
 use Minwork\Database\Utility\Query;
+use Minwork\Error\Object\Error;
 use Minwork\Helper\DateHelper;
 use Minwork\Helper\Random;
 use Minwork\Operation\Basic\Create;
@@ -136,17 +137,30 @@ EOT;
         Timer::start("#1 Model operations");
 
         $model = new Model($table);
-        $validator = new Validator(
-            new Field('name', [
-                new Rule('Minwork\Helper\Validation::isNotEmpty'),
-                new Rule('Minwork\Helper\Validation::isAlphabeticOnly'),
-                //new Rule('Minwork\Helper\Validation::isInt')
-            ]),
-            new Field('email', [
-                new Rule('Minwork\Helper\Validation::isEmail', null, null, true, false),
-                new Rule($validatorFunction, null, null, true,true, false)
-            ])
-        );
+        $validator = new class($validatorFunction) extends Validator {
+            public function __construct(callable $validatorFunction)
+            {
+                parent::__construct(
+                    new Rule([$this, 'checkContextAndOperation'], new Error('Test error'), Rule::CRITICAL),
+                    new Field('name', [
+                        new Rule('Minwork\Helper\Validation::isNotEmpty'),
+                        new Rule('Minwork\Helper\Validation::isAlphabeticOnly'),
+                        //new Rule('Minwork\Helper\Validation::isInt')
+                    ]),
+                    new Field('email', [
+                        new Rule('Minwork\Helper\Validation::isEmail', null, null, true, false),
+                        new Rule($validatorFunction, null, null, true,true, false),
+                    ])
+                );
+            }
+
+            public function checkContextAndOperation()
+            {
+                $context = $this->getContext();
+                $operation = $this->getOperation();
+                return $context instanceof Model && $operation instanceof Create;
+            }
+        };
         $this->assertSame($data, $model->setData($data)
             ->getData());
         $this->assertTrue($model->validateThenExecute(new Create(), $validator, $data));

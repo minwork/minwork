@@ -8,6 +8,7 @@
 namespace Minwork\Validation\Interfaces;
 
 use Minwork\Error\Interfaces\ErrorsStorageInterface;
+use Minwork\Operation\Interfaces\OperationInterface;
 
 /**
  * Interface for validator object
@@ -38,6 +39,27 @@ interface ValidatorInterface
      * @return mixed
      */
     public function getContext();
+
+    /**
+     * Optionally set operation object to access during validation
+     *
+     * @param OperationInterface $operation
+     * @return ValidatorInterface
+     */
+    public function setOperation(OperationInterface $operation): self;
+
+    /**
+     * If validator has set operation
+     * @return bool
+     */
+    public function hasOperation(): bool;
+
+    /**
+     * Get optionally set operation object
+     *
+     * @return OperationInterface|null
+     */
+    public function getOperation(): ?OperationInterface;
 
     /**
      * Validate supplied data

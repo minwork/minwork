@@ -476,6 +476,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
     public function validateThenExecute(OperationInterface $operation, ValidatorInterface $validator, ...$arguments)
     {
         if (! $validator->setContext($this)
+            ->setOperation($operation)
             ->validate(...$arguments)
             ->isValid()) {
                 $this->getErrorsStorage()->merge($validator->getErrorsStorage());

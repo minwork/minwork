@@ -7,6 +7,7 @@
  */
 namespace Minwork\Validation\Traits;
 
+use Minwork\Operation\Interfaces\OperationInterface;
 use Minwork\Validation\Interfaces\ValidatorInterface;
 
 trait Validator {
@@ -22,7 +23,14 @@ trait Validator {
      *
      * @var mixed
      */
-    protected $context;
+    protected $context = null;
+
+    /**
+     * Operation object (usually operation that will be executed after validation)
+     *
+     * @var OperationInterface
+     */
+    protected $operation;
 
     /**
      * If current validator has context
@@ -37,14 +45,10 @@ trait Validator {
     /**
      * Get validation context
      * 
-     * @throws \Exception
-     * @return mixed
+     * @return mixed|null
      */
     public function getContext()
     {
-        if (! $this->hasContext()) {
-            throw new \Exception('No context is set');
-        }
         return $this->context;
     }
 
@@ -57,7 +61,40 @@ trait Validator {
     public function setContext($context): ValidatorInterface
     {
         $this->context = $context;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
+    }
+
+    /**
+     * Optionally set operation object to access during validation
+     *
+     * @param OperationInterface $operation
+     * @return ValidatorInterface
+     */
+    public function setOperation(OperationInterface $operation): ValidatorInterface
+    {
+        $this->operation = $operation;
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return $this;
+    }
+
+    /**
+     * If validator has set operation
+     * @return bool
+     */
+    public function hasOperation(): bool
+    {
+        return !is_null($this->operation);
+    }
+
+    /**
+     * Get optionally set operation object
+     *
+     * @return OperationInterface
+     */
+    public function getOperation(): OperationInterface
+    {
+        return $this->operation;
     }
 
     /**
