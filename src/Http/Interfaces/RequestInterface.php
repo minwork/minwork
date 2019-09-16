@@ -78,6 +78,17 @@ interface RequestInterface
     public function setHeaders(array $headers): self;
 
     /**
+     * Add header (or replace if header with supplied name already exist) to request headers list
+     *
+     * @param string $name
+     *            Header name
+     * @param string $value
+     *            Header string value
+     * @return RequestInterface
+     */
+    public function addHeader(string $name, string $value): self;
+
+    /**
      * Get request errors
      *
      * @return ErrorsStorageInterface

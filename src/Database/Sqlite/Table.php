@@ -140,4 +140,9 @@ class Table extends AbstractTable
         // SQLite doesn't support dropping columns so in that case recreate table
         return (count(array_diff_key($this->getDbColumns(), $this->getColumns())) > 0) ? $this->create(true) : parent::synchronize();
     }
+
+    public static function getColumnInstance(string $name, string $type, $defaultValue = null, bool $nullable = false, bool $primaryKey = false, bool $autoIncrement = false): Column
+    {
+        return new Column($name, $type, $defaultValue, $nullable, $primaryKey, $autoIncrement);
+    }
 }

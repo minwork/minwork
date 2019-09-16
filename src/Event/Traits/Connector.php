@@ -13,6 +13,7 @@ use Minwork\Event\Object\EventDispatcher;
 use Minwork\Helper\Arr;
 use Minwork\Helper\Formatter;
 use Minwork\Operation\Object\Operation;
+use ReflectionClass;
 
 /**
  * Trait used for automatic event listeners binding
@@ -22,10 +23,10 @@ use Minwork\Operation\Object\Operation;
  */
 trait Connector {
 
+    /** @noinspection PhpDocMissingThrowsInspection */
     /**
      * Connect events to dispatcher
      *
-     * @param EventDispatcherInterface $dispatcher            
      * @param null|string|object|array $connector
      *            <br><br><u>Available formats</u>:<br><br>
      *            <i>null</i>
@@ -45,7 +46,8 @@ trait Connector {
      *            Object or string representing class name
      *            <p>Search list of class constants and match any constant name that starts with 'event' keyword<br>
      *            If constant is matched its value will be trimmed from 'event' keyword otherwise raw value is used</p>
-     *            
+     *
+     * @param EventDispatcherInterface|null $eventDispatcher
      * @return self
      */
     protected function connect($connector = null, EventDispatcherInterface $eventDispatcher = null)
@@ -78,9 +80,10 @@ trait Connector {
                 }
             }
         } elseif (is_object($connector) || is_string($connector)) {
-            $reflection = new \ReflectionClass($connector);
+            /** @noinspection PhpUnhandledExceptionInspection */
+            $reflection = new ReflectionClass($connector);
             $constants = $reflection->getConstants();
-            
+
             foreach ($constants as $const => $event) {
                 if (is_string($event) && Formatter::startsWith($const, 'event') && (($method = array_search($normalizedEventName($event), $methodsMap)) !== false || ($method = array_search($normalizedEventName($const), $methodsMap)) !== false)) {
                     $mapper[$event][] = $method;

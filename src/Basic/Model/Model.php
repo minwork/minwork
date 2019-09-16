@@ -445,6 +445,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
         return false;
     }
 
+    /** @noinspection PhpDocMissingThrowsInspection */
     /**
      * Execute supplied operation
      *
@@ -458,6 +459,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
             $operation->setEventDispatcher($this->getEventDispatcher());
         }
 
+        /** @noinspection PhpUnhandledExceptionInspection */
         $result = $this->executeOperation($operation, ...$arguments);
         
         return $result;

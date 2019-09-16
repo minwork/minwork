@@ -7,11 +7,12 @@
  */
 namespace Minwork\Basic\Model;
 
-use Minwork\Storage\Interfaces\DatabaseStorageInterface;
-use Minwork\Database\Utility\Query;
-use Minwork\Event\Object\EventDispatcher;
+use Exception;
+use InvalidArgumentException;
 use Minwork\Basic\Interfaces\BindableModelInterface;
+use Minwork\Database\Utility\Query;
 use Minwork\Event\Interfaces\EventDispatcherInterface;
+use Minwork\Storage\Interfaces\DatabaseStorageInterface;
 
 /**
  * Used for n to n relation on models
@@ -32,16 +33,12 @@ class ModelBinder extends Model
      * @param DatabaseStorageInterface $storage            
      * @param BindableModelInterface[] $models
      * @param bool $buffering
-     * @param EventDispatcherInterface $eventDispatcher            
+     * @param EventDispatcherInterface $eventDispatcher
      */
     public function __construct(DatabaseStorageInterface $storage, array $models = [], bool $buffering = true, EventDispatcherInterface $eventDispatcher = null)
     {
-        $this->reset()
-            ->setBuffering($buffering)
-            ->setStorage($storage)
-            ->setModels($models)
-            ->setEventDispatcher($eventDispatcher ?? new EventDispatcher())
-            ->connect();
+        $this->models = $models;
+        parent::__construct($storage, self::getModelBinderId($models), $buffering, $eventDispatcher);
     }
 
     /**
@@ -53,7 +50,9 @@ class ModelBinder extends Model
     public function setModels(array $models): self
     {
         $this->models = $models;
-        return $this->setId(self::getModelBinderId($models));
+        $this->setId(self::getModelBinderId($models));
+
+        return $this;
     }
     
     public static function getModelBinderId(array $models): array
@@ -63,7 +62,7 @@ class ModelBinder extends Model
         
         foreach ($models as $model) {
             if (!$model instanceof BindableModelInterface) {
-                throw new \InvalidArgumentException('Models must implement BindableModelInterface');
+                throw new InvalidArgumentException('Models must implement BindableModelInterface');
             }
             $idFields[spl_object_hash($model)] = $model->getBindingFieldName();
         }
@@ -82,7 +81,7 @@ class ModelBinder extends Model
             /* @var $model BindableModelInterface */
             $modelId = $model->getId();
             if (is_null($modelId)) {
-                throw new \InvalidArgumentException('Cannot use Model without id as one of ModelBinder arguments');
+                throw new InvalidArgumentException('Cannot use Model without id as one of ModelBinder arguments');
             }
             $id[$idFields[spl_object_hash($model)]] = $modelId;
         }
@@ -99,6 +98,7 @@ class ModelBinder extends Model
     public function getId(?string $key = null)
     {
         if ($this->state === self::STATE_CREATE) {
+            /** @noinspection PhpUnhandledExceptionInspection */
             $this->synchronize();
         }
         return is_null($key) ? $this->id : ($this->id[$key] ?? null);
@@ -108,6 +108,7 @@ class ModelBinder extends Model
      * Execute actions that syncs storage with model data
      *
      * @return bool
+     * @throws Exception
      */
     public function synchronize(): bool
     {
@@ -116,14 +117,14 @@ class ModelBinder extends Model
             $this->state = self::STATE_NOP;
             switch ($state) {
                 case self::STATE_CREATE:
-                    $insertData = $this->getChangedData($this->data);
+                    $insertData = $this->getChangedData();
                     $insertData = array_merge($insertData, $this->getId());
                     $this->getStorage()->set(new Query([], array_keys($insertData)), array_values($insertData));
                     $this->exists = true;
                     return true;
                     break;
                 case self::STATE_UPDATE:
-                    if ($updateData = $this->getChangedData($this->data)) {
+                    if ($updateData = $this->getChangedData()) {
                         $this->getStorage()->set(new Query($this->getQueryConditionsWithId()), $updateData);
                     }
                     return true;

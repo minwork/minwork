@@ -1,6 +1,9 @@
+<?php
+/** @noinspection PhpUndefinedVariableInspection */
+?>
 <!DOCTYPE html>
+<!--suppress HtmlUnknownTarget -->
 <html lang="en">
-
 <head>
 
     <meta charset="utf-8">

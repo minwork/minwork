@@ -7,6 +7,7 @@
  */
 namespace Minwork\Validation\Object;
 
+use Exception;
 use Minwork\Error\Interfaces\ErrorsStorageContainerInterface;
 use Minwork\Error\Traits\Errors;
 use Minwork\Validation\Interfaces\ValidatorInterface;
@@ -60,7 +61,7 @@ class Validator implements ValidatorInterface, ErrorsStorageContainerInterface
      * {@inheritdoc}
      *
      * @see \Minwork\Validation\Interfaces\ValidatorInterface::validate()
-     * @throws \Exception
+     * @throws Exception
      */
     public function validate(...$data): ValidatorInterface
     {

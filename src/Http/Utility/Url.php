@@ -171,6 +171,6 @@ class Url implements UrlInterface
      */
     public function __toString(): string
     {
-        return $this->buildUrl();
+        return $this->getUrl();
     }
 }

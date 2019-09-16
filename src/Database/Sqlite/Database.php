@@ -9,6 +9,7 @@ namespace Minwork\Database\Sqlite;
 
 use Minwork\Database\Interfaces\DatabaseInterface;
 use Minwork\Database\Prototypes\AbstractDatabase;
+use PDO;
 
 /**
  * SQLite implementation of database
@@ -27,8 +28,8 @@ class Database extends AbstractDatabase
      */
     protected function init(string $user, string $password): DatabaseInterface
     {
-        \PDO::__construct("sqlite:{$this->getHost()}", $user, $password, $this->getOptions());
-        $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        PDO::__construct("sqlite:{$this->getHost()}", $user, $password, $this->getOptions());
+        $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         return $this;
     }
 }

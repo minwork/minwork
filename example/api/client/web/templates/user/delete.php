@@ -1,4 +1,5 @@
 <?php
+/** @noinspection PhpUndefinedVariableInspection */
 use Minwork\Helper\Arr;
 ?>
 <h3>Delete user</h3>

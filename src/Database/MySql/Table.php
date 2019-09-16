@@ -80,4 +80,9 @@ class Table extends AbstractTable
         
         return $definition;
     }
+
+    public static function getColumnInstance(string $name, string $type, $defaultValue = null, bool $nullable = false, bool $primaryKey = false, bool $autoIncrement = false): Column
+    {
+        return new Column($name, $type, $defaultValue, $nullable, $primaryKey, $autoIncrement);
+    }
 }

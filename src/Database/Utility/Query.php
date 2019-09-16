@@ -22,7 +22,7 @@ class Query
      * Query conditions for WHERE clause
      *
      * @see \Minwork\Database\Prototypes\AbstractTable::getConditionsQuery()
-     * @var array|string|\Minwork\Database\Utility\Condition
+     * @var array|string|Condition
      */
     protected $conditions;
 
@@ -66,7 +66,7 @@ class Query
     /**
      * Get query conditions
      *
-     * @return array|string|\Minwork\Database\Utility\Condition
+     * @return array|string|Condition
      */
     public function getConditions()
     {
@@ -76,7 +76,7 @@ class Query
     /**
      * Set query conditions
      *
-     * @param array|string|\Minwork\Database\Utility\Condition $conditions
+     * @param array|string|Condition $conditions
      *            It can also be an object that is convertable to string
      * @return self
      */

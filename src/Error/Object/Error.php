@@ -7,6 +7,7 @@
  */
 namespace Minwork\Error\Object;
 
+use JsonSerializable;
 use Minwork\Error\Interfaces\ErrorInterface;
 
 /**
@@ -15,7 +16,7 @@ use Minwork\Error\Interfaces\ErrorInterface;
  * @author Christopher Kalkhoff
  *        
  */
-class Error implements ErrorInterface, \JsonSerializable
+class Error implements ErrorInterface, JsonSerializable
 {
     const TYPE = 'general';
 

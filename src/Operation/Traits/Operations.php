@@ -1,4 +1,7 @@
 <?php
+/** @noinspection PhpDocMissingThrowsInspection */
+/** @noinspection PhpUnhandledExceptionInspection */
+
 /*
  * This file is part of the Minwork package.
  *
@@ -7,9 +10,12 @@
  */
 namespace Minwork\Operation\Traits;
 
+use Minwork\Basic\Exceptions\ModelException;
+use Minwork\Operation\Interfaces\ObjectOperationInterface;
 use Minwork\Operation\Interfaces\OperationInterface;
 use Minwork\Operation\Interfaces\QueueableObjectOperationInterface;
 use Minwork\Operation\Interfaces\RevertableObjectOperationInterface;
+use Minwork\Operation\Interfaces\RevertableOperationInterface;
 use Minwork\Operation\Object\OperationQueueObject;
 
 /**
@@ -44,42 +50,54 @@ trait Operations
     /**
      * Execute supplied operation
      *
-     * @see \Minwork\Operation\Interfaces\ObjectOperationInterface::executeOperation()
-     * @param OperationInterface $operation            
-     * @param mixed ...$arguments            
+     * @param OperationInterface $operation
+     * @param mixed ...$arguments
      * @return mixed
+     * @see \Minwork\Operation\Interfaces\ObjectOperationInterface::executeOperation()
      */
     public function executeOperation(OperationInterface $operation, ...$arguments)
     {
-        $return = $operation->execute($this, ...$arguments);
-        array_push($this->operationHistory, $operation);
-        return $return;
+        if ($this instanceof ObjectOperationInterface) {
+            $return = $operation->execute($this, ...$arguments);
+            array_push($this->operationHistory, $operation);
+            return $return;
+        }
+
+        throw ModelException::missingOperationInterface(ObjectOperationInterface::class);
     }
 
     /**
      * Add operation to the queue
      *
-     * @param OperationInterface $operation            
+     * @param OperationInterface $operation
      * @param mixed ...$arguments
      * @return QueueableObjectOperationInterface
      */
     public function addToQueue(OperationInterface $operation, ...$arguments): QueueableObjectOperationInterface
     {
-        array_push($this->operationQueue, new OperationQueueObject($operation, $arguments));
-        return $this;
+        if ($this instanceof QueueableObjectOperationInterface) {
+            array_push($this->operationQueue, new OperationQueueObject($operation, $arguments));
+            return $this;
+        }
+
+        throw ModelException::missingOperationInterface(QueueableObjectOperationInterface::class);
     }
 
     /**
      * Prepend operation to the revert queue
      *
-     * @param OperationInterface $operation            
-     * @param mixed ...$arguments            
+     * @param OperationInterface $operation
+     * @param mixed ...$arguments
      * @return RevertableObjectOperationInterface
      */
     public function addToRevertQueue(OperationInterface $operation, ...$arguments): RevertableObjectOperationInterface
     {
-        array_unshift($this->revertOperationQueue, new OperationQueueObject($operation, $arguments));
-        return $this;
+        if ($this instanceof RevertableObjectOperationInterface) {
+            array_unshift($this->revertOperationQueue, new OperationQueueObject($operation, $arguments));
+            return $this;
+        }
+
+        throw ModelException::missingOperationInterface(RevertableObjectOperationInterface::class);
     }
 
     /**
@@ -93,7 +111,7 @@ trait Operations
     {
         foreach ($this->operationQueue as $operationQueueObject) {
             /* @var $operationQueueObject OperationQueueObject */
-            /* @var $operation AbstractOperation */
+            /* @var $operation OperationInterface */
             $operation = $operationQueueObject->getOperation();
             $arguments = $operationQueueObject->getArguments();
             $operationQueueObject->setResult($this->executeOperation($operation, ...$arguments));
@@ -119,11 +137,15 @@ trait Operations
     {
         foreach ($this->revertOperationQueue as $operationQueueObject) {
             /* @var $operationQueueObject OperationQueueObject */
-            /* @var $operation AbstractOperation */
+            /* @var $operation RevertableOperationInterface */
             $operation = $operationQueueObject->getOperation();
             $arguments = $operationQueueObject->getArguments();
             if ($operation->canRevert()) {
-                $operationQueueObject->setResult($operation->revert($this, ...$arguments));
+                if ($this instanceof RevertableObjectOperationInterface) {
+                    $operationQueueObject->setResult($operation->revert($this, ...$arguments));
+                } else {
+                    throw ModelException::missingOperationInterface(RevertableObjectOperationInterface::class);
+                }
             }
         }
         $result = $this->revertOperationQueue;

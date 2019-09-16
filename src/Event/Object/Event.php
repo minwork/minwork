@@ -46,7 +46,8 @@ class Event implements EventInterface
      */
     public function __construct(string $name, ...$data)
     {
-        $this->setData(...$data)->setActive(true)->name = $name;
+        $this->name = $name;
+        $this->setData(...$data)->setActive(true);
     }
 
     /**

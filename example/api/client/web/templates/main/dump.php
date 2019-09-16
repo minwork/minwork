@@ -1,7 +1,13 @@
 <?php
-/** @var \Example\ApiClient\App\Main\Utility\JsonResponse $response */
+/** @noinspection PhpUndefinedVariableInspection */
+/** @var JsonResponse $response */
+
+use Example\ApiClient\App\Main\Utility\JsonResponse;
+use Minwork\Error\Basic\FieldError;
+use Minwork\Http\Interfaces\RequestInterface;
+
 $response = $data['response'];
-/** @var \Minwork\Http\Interfaces\RequestInterface $request */
+/** @var RequestInterface $request */
 $request = $data['request'];
 ?>
 <h3 style="color: <?php echo $response->isSuccess() ? 'green' : 'red'; ?>;">
@@ -24,7 +30,7 @@ $request = $data['request'];
         <?php endforeach; ?>
         </ul>
     <?php endif; ?>
-   	<?php if (($errors = $response->getErrorsStorage()->getErrors(\Minwork\Error\Basic\FieldError::TYPE))): ?>
+   	<?php if (($errors = $response->getErrorsStorage()->getErrors(FieldError::TYPE))): ?>
         <b>Form</b><br>
         <ul>
         <?php foreach ($errors as $field => $error): ?>

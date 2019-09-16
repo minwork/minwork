@@ -44,10 +44,10 @@ class MainController extends Controller
     protected function makeRequest(RequestInterface $request, string $method, $config = null): ResponseInterface
     {
         $url = new Url(Formatter::makeUrl(API_BASIC_URL) . '/' . $method);
-        $request->setUrl($url)->appendHeader(API_AUTHORIZATION_HEADER_NAME, API_AUTHORIZATION_HEADER_VALUE);
+        $request->setUrl($url)->addHeader(API_AUTHORIZATION_HEADER_NAME, API_AUTHORIZATION_HEADER_VALUE);
         
         if (! empty($request->getBody())) {
-            $request->appendHeader(self::HEADER_CONTENT_TYPE, API_BODY_CONTENT_TYPE);
+            $request->addHeader(self::HEADER_CONTENT_TYPE, API_BODY_CONTENT_TYPE);
         }
         
         $response = $request->execute($config);
@@ -69,7 +69,7 @@ class MainController extends Controller
             'request' => $request,
             'response' => $response,
             'route' => "/{$this->getFramework()->getRouter()->getUrl()}"
-        ])), Response::CONTENT_TYPE_HTML, HttpCode::OK);
+        ]), $title), Response::CONTENT_TYPE_HTML, HttpCode::OK);
     }
 
     /**

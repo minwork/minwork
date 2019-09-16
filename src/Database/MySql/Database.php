@@ -9,6 +9,7 @@ namespace Minwork\Database\MySql;
 
 use Minwork\Database\Interfaces\DatabaseInterface;
 use Minwork\Database\Prototypes\AbstractDatabase;
+use PDO;
 
 /**
  * MySQL implementation of database
@@ -28,7 +29,7 @@ class Database extends AbstractDatabase
     protected function init(string $user, string $password): DatabaseInterface
     {
         $this->setOptions([
-            \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->getCharset()}"
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->getCharset()}"
         ]);
         
         $dsn = 'mysql:';
@@ -38,11 +39,11 @@ class Database extends AbstractDatabase
         if ($this->getName()) {
             $dsn .= ';dbname=' . $this->getName();
         }
-        \PDO::__construct($dsn, $user, $password, $this->getOptions());
+        PDO::__construct($dsn, $user, $password, $this->getOptions());
         
-        $this->setAttribute(\PDO::ATTR_AUTOCOMMIT, 1);
+        $this->setAttribute(PDO::ATTR_AUTOCOMMIT, 1);
         $this->exec("SET SQL_MODE=ANSI_QUOTES;");
-        $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+        $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         
         return $this;
     }

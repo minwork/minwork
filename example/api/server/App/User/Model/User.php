@@ -30,12 +30,14 @@ class User extends Model
     // Enables connection to beforeUpdate method
     const EVENT_BEFORE_UPDATE = 'beforeUpdate';
 
+    /** @noinspection PhpDocMissingThrowsInspection */
     /**
      *
-     * @param int|null $id            
+     * @param int|null $id
      */
     public function __construct($id = null)
     {
+        /** @noinspection PhpUnhandledExceptionInspection */
         parent::__construct(Factory::getUserStorage(), $id);
         $this->connect();
     }

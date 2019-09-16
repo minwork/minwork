@@ -1,3 +1,4 @@
+<?php /** @noinspection PhpUndefinedVariableInspection */ ?>
 <h3>Create new user</h3>
 <form role="form" method="post" action="<?php echo $data['form']['action']; ?>">
     <div class="row">

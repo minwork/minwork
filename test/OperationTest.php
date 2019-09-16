@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection PhpUnhandledExceptionInspection */
+
 namespace Test;
 
 use Minwork\Operation\Object\Operation;

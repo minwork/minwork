@@ -48,10 +48,10 @@ class OperationQueueObject
 
     /**
      *
-     * @param Operation $operation            
+     * @param OperationInterface $operation
      * @param array $arguments            
      */
-    public function __construct(Operation $operation, array $arguments)
+    public function __construct(OperationInterface $operation, array $arguments)
     {
         $this->operation = $operation;
         $this->arguments = $arguments;
@@ -60,7 +60,7 @@ class OperationQueueObject
     /**
      * Get operation object
      *
-     * @return \Minwork\Operation\Interfaces\OperationInterface
+     * @return OperationInterface
      */
     public function getOperation(): OperationInterface
     {

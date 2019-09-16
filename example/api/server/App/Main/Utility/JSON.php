@@ -37,8 +37,8 @@ class JSON extends JSONView
 
     /**
      *
-     * @param array $data            
-     * @param string $success            
+     * @param array $data
+     * @param bool $success
      */
     public function __construct(array $data = [], $success = true)
     {

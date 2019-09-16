@@ -52,15 +52,17 @@ class Controller implements ControllerInterface
     /**
      * Optionally takes request and response objects as arguments
      *
-     * @param RequestInterface $request            
-     * @param ResponseInterface $response            
+     * @param RequestInterface $request
+     * @param ResponseInterface $response
+     * @param EventDispatcherInterface|null $eventDispatcher
      */
     public function __construct(RequestInterface $request = null, ResponseInterface $response = null, EventDispatcherInterface $eventDispatcher = null)
     {
         $this->setRequest($request ?? Request::createFromGlobals())
             ->setResponse($response ?? new Response())
-            ->setEventDispatcher($eventDispatcher ?? new EventDispatcher())
-            ->connect();
+            ->setEventDispatcher($eventDispatcher ?? new EventDispatcher());
+
+        $this->connect();
     }
 
     /**

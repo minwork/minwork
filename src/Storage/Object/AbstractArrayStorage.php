@@ -1,6 +1,7 @@
 <?php
 namespace Minwork\Storage\Object;
 
+use Countable;
 use Minwork\Helper\Arr;
 use Minwork\Storage\Interfaces\StorageInterface;
 
@@ -131,7 +132,7 @@ class AbstractArrayStorage implements StorageInterface
     {
         if ($this->isset($key)) {
             $var = $this->get($key);
-            return is_array($var) || (is_object($var) && $var instanceof \Countable) ? count($var) : 1;
+            return is_array($var) || (is_object($var) && $var instanceof Countable) ? count($var) : 1;
         }
         return 0;
     }

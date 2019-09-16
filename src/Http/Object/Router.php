@@ -1,4 +1,6 @@
 <?php
+/** @noinspection HtmlUnknownTag */
+
 /*
  * This file is part of the Minwork package.
  *
@@ -17,6 +19,8 @@ use Minwork\Helper\Formatter;
 use Minwork\Http\Exceptions\HttpException;
 use Minwork\Http\Interfaces\RouterInterface;
 use Minwork\Http\Utility\LangCode;
+use ReflectionException;
+use ReflectionMethod;
 
 /**
  * Basic implementation of router interface
@@ -268,7 +272,7 @@ class Router implements RouterInterface
      *            Url string
      * @param bool $clean If input url should be cleared from potentially dangerous characters and unnecessary url parts (preserving only path)
      * @return self
-     * @throws \ReflectionException
+     * @throws ReflectionException
      * @throws HttpException
      */
     public function translateUrl(string $url, bool $clean = true): RouterInterface
@@ -451,12 +455,12 @@ class Router implements RouterInterface
 
     /**
      * @throws HttpException
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     protected function normalizeMethodArguments(): void
     {
         // Set missing method arguments as null
-        $reflection = new \ReflectionMethod($this->getController(), $this->getMethod());
+        $reflection = new ReflectionMethod($this->getController(), $this->getMethod());
         $numRequired = $reflection->getNumberOfRequiredParameters();
         $numCurrent = count($this->getMethodArguments());
         if ($numRequired > $numCurrent) {

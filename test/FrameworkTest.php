@@ -63,6 +63,7 @@ class FrameworkTest extends TestCase
 
     public function routingUrlProvider()
     {
+        /** @noinspection HtmlUnknownTag */
         return [
             ['/prefix/test/test-method'], // Nested
             ['/prefix1/prefix2/test'], // Nested with default method

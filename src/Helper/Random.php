@@ -7,6 +7,9 @@
  */
 namespace Minwork\Helper;
 
+use Exception;
+use InvalidArgumentException;
+
 /**
  * Operations using randomness like generating random values or calculating percent chance
  *
@@ -42,10 +45,12 @@ class Random
      * @var string
      */
     const ALGORITHM_DESC_REPEAT = 'descending_repeat';
+
     /**
      * Generate random sign (-1 or 1)
-     * 
+     *
      * @return int
+     * @throws Exception
      */
     public static function sign(): int
     {
@@ -55,12 +60,13 @@ class Random
         
         return $random > 0 ? 1 : -1;
     }
-    
+
     /**
      * Generate random string
      *
-     * @param int $length            
+     * @param int $length
      * @return string
+     * @throws Exception
      */
     public static function string(int $length): string
     {
@@ -70,12 +76,13 @@ class Random
         }
         return $string;
     }
-    
+
     /**
      * Generate random text which consists of English alphabet letters and digits
      *
      * @param int $length
      * @return string
+     * @throws Exception
      */
     public static function text(int $length): string
     {
@@ -97,8 +104,9 @@ class Random
      *            Success percent chance
      * @param int $precision
      *            Precision of comparing random value against $percent
-     * @throws \InvalidArgumentException
      * @return bool If event specified by percent chance should happen or not
+     * @throws Exception
+     * @throws InvalidArgumentException
      */
     public static function chance(float $percent, int $precision = 2): bool
     {
@@ -116,15 +124,16 @@ class Random
         
         return round(self::float(0, 100), $precision) <= round($percent, $precision);
     }
-    
+
     /**
      * Random one of $options key (values are chances to pick corresponding key)<br>
      * Algorithm defines method of iterating $options array (see class constants for more info)
-     * 
+     *
      * @param array $options
      * @param string $algorithm
      * @param int $precision
-     * @return NULL|unknown
+     * @return NULL|mixed
+     * @throws Exception
      */
     public static function option(array $options, string $algorithm = self::ALGORITHM_ASC_BOUNCE, int $precision = 2)
     {
@@ -164,10 +173,11 @@ class Random
     /**
      * Generate random integer number
      *
-     * @param int $min            
-     * @param int $max            
-     * @throws \InvalidArgumentException
+     * @param int $min
+     * @param int $max
      * @return int
+     * @throws Exception
+     * @throws InvalidArgumentException
      */
     public static function int(int $min = PHP_INT_MIN, int $max = PHP_INT_MAX): int
     {
@@ -182,9 +192,11 @@ class Random
     /**
      * Generate random float number
      *
-     * @param float $min            
-     * @param float $max            
+     * @param float $min
+     * @param float $max
      * @return float
+     * @throws Exception
+     * @throws Exception
      */
     public static function float(float $min = 0.0, float $max = 1.0): float
     {

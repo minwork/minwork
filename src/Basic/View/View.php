@@ -10,6 +10,7 @@ namespace Minwork\Basic\View;
 use Minwork\Basic\Interfaces\ViewInterface;
 use Minwork\Helper\Formatter;
 use Minwork\Http\Interfaces\ResponseInterface;
+use Throwable;
 
 /**
  * Basic view used in response object as content storage
@@ -75,14 +76,15 @@ class View implements ViewInterface
                 trigger_error('File does not exists: ' . Formatter::cleanString($this->filepath), E_USER_WARNING);
                 return '';
             }
-            
+
+            /** @noinspection PhpUnusedLocalVariableInspection */
             $data = $this->data;
             ob_start();
             
             try {
                 include ($this->filepath);
                 $this->content = ob_get_contents();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 trigger_error($e->getMessage(), E_USER_ERROR);
                 return '';
             }

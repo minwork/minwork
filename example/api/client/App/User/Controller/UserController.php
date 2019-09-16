@@ -8,6 +8,8 @@
 namespace Example\ApiClient\App\User\Controller;
 
 use Example\ApiClient\App\Main\Controller\MainController;
+use Minwork\Basic\Interfaces\ViewInterface;
+use Minwork\Http\Interfaces\ResponseInterface;
 use Minwork\Http\Object\Request;
 use Example\ApiClient\App\Main\Utility\JsonResponse;
 use Minwork\Helper\Arr;
@@ -16,9 +18,6 @@ use Example\ApiClient\App\Main\View\Webpage;
 use Minwork\Helper\Formatter;
 use Minwork\Storage\Basic\Session;
 use Minwork\Event\Traits\Connector;
-use Minwork\Core\Framework;
-use Minwork\Basic\Interfaces\ControllerInterface;
-use Minwork\Basic\Interfaces\FrameworkInterface;
 
 /**
  * Controller responsible for user CRUD operations
@@ -44,27 +43,11 @@ class UserController extends MainController
         'last_name' => 'Testing'
     ];
 
+    /**
+     * @var Session
+     */
     private $storage;
 
-    /**
-     *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Basic\Controller\Controller::setFramework()
-     *
-     */
-    public function setFramework(FrameworkInterface $framework): ControllerInterface
-    {
-        parent::setFramework($framework);
-        // As connector you could also specify Framework full name (with namespace) because it contains constants with event names.
-        // Another way would be to copy event name into this controller constants and provide either '$this' or 'null' as connector argument
-        $this->connect([
-            Framework::EVENT_BEFORE_CONTROLLER_RUN
-        ], $this->getFramework()
-            ->getEventDispatcher());
-        
-        return $this;
-    }
 
     /**
      * Method called by framework event for storage initialization
@@ -89,7 +72,7 @@ class UserController extends MainController
     /**
      * Handle creating user based on submitted form
      *
-     * @return \Minwork\Http\Interfaces\ResponseInterface|\Minwork\Basic\Interfaces\ViewInterface
+     * @return ResponseInterface|ViewInterface
      */
     public function create()
     {
@@ -119,7 +102,7 @@ class UserController extends MainController
     /**
      * Handle reading user based on submitted id
      * 
-     * @return \Minwork\Http\Interfaces\ResponseInterface|\Minwork\Basic\Interfaces\ViewInterface
+     * @return ResponseInterface|ViewInterface
      */
     public function read()
     {
@@ -140,7 +123,7 @@ class UserController extends MainController
     /**
      * Handle updating user based on submitted form
      * 
-     * @return \Minwork\Http\Interfaces\ResponseInterface|\Minwork\Basic\Interfaces\ViewInterface
+     * @return ResponseInterface|ViewInterface
      */
     public function update()
     {
@@ -164,7 +147,7 @@ class UserController extends MainController
     /**
      * Handle deleting user based on submitted id
      * 
-     * @return \Minwork\Http\Interfaces\ResponseInterface|\Minwork\Basic\Interfaces\ViewInterface
+     * @return ResponseInterface|ViewInterface
      */
     public function delete()
     {

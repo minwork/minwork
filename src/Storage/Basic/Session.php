@@ -7,6 +7,7 @@
  */
 namespace Minwork\Storage\Basic;
 
+use Exception;
 use Minwork\Storage\Object\AbstractArrayStorage;
 
 /**
@@ -20,7 +21,7 @@ class Session extends AbstractArrayStorage
 
     /**
      * If cannot access $_SESSION array manually initialize it
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct()
     {
@@ -29,10 +30,10 @@ class Session extends AbstractArrayStorage
                 $_SESSION = array();
             } elseif (! headers_sent()) {
                 if (! session_start()) {
-                    throw new \Exception('Cannot initialize session storage - session_start failed');
+                    throw new Exception('Cannot initialize session storage - session_start failed');
                 }
             } else {
-                throw new \Exception('Cannot initialize session storage - headers was already sent or cannot access $_SESSION array');
+                throw new Exception('Cannot initialize session storage - headers was already sent or cannot access $_SESSION array');
             }
         }
         parent::__construct($_SESSION);

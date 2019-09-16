@@ -1,6 +1,7 @@
 <?php
 namespace Minwork\Validation\Utility;
 
+use Exception;
 use InvalidArgumentException;
 use Minwork\Error\Interfaces\ErrorInterface;
 use Minwork\Error\Interfaces\ErrorsStorageContainerInterface;
@@ -86,7 +87,7 @@ class Field implements ValidatorInterface, ErrorsStorageContainerInterface
      * Set field rules
      *
      * @param ValidatorInterface[] $rules            
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      * @return self
      */
     public function setRules(array $rules): self
@@ -148,7 +149,7 @@ class Field implements ValidatorInterface, ErrorsStorageContainerInterface
      * @param array $data
      *            Form data
      * @return ValidatorInterface
-     * @throws \Exception
+     * @throws Exception
      * @see \Minwork\Validation\Interfaces\ValidatorInterface::validate()
      */
     public function validate(...$data): ValidatorInterface

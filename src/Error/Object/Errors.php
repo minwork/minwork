@@ -90,6 +90,7 @@ class Errors implements ErrorsStorageInterface
         } elseif (is_string($config)) {
             // Filter errors by type
             return array_filter($this->list, function ($error) use ($config) {
+                /** @var ErrorInterface $error */
                 return $error->getType() === $config;
             });
         }

@@ -7,6 +7,7 @@
  */
 namespace Minwork\Http\Object;
 
+use Exception;
 use Minwork\Basic\Traits\Debugger;
 use Minwork\Error\Interfaces\ErrorsStorageContainerInterface;
 use Minwork\Error\Traits\Errors;
@@ -118,7 +119,7 @@ class Request implements RequestInterface, ErrorsStorageContainerInterface
      * {@inheritdoc}
      *
      * @see \Minwork\Http\Interfaces\RequestInterface::execute($config)
-     * @throws \Exception
+     * @throws Exception
      */
     public function execute($config = null): ResponseInterface
     {
@@ -196,14 +197,12 @@ class Request implements RequestInterface, ErrorsStorageContainerInterface
     }
 
     /**
-     * Append header (or replace if header with supplied name already exist) to request headers list
-     * 
-     * @param string $name
-     *            Header name
-     * @param string $value
-     *            Header string value
+     *
+     * {@inheritdoc}
+     *
+     * @see \MinWork\Http\Interfaces\RequestInterface::addHeader()
      */
-    public function appendHeader(string $name, string $value): self
+    public function addHeader(string $name, string $value): RequestInterface
     {
         $this->headers[$name] = $value;
         return $this;

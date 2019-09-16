@@ -9,6 +9,7 @@ namespace Example\ApiServer\App\Main\Controller;
 
 use Minwork\Basic\Controller\Controller;
 use Example\ApiServer\App\Main\Utility\JSON;
+use Minwork\Http\Object\Response;
 use Minwork\Http\Utility\HttpCode;
 use Minwork\Http\Interfaces\ResponseInterface;
 use Minwork\Helper\Arr;
@@ -17,7 +18,7 @@ use Minwork\Helper\Arr;
  * Basic controller providing usefull methods for all derivatives
  *
  * @author Christopher Kalkhoff
- * @method \Minwork\Http\Object\Response getResponse()
+ * @method Response getResponse()
  */
 class MainController extends Controller
 {

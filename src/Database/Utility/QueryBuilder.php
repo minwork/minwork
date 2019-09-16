@@ -6,7 +6,6 @@ use Minwork\Storage\Interfaces\DatabaseStorageInterface;
 
 class QueryBuilder
 {
-    private $alias;
     private $storage;
 
     public function __construct(DatabaseStorageInterface $storage)
