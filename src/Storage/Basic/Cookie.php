@@ -7,9 +7,9 @@
  */
 namespace Minwork\Storage\Basic;
 
-use Minwork\Storage\Object\AbstractArrayStorage;
-use Minwork\Storage\Interfaces\StorageInterface;
 use Minwork\Helper\Formatter;
+use Minwork\Storage\Interfaces\StorageInterface;
+use Minwork\Storage\Object\AbstractArrayStorage;
 
 /**
  * Basic implementation of $_COOKIE storage

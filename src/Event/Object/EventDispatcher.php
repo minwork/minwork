@@ -7,8 +7,8 @@
  */
 namespace Minwork\Event\Object;
 
-use Minwork\Event\Interfaces\EventInterface;
 use Minwork\Event\Interfaces\EventDispatcherInterface;
+use Minwork\Event\Interfaces\EventInterface;
 
 /**
  * Basic implementation of event dispatcher interface

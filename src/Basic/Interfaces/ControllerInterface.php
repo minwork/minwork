@@ -7,9 +7,9 @@
  */
 namespace Minwork\Basic\Interfaces;
 
-use Minwork\Http\Interfaces\ResponseInterface;
-use Minwork\Http\Interfaces\RequestInterface;
 use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
+use Minwork\Http\Interfaces\RequestInterface;
+use Minwork\Http\Interfaces\ResponseInterface;
 
 /**
  * Every controller must implement that interface

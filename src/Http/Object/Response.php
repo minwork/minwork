@@ -7,9 +7,9 @@
  */
 namespace Minwork\Http\Object;
 
-use Minwork\Http\Utility\HttpCode;
-use Minwork\Http\Interfaces\ResponseInterface;
 use Minwork\Basic\Interfaces\ViewInterface;
+use Minwork\Http\Interfaces\ResponseInterface;
+use Minwork\Http\Utility\HttpCode;
 
 /**
  * Basic implementation of ResponseInterface

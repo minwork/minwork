@@ -7,9 +7,9 @@
  */
 namespace Minwork\Basic\Interfaces;
 
-use Minwork\Http\Interfaces\RouterInterface;
 use Minwork\Http\Interfaces\EnvironmentInterface;
 use Minwork\Http\Interfaces\ResponseInterface;
+use Minwork\Http\Interfaces\RouterInterface;
 
 /**
  * Every framework must implement that interface

@@ -7,8 +7,8 @@
  */
 namespace Minwork\Database\MySql;
 
-use Minwork\Database\Object\AbstractDatabase;
 use Minwork\Database\Interfaces\DatabaseInterface;
+use Minwork\Database\Prototypes\AbstractDatabase;
 
 /**
  * MySQL implementation of database
@@ -23,7 +23,7 @@ class Database extends AbstractDatabase
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Database\Object\AbstractDatabase::init()
+     * @see \Minwork\Database\Prototypes\AbstractDatabase::init()
      */
     protected function init(string $user, string $password): DatabaseInterface
     {

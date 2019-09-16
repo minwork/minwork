@@ -7,8 +7,8 @@
  */
 namespace Minwork\Http\Utility;
 
-use Minwork\Http\Interfaces\EnvironmentInterface;
 use Minwork\Helper\Formatter;
+use Minwork\Http\Interfaces\EnvironmentInterface;
 
 /**
  * Stores environmental variables

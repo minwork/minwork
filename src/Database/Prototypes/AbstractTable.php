@@ -6,19 +6,20 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace Minwork\Database\Object;
+namespace Minwork\Database\Prototypes;
 
 use InvalidArgumentException;
-use Minwork\Helper\Arr;
-use Minwork\Database\Interfaces\TableInterface;
-use Minwork\Database\Utility\Query;
+use Minwork\Basic\Traits\Debugger;
+use Minwork\Database\Interfaces\ColumnInterface;
 use Minwork\Database\Interfaces\DatabaseInterface;
+use Minwork\Database\Interfaces\TableInterface;
+use Minwork\Database\Utility\Cond;
+use Minwork\Database\Utility\Condition;
+use Minwork\Database\Utility\Query;
+use Minwork\Helper\Arr;
+use Minwork\Helper\Formatter;
 use Minwork\Storage\Interfaces\DatabaseStorageInterface;
 use Minwork\Storage\Interfaces\StorageInterface;
-use Minwork\Helper\Formatter;
-use Minwork\Database\Interfaces\ColumnInterface;
-use Minwork\Database\Utility\Condition;
-use Minwork\Basic\Traits\Debugger;
 use PDO;
 
 /**
@@ -51,6 +52,14 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * @var ColumnInterface[]
      */
     protected $columns;
+
+    /**
+     * Custom column types mapping
+     *
+     * @see ColumnInterface::format()
+     * @var null|array
+     */
+    protected $columnTypesMapping = null;
 
     /**
      * @var string[]
@@ -147,6 +156,18 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      *
      * {@inheritdoc}
      *
+     * @see \Minwork\Database\Interfaces\TableInterface::setColumnTypesMapping()
+     */
+    public function setColumnTypesMapping(?array $mapping): TableInterface
+    {
+        $this->columnTypesMapping = $mapping;
+        return $this;
+    }
+
+    /**
+     *
+     * {@inheritdoc}
+     *
      * @see \Minwork\Database\Interfaces\TableInterface::format()
      */
     public function format(array $data, bool $defaults = false): array
@@ -155,7 +176,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         $columns = $this->getColumns();
         foreach ($data as $column => $value) {
             if (array_key_exists($column, $columns)) {
-                $return[$column] = $columns[$column]->format($value, $this->getDatabase());
+                $return[$column] = $columns[$column]->format($value);
             } else {
                 $return[$column] = $value;
             }
@@ -165,7 +186,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
             $toFill = array_keys(array_diff_key($columns, $return));
             foreach ($toFill as $column) {
                 $columnObj = $columns[$column];
-                $return[$column] = $columnObj->format($columnObj->getDefaultValue(), $this->getDatabase());
+                $return[$column] = $columnObj->format($columnObj->getDefaultValue());
             }
         }
         
@@ -197,8 +218,8 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
     /**
      * Get columns config from database table schema in format compatible with setColumns method
      *
-     * @see \Minwork\Database\Object\AbstractTable::setColumns()
      * @return ColumnInterface[]
+     *@see \Minwork\Database\Prototypes\AbstractTable::setColumns()
      */
     abstract protected function getDbColumns(): array;
 
@@ -337,16 +358,16 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * {@inheritdoc}
      *
      * @see \Minwork\Database\Interfaces\TableInterface::select()
-     * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
-     * @see \Minwork\Database\Object\AbstractTable::prepareColumnsList()
-     * @see \Minwork\Database\Object\AbstractTable::getOrderQuery()
-     * @see \Minwork\Database\Object\AbstractTable::getLimitQuery()
-     * @see \Minwork\Database\Object\AbstractTable::getGroupQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getConditionsQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::prepareColumnsList()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getOrderQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getLimitQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getGroupQuery()
      */
     public function select($conditions = [], $columns = self::COLUMNS_ALL, $order = null, $limit = null, $group = null)
     {
         $statement = "SELECT {$this->prepareColumnsList($columns)} FROM {$this->getName()} ";
-        $statement .= ! empty($conditions) ? "{$this->getConditionsQuery($conditions)} " : "";
+        $statement .= ! empty($conditions) ? "WHERE {$this->getConditionsQuery($conditions)} " : "";
         $statement .= ! is_null($group) ? "{$this->getGroupQuery($group)} " : "";
         $statement .= ! is_null($order) ? "{$this->getOrderQuery($order)} " : "";
         $statement .= ! is_null($limit) ? "{$this->getLimitQuery($limit)} " : "";
@@ -388,8 +409,8 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * {@inheritdoc}
      *
      * @see \Minwork\Database\Interfaces\TableInterface::update()
-     * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
-     * @see \Minwork\Database\Object\AbstractTable::getLimitQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getConditionsQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getLimitQuery()
      */
     public function update(array $values, $conditions = [], $limit = null)
     {
@@ -401,7 +422,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         });
         /** @noinspection SqlWithoutWhere */
         $statement = "UPDATE {$this->getName()} SET " . implode(', ', $values) . " ";
-        $statement .= ! empty($conditions) ? "{$this->getConditionsQuery($conditions)} " : "";
+        $statement .= ! empty($conditions) ? "WHERE {$this->getConditionsQuery($conditions)} " : "";
         $statement .= ! is_null($limit) ? "{$this->getLimitQuery($limit)} " : "";
         
         return $this->getDatabase()->query($statement);
@@ -412,14 +433,14 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * {@inheritdoc}
      *
      * @see \Minwork\Database\Interfaces\TableInterface::delete()
-     * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
-     * @see \Minwork\Database\Object\AbstractTable::getLimitQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getConditionsQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getLimitQuery()
      */
     public function delete($conditions, $limit = null)
     {
         /** @noinspection SqlWithoutWhere */
         $statement = "DELETE FROM {$this->getName()} ";
-        $statement .= ! empty($conditions) ? "{$this->getConditionsQuery($conditions)} " : "";
+        $statement .= ! empty($conditions) ? "WHERE {$this->getConditionsQuery($conditions)} " : "";
         $statement .= ! is_null($limit) ? "{$this->getLimitQuery($limit)} " : "";
         
         return $this->getDatabase()->query($statement);
@@ -430,7 +451,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * {@inheritdoc}
      *
      * @see \Minwork\Database\Interfaces\TableInterface::exists()
-     * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getConditionsQuery()
      */
     public function exists($conditions): bool
     {
@@ -440,7 +461,7 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
         } else {
             /** @noinspection SqlRedundantLimit */
             return boolval($this->getDatabase()
-                ->query("SELECT EXISTS(SELECT 1 FROM {$this->getName()} {$this->getConditionsQuery($conditions)} LIMIT 1) as e")
+                ->query("SELECT EXISTS(SELECT 1 FROM {$this->getName()} WHERE {$this->getConditionsQuery($conditions)} LIMIT 1) as e")
                 ->fetchColumn());
         }
     }
@@ -450,9 +471,9 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      * {@inheritdoc}
      *
      * @see \Minwork\Database\Interfaces\TableInterface::countRows()
-     * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
-     * @see \Minwork\Database\Object\AbstractTable::prepareColumnsList()
-     * @see \Minwork\Database\Object\AbstractTable::getGroupQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getConditionsQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::prepareColumnsList()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getGroupQuery()
      */
     public function countRows($conditions = [], $columns = self::COLUMNS_ALL, $group = null): int
     {
@@ -681,27 +702,15 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
      */
     protected function getConditionsQuery($conditions): string
     {
+        // If is string then threat it explicitly
         if (is_string($conditions)) {
             return $conditions;
         } elseif (is_array($conditions)) {
-            $query = [];
-            $operators = empty($conditions) ? [
-                'AND'
-            ] : array_fill(0, count($conditions) - 1, 'AND');
-            $counter = 0;
-            foreach ($conditions as $column => $value) {
-                // If condition is string only, concatenate it to query
-                if (is_int($column) && is_string($value)) {
-                    $query[] = "({$value})";
-                } elseif (is_string($column)) {
-                    $query[] = "{$this->escapeColumn($column)} {$this->prepareValue($value)}";
-                }
-                if (count($query) > 0 && count($query) < count($conditions) + count($operators)) {
-                    $query[] = "{$operators[$counter++]}";
-                }
-            }
-            return empty($query) ? '' : 'WHERE ' . implode($query, ' ');
-        } elseif (is_object($conditions)) {
+            // Transform array to conditions object
+            $conditions = Cond::createFromArray($conditions);
+        }
+
+        if (is_object($conditions)) {
             if ($conditions instanceof Condition) {
                 $conditions->setColumnEscapeFunction([
                     $this,
@@ -711,36 +720,12 @@ abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
                     'escape'
                 ]);
             }
+
             if (method_exists($conditions, '__toString')) {
-                return 'WHERE ' . strval($conditions);
+                return strval($conditions);
             }
         }
         throw new InvalidArgumentException('Conditions must be either string, array or object convertable to string');
-    }
-
-    /**
-     * Prepare column value for conditions defined by array<br>
-     * Single elements are escaped and arrays are parsed to IN(...) format
-     *
-     * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
-     * @param mixed $value            
-     * @return string
-     */
-    protected function prepareValue($value): string
-    {
-        if (is_string($value) || is_numeric($value) || is_bool($value)) {
-            return "= {$this->getDatabase()->escape($value)}";
-        } elseif (is_array($value)) {
-            return "IN (" . implode(", ", array_map([
-                $this->getDatabase(),
-                'escape'
-            ], $value)) . ")";
-        } elseif (is_object($value)) {
-            return "= {$this->getDatabase()->escape(serialize($value))}";
-        } elseif (is_null($value)) {
-            return "IS NULL";
-        }
-        return strval($value);
     }
 
     /**

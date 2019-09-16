@@ -7,9 +7,9 @@
  */
 namespace Minwork\Basic\Interfaces;
 
-use Minwork\Storage\Interfaces\DatabaseStorageInterface;
-use Minwork\Operation\Interfaces\ObjectOperationInterface;
 use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
+use Minwork\Operation\Interfaces\ObjectOperationInterface;
+use Minwork\Storage\Interfaces\DatabaseStorageInterface;
 
 /**
  * Every model which represent single row in database must implement that interface

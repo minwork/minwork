@@ -7,8 +7,8 @@
  */
 namespace Minwork\Operation\Basic;
 
-use Minwork\Operation\Object\Operation;
 use Minwork\Event\Interfaces\EventDispatcherInterface;
+use Minwork\Operation\Object\Operation;
 
 /**
  * Delete operation

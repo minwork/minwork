@@ -2,12 +2,12 @@
 
 namespace Test;
 
-use Minwork\Error\Object\Errors;
 use Minwork\Error\Basic\FieldError;
 use Minwork\Error\Object\Error;
-use PHPUnit_Framework_TestCase;
+use Minwork\Error\Object\Errors;
+use PHPUnit\Framework\TestCase;
 
-class ErrorTest extends PHPUnit_Framework_TestCase
+class ErrorTest extends TestCase
 {
 
     public function test()

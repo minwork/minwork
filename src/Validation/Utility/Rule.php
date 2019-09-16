@@ -11,9 +11,9 @@ use Minwork\Error\Interfaces\ErrorInterface;
 use Minwork\Error\Interfaces\ErrorsStorageContainerInterface;
 use Minwork\Error\Object\Error;
 use Minwork\Error\Traits\Errors;
+use Minwork\Helper\Formatter;
 use Minwork\Validation\Interfaces\ValidatorInterface;
 use Minwork\Validation\Traits\Validator;
-use Minwork\Helper\Formatter;
 
 /**
  * Rule validator - defined by callback to validation function

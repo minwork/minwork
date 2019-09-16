@@ -3,96 +3,57 @@
 namespace Test;
 
 use Exception;
+use Minwork\Database\Interfaces\ColumnInterface;
+use Minwork\Database\Interfaces\DatabaseInterface;
 use Minwork\Database\Interfaces\TableInterface;
-use Minwork\Database\MySql\Database as MySqlDatabase;
-use Minwork\Database\MySql\Table as MySqlTable;
-use Minwork\Database\Object\Column;
-use Minwork\Database\Sqlite\Database as SqliteDatabase;
-use Minwork\Database\Sqlite\Table as SqliteTable;
 use Minwork\Database\Utility\Condition;
 use Minwork\Helper\DateHelper;
 use Minwork\Helper\Formatter;
 use Minwork\Helper\Random;
 use PDO;
-use PDOException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Test\Utils\DatabaseProvider;
 use Throwable;
 
-class DatabaseTest extends PHPUnit_Framework_TestCase
+class DatabaseTest extends TestCase
 {
 
     const TABLE_NAME = '#!@$%^&*()_+;/,`~<>:"\'}{|\\';
 
-    /**
-     * @var MySqlDatabase|SqliteDatabase
-     */
-    private $database;
-    /**
-     * @var MySqlTable|SqliteTable
-     */
-    private $table;
-    /**
-     * @var Column
-     */
-    private $secondPkColumn;
-    /**
-     * @var Column
-     */
-    private $newDataColumn;
 
-    public function testSqlite()
+    public function databaseProvider()
     {
-        $this->database = new SqliteDatabase(':memory:');
-        $this->table = new SqliteTable($this->database, self::TABLE_NAME, [
-            new Column(TableInterface::DEFAULT_PK_FIELD, 'INT', null, false, true),
-            new Column('data', 'VARCHAR(255)', 'test'),
-            new Column('date', 'DATETIME', null, true)
-        ]);
-        $this->secondPkColumn = new Column(TableInterface::DEFAULT_PK_FIELD . '2', 'VARCHAR(10)', null, false, true);
-        $this->newDataColumn = new Column('data2', 'VARCHAR(511)');
-
-        $this->databaseTest();
-        $this->transactionsTest();
+        /** @noinspection PhpUnhandledExceptionInspection */
+        return [
+            [
+                DatabaseProvider::getDatabase(DatabaseProvider::TYPE_MYSQL),
+                DatabaseProvider::getTableClass(DatabaseProvider::TYPE_MYSQL),
+                DatabaseProvider::getColumnClass(DatabaseProvider::TYPE_MYSQL)
+            ],
+            [
+                DatabaseProvider::getDatabase(DatabaseProvider::TYPE_SQLITE),
+                DatabaseProvider::getTableClass(DatabaseProvider::TYPE_SQLITE),
+                DatabaseProvider::getColumnClass(DatabaseProvider::TYPE_SQLITE)
+            ]
+        ];
     }
 
-    public function testMysql()
+    /**
+     * @param DatabaseInterface $database
+     * @param string $tableClass
+     * @param string $columnClass
+     *
+     * @dataProvider databaseProvider
+     */
+    public function testDatabase(DatabaseInterface $database, string $tableClass, string $columnClass)
     {
-        $config = DatabaseProvider::getConfig();
-
-        try {
-            $this->database = new MySqlDatabase($config['host'], $config['dbname'], $config['user'], $config['password'], $config['charset']);
-        } catch (PDOException $e) {
-            echo <<<EOT
-Database test: Cannot connect to MySQL server using default params.
-Error({$e->getCode()}): {$e->getMessage()}
-
-Try specifying connection parameters via environment variables.
-
-Currently used:
-DB_HOST = '{$config['host']}' (default: 'localhost')
-DB_NAME = '{$config['dbname']}' (default: 'test')
-DB_USER = '{$config['user']}' (default: 'root')
-DB_PASS = '{$config['password']}' (default: '')
-DB_CHARSET = '{$config['charset']}' (default: '{$config['defaultCharset']}')
-
-EOT;
-            return;
-        }
-        $this->table = new MySqlTable($this->database, self::TABLE_NAME, [
-            new Column(TableInterface::DEFAULT_PK_FIELD, 'INT', null, false, true),
-            new Column('data', 'VARCHAR(255)', 'test'),
-            new Column('date', 'DATETIME', null, true)
+        /** @var TableInterface $table */
+        $table = new $tableClass($database, self::TABLE_NAME, [
+            new $columnClass(TableInterface::DEFAULT_PK_FIELD, ColumnInterface::TYPE_INTEGER, null, false, true),
+            new $columnClass('data', ColumnInterface::TYPE_STRING, 'test'),
+            new $columnClass('date', ColumnInterface::TYPE_DATETIME, null, true)
         ]);
-        $this->secondPkColumn = new Column(TableInterface::DEFAULT_PK_FIELD . '2', 'VARCHAR(10)', null, false, true);
-        $this->newDataColumn = new Column('data2', 'VARCHAR(511)');
 
-        $this->databaseTest();
-        $this->transactionsTest();
-    }
-
-    private function databaseTest()
-    {
         // Test data
         $data = [
             TableInterface::DEFAULT_PK_FIELD => PHP_INT_MIN,
@@ -115,30 +76,30 @@ EOT;
         ];
 
         /** @noinspection PhpUnhandledExceptionInspection */
-        $this->assertTrue($this->table->create(true));
+        $this->assertTrue($table->create(true));
 
         // Basic check on empty table
-        $this->assertEquals(false, $this->table->exists($data));
-        $this->assertEquals(0, $this->table->countRows());
-        $this->assertEquals(0, $this->table->countRows($data));
-        $this->assertEquals(Formatter::removeQuotes(self::TABLE_NAME), $this->table->getName(false));
-        $this->assertEquals(TableInterface::DEFAULT_PK_FIELD, $this->table->getPrimaryKey());
+        $this->assertEquals(false, $table->exists($data));
+        $this->assertEquals(0, $table->countRows());
+        $this->assertEquals(0, $table->countRows($data));
+        $this->assertEquals(Formatter::removeQuotes(self::TABLE_NAME), $table->getName(false));
+        $this->assertEquals(TableInterface::DEFAULT_PK_FIELD, $table->getPrimaryKey());
 
         // Insert
-        $this->table->insert($data);
-        $this->assertEquals(true, $this->table->exists([
+        $table->insert($data);
+        $this->assertEquals(true, $table->exists([
             TableInterface::DEFAULT_PK_FIELD => $data[TableInterface::DEFAULT_PK_FIELD]
         ]));
-        $this->assertEquals(1, $this->table->countRows());
-        $this->assertEquals(1, $this->table->countRows($data));
+        $this->assertEquals(1, $table->countRows());
+        $this->assertEquals(1, $table->countRows($data));
 
-        $this->assertEquals($data, $this->table->select($data, array_keys($data))
+        $this->assertEquals($data, $table->select($data, array_keys($data))
             ->fetch(PDO::FETCH_ASSOC));
 
         // Check if data column has its default value
         $this->assertEquals([
-            'data' => $this->table->getColumns()['data']->getDefaultValue()
-        ], $this->table->select([
+            'data' => $table->getColumns()['data']->getDefaultValue()
+        ], $table->select([
             TableInterface::DEFAULT_PK_FIELD => $data[TableInterface::DEFAULT_PK_FIELD]
         ], [
             'data'
@@ -146,7 +107,7 @@ EOT;
             ->fetch(PDO::FETCH_ASSOC));
         // Check if insert data with default value from schema is same as table data
         /** @noinspection PhpUnhandledExceptionInspection */
-        $this->assertSame($this->table->format($data, true), $this->table->format($this->table->select([
+        $this->assertSame($table->format($data, true), $table->format($table->select([
             TableInterface::DEFAULT_PK_FIELD => $data[TableInterface::DEFAULT_PK_FIELD]
         ], [
             TableInterface::DEFAULT_PK_FIELD,
@@ -156,10 +117,10 @@ EOT;
             ->fetch(PDO::FETCH_ASSOC)));
 
         // Update
-        $this->table->update($updateData, [
+        $table->update($updateData, [
             TableInterface::DEFAULT_PK_FIELD => $data[TableInterface::DEFAULT_PK_FIELD]
         ]);
-        $this->assertEquals($updateData, $this->table->select([
+        $this->assertEquals($updateData, $table->select([
             TableInterface::DEFAULT_PK_FIELD => $updateData[TableInterface::DEFAULT_PK_FIELD]
         ], array_keys($updateData), [
             'date' => -1
@@ -167,7 +128,7 @@ EOT;
             ->fetch(PDO::FETCH_ASSOC));
 
         // Insert another row and check condition building
-        $this->table->insert($data3);
+        $table->insert($data3);
 
         $conditions = (new Condition())->column(TableInterface::DEFAULT_PK_FIELD)
             ->in([
@@ -187,7 +148,7 @@ EOT;
             ->column('data')
             ->isNotNull();
 
-        $result = $this->table->select($conditions, TableInterface::COLUMNS_ALL, [
+        $result = $table->select($conditions, TableInterface::COLUMNS_ALL, [
             'date' => -1,
             TableInterface::DEFAULT_PK_FIELD => 1,
             'data' => 'DESC'
@@ -198,98 +159,110 @@ EOT;
         $this->assertEquals($data3[TableInterface::DEFAULT_PK_FIELD], $result[1][TableInterface::DEFAULT_PK_FIELD]);
 
         // Clean up table
-        $this->table->clear();
-        $this->assertEquals(0, $this->table->countRows());
+        $table->clear();
+        $this->assertEquals(0, $table->countRows());
 
         // Change table schema
-        $columns = $this->table->getColumns();
+        /** @var ColumnInterface $secondPkColumn */
+        $secondPkColumn = new $columnClass(TableInterface::DEFAULT_PK_FIELD . '2', ColumnInterface::TYPE_STRING, null, false, true);
+        $secondPkColumn->setLength(10);
+
+        $columns = $table->getColumns();
         $columns = array_merge(array_slice($columns, 0, 1, true), [
-            strval($this->secondPkColumn) => $this->secondPkColumn
+            strval($secondPkColumn) => $secondPkColumn
         ], array_slice($columns, 1, count($columns) - 1, true));
         unset($columns['date']);
-        $columns['data'] = $this->newDataColumn;
-        $this->table->setColumns($columns);
-        $this->assertTrue($this->table->synchronize());
 
-        $this->assertEquals(array_keys($data2), $this->table->getColumns(TableInterface::COLUMN_NAMES));
-        $this->assertEquals(0, $this->table->countRows());
+        /** @var ColumnInterface $newDataColumn */
+        $newDataColumn = new $columnClass('data2', ColumnInterface::TYPE_STRING);
+        $newDataColumn->setLength(511);
+
+        $columns['data'] = $newDataColumn;
+        $table->setColumns($columns);
+        $this->assertTrue($table->synchronize());
+
+        $this->assertEquals(array_keys($data2), $table->getColumns(TableInterface::COLUMN_NAMES));
+        $this->assertEquals(0, $table->countRows());
         $this->assertEquals([
             TableInterface::DEFAULT_PK_FIELD,
             TableInterface::DEFAULT_PK_FIELD . '2'
-        ], $this->table->getPrimaryKey());
+        ], $table->getPrimaryKey());
 
-        $this->table->insert($data2);
+        $table->insert($data2);
 
-        $currentData = $this->table->select([
+        $currentData = $table->select([
             TableInterface::DEFAULT_PK_FIELD => $data2[TableInterface::DEFAULT_PK_FIELD],
             TableInterface::DEFAULT_PK_FIELD . '2' => $data2[TableInterface::DEFAULT_PK_FIELD . '2']
         ])->fetch(PDO::FETCH_ASSOC);
 
         /** @noinspection PhpUnhandledExceptionInspection */
-        $this->assertSame($data2, $this->table->format($currentData));
-        $this->assertTrue($this->table->remove());
+        $this->assertSame($data2, $table->format($currentData));
+        $this->assertTrue($table->remove());
     }
 
-    private function transactionsTest()
+    /**
+     * @param DatabaseInterface $database
+     *
+     * @dataProvider databaseProvider
+     */
+    public function testTransactions(DatabaseInterface $database)
     {
-        $db = $this->database;
+        $database->beginTransaction(); // 1
+        $this->assertTrue($database->inTransaction());
 
-        $db->beginTransaction(); // 1
-        $this->assertTrue($db->inTransaction());
+        $database->beginTransaction(); // 2
+        $database->beginTransaction(); // 3
+        $database->beginTransaction(); // 4
 
-        $db->beginTransaction(); // 2
-        $db->beginTransaction(); // 3
-        $db->beginTransaction(); // 4
+        $database->rollBack(); // 4
+        $this->assertTrue($database->inTransaction());
 
-        $db->rollBack(); // 4
-        $this->assertTrue($db->inTransaction());
+        $database->rollBack(); // 3
+        $this->assertTrue($database->inTransaction());
 
-        $db->rollBack(); // 3
-        $this->assertTrue($db->inTransaction());
+        $database->rollBack(); // 2
+        $this->assertTrue($database->inTransaction());
 
-        $db->rollBack(); // 2
-        $this->assertTrue($db->inTransaction());
+        $database->rollBack(); // 1
+        $this->assertFalse($database->inTransaction());
 
-        $db->rollBack(); // 1
-        $this->assertFalse($db->inTransaction());
+        $database->beginTransaction(); // 1
+        $this->assertTrue($database->inTransaction());
 
-        $db->beginTransaction(); // 1
-        $this->assertTrue($db->inTransaction());
+        $database->beginTransaction(); // 2
+        $this->assertTrue($database->inTransaction());
 
-        $db->beginTransaction(); // 2
-        $this->assertTrue($db->inTransaction());
+        $database->beginTransaction(); // 3
+        $this->assertTrue($database->inTransaction());
 
-        $db->beginTransaction(); // 3
-        $this->assertTrue($db->inTransaction());
+        $database->commit(); // 3
+        $this->assertTrue($database->inTransaction());
 
-        $db->commit(); // 3
-        $this->assertTrue($db->inTransaction());
+        $database->commit(); // 2
+        $this->assertTrue($database->inTransaction());
 
-        $db->commit(); // 2
-        $this->assertTrue($db->inTransaction());
+        $database->commit(); // 1
+        $this->assertFalse($database->inTransaction());
 
-        $db->commit(); // 1
-        $this->assertFalse($db->inTransaction());
+        $database->beginTransaction(); // 1
+        $database->beginTransaction(); // 2
+        $database->beginTransaction(); // 3
+        $this->assertTrue($database->inTransaction());
 
-        $db->beginTransaction(); // 1
-        $db->beginTransaction(); // 2
-        $db->beginTransaction(); // 3
-        $this->assertTrue($db->inTransaction());
+        $database->commit(); // 3
+        $this->assertTrue($database->inTransaction());
 
-        $db->commit(); // 3
-        $this->assertTrue($db->inTransaction());
-
-        $db->rollBack(); // 2
-        $this->assertTrue($db->inTransaction());
+        $database->rollBack(); // 2
+        $this->assertTrue($database->inTransaction());
 
         try {
-            $db->commit(); // 1
+            $database->commit(); // 1
         } catch (Throwable $e) {
-            $db->rollBack();
+            $database->rollBack();
         }
-        $this->assertFalse($db->inTransaction());
+        $this->assertFalse($database->inTransaction());
 
         $this->expectException(Exception::class);
-        $db->rollBack();
+        $database->rollBack();
     }
 }

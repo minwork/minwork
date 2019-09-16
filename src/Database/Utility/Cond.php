@@ -66,6 +66,17 @@ class Cond
     }
 
     /**
+     * Create new condition and add supplied expression to it
+     * @param mixed $expression
+     * @return Condition
+     * @see \Minwork\Database\Utility\Condition::expression()
+     */
+    public static function expr($expression): Condition
+    {
+        return (new Condition())->expression($expression);
+    }
+
+    /**
      * Shortcut for creating 'less than (or equal)' condition.<br>
      * <br>
      * <code>column < value</code><br>
@@ -192,5 +203,31 @@ class Cond
             $values = $values[0];
         }
         return (new Condition())->column($column)->in($values);
+    }
+
+
+    public static function createFromArray(array $conditions): Condition
+    {
+        $conditionsList = [];
+
+        foreach ($conditions as $column => $value) {
+            // If condition is string only, treat is as expression
+            if (is_int($column) && is_string($value)) {
+                $conditionsList[] = self::expr($value);
+            } elseif (is_string($column)) { // If is proper column name
+                // If string, numeric or bool use simple equality check
+                if (is_string($value) || is_numeric($value) || is_bool($value)) {
+                    $conditionsList[] = self::eq($column, $value);
+                } elseif (is_array($value)) { // If array then use IN condition
+                    $conditionsList[] = self::in($column, $value);
+                } elseif (is_object($value)) { // If object then serialize it's value and do equality check
+                    $conditionsList[] = self::eq($column, method_exists($value, '__toString') ? strval($value) : serialize($value));
+                } elseif (is_null($value)) {
+                    $conditionsList[] = self::null($column);
+                }
+            }
+        }
+
+        return self::andX(...$conditionsList);
     }
 }

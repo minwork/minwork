@@ -21,7 +21,7 @@ class Query
     /**
      * Query conditions for WHERE clause
      *
-     * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getConditionsQuery()
      * @var array|string|\Minwork\Database\Utility\Condition
      */
     protected $conditions;
@@ -29,7 +29,7 @@ class Query
     /**
      * Columns list used for INSERT, SELECT and UPDATE statements
      *
-     * @see \Minwork\Database\Object\AbstractTable::prepareColumnsList()
+     * @see \Minwork\Database\Prototypes\AbstractTable::prepareColumnsList()
      * @var array|string|null
      */
     protected $columns;
@@ -37,7 +37,7 @@ class Query
     /**
      * Statement LIMIT clause
      *
-     * @see \Minwork\Database\Object\AbstractTable::getLimitQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getLimitQuery()
      * @var int|array|string|null
      */
     protected $limit;
@@ -45,7 +45,7 @@ class Query
     /**
      * Statement ORDER BY clause
      *
-     * @see \Minwork\Database\Object\AbstractTable::getOrderQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getOrderQuery()
      * @var array|string|null
      */
     protected $order;
@@ -53,7 +53,7 @@ class Query
     /**
      * Statement GROUP BY clause
      *
-     * @see \Minwork\Database\Object\AbstractTable::getGroupQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getGroupQuery()
      * @var array|string|null
      */
     protected $group;

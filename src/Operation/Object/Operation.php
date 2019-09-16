@@ -7,12 +7,12 @@
  */
 namespace Minwork\Operation\Object;
 
-use Minwork\Operation\Interfaces\OperationInterface;
-use Minwork\Event\Traits\Events;
+use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
 use Minwork\Event\Interfaces\EventDispatcherInterface;
 use Minwork\Event\Object\EventDispatcher;
+use Minwork\Event\Traits\Events;
 use Minwork\Operation\Interfaces\ObjectOperationInterface;
-use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
+use Minwork\Operation\Interfaces\OperationInterface;
 
 /**
  * Abstract operation for handling CRUD

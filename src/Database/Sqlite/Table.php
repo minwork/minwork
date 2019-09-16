@@ -8,9 +8,8 @@
 namespace Minwork\Database\Sqlite;
 
 use Exception;
-use Minwork\Database\Object\AbstractTable;
 use Minwork\Database\Interfaces\ColumnInterface;
-use Minwork\Database\Object\Column;
+use Minwork\Database\Prototypes\AbstractTable;
 
 /**
  * SQLite implementation of database table
@@ -29,7 +28,7 @@ class Table extends AbstractTable
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Database\Object\AbstractTable::getDbColumns()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getDbColumns()
      */
     protected function getDbColumns(): array
     {
@@ -37,7 +36,7 @@ class Table extends AbstractTable
         $sql = $this->getDatabase()->query("PRAGMA table_info({$this->getName()})");
         $result = $sql->fetchAll(Database::FETCH_ASSOC);
         foreach ($result as $column) {
-            $c = new Column($column['name'], $column['type'], $column['dflt_value'], ! $column['notnull'], boolval($column['pk']));
+            $c = Column::createFromDefinition($column);
             $columns[strval($c)] = $c;
         }
         return $columns;
@@ -47,7 +46,7 @@ class Table extends AbstractTable
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Database\Object\AbstractTable::getColumnDefinition()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getColumnDefinition()
      */
     protected function getColumnDefinition(ColumnInterface $column): string
     {
@@ -56,7 +55,7 @@ class Table extends AbstractTable
             return "{$this->escapeColumn($column->getName())} INTEGER PRIMARY KEY AUTOINCREMENT";
         }
         
-        $definition = "{$this->escapeColumn($column->getName())} {$column->getType()}";
+        $definition = "{$this->escapeColumn($column->getName())} {$column->getDatabaseType()}";
         $definition .= $column->isNullable() ? " NULL" : " NOT NULL";
         
         if (is_null($column->getDefaultValue()) && $column->isNullable()) {
@@ -134,7 +133,7 @@ class Table extends AbstractTable
      * {@inheritdoc}
      *
      * @throws Exception
-     * @see \Minwork\Database\Object\AbstractTable::synchronize()
+     * @see \Minwork\Database\Prototypes\AbstractTable::synchronize()
      */
     public function synchronize(): bool
     {

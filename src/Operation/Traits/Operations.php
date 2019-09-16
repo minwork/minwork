@@ -7,10 +7,10 @@
  */
 namespace Minwork\Operation\Traits;
 
-use Minwork\Operation\Object\OperationQueueObject;
 use Minwork\Operation\Interfaces\OperationInterface;
 use Minwork\Operation\Interfaces\QueueableObjectOperationInterface;
 use Minwork\Operation\Interfaces\RevertableObjectOperationInterface;
+use Minwork\Operation\Object\OperationQueueObject;
 
 /**
  * Trait used for utilizing operations inside object

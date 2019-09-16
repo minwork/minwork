@@ -11,9 +11,9 @@ use Minwork\Http\Object\Response;
 use Minwork\Http\Object\Router;
 use Minwork\Http\Utility\Environment;
 use Minwork\Http\Utility\HttpCode;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 
-class FrameworkTest extends PHPUnit_Framework_TestCase
+class FrameworkTest extends TestCase
 {
 
     public function testUrlParsing()

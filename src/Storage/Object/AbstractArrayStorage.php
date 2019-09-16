@@ -1,8 +1,8 @@
 <?php
 namespace Minwork\Storage\Object;
 
-use Minwork\Storage\Interfaces\StorageInterface;
 use Minwork\Helper\Arr;
+use Minwork\Storage\Interfaces\StorageInterface;
 
 /**
  * Abstract implementation of array storage

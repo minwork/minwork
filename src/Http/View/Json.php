@@ -7,8 +7,8 @@
  */
 namespace Minwork\Http\View;
 
-use Minwork\Http\Object\Response;
 use Minwork\Basic\Interfaces\ViewInterface;
+use Minwork\Http\Object\Response;
 
 /**
  * Basic JSON view

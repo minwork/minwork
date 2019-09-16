@@ -8,8 +8,8 @@
 namespace Minwork\Basic\View;
 
 use Minwork\Basic\Interfaces\ViewInterface;
-use Minwork\Http\Interfaces\ResponseInterface;
 use Minwork\Helper\Formatter;
+use Minwork\Http\Interfaces\ResponseInterface;
 
 /**
  * Basic view used in response object as content storage

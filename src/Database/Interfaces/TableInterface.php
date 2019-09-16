@@ -68,17 +68,17 @@ interface TableInterface
     /**
      * Select rows from table
      *
-     * @see \Minwork\Database\Object\AbstractTable::prepareColumnsList()
-     * @see \Minwork\Database\Object\AbstractTable::getConditionsQuery()
-     * @see \Minwork\Database\Object\AbstractTable::getOrderQuery()
-     * @see \Minwork\Database\Object\AbstractTable::getLimitQuery()
-     * @see \Minwork\Database\Object\AbstractTable::getGroupQuery()
-     * @param array|string|Condition $conditions            
-     * @param string|array $columns            
-     * @param string|array|null $order            
-     * @param string|array|int|null $limit            
-     * @param string|array|null $group            
+     * @param array|string|Condition $conditions
+     * @param string|array $columns
+     * @param string|array|null $order
+     * @param string|array|int|null $limit
+     * @param string|array|null $group
      * @return mixed Select result specific to database query/exec method implementation
+     *@see \Minwork\Database\Prototypes\AbstractTable::prepareColumnsList()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getConditionsQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getOrderQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getLimitQuery()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getGroupQuery()
      */
     public function select($conditions = [], $columns = self::COLUMNS_ALL, $limit = null, $order = null, $group = null);
 
@@ -190,6 +190,15 @@ interface TableInterface
      * @return self
      */
     public function setColumns(array $columns): self;
+
+    /**
+     * Set custom column types mapping
+     *
+     * @see ColumnInterface::format()
+     * @param array|null $mapping
+     * @return TableInterface
+     */
+    public function setColumnTypesMapping(?array $mapping): self;
 
     /**
      * Format data according to columns config

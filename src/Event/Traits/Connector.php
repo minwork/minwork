@@ -7,10 +7,10 @@
  */
 namespace Minwork\Event\Traits;
 
-use Minwork\Event\Interfaces\EventDispatcherInterface;
-use Minwork\Helper\Arr;
 use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
+use Minwork\Event\Interfaces\EventDispatcherInterface;
 use Minwork\Event\Object\EventDispatcher;
+use Minwork\Helper\Arr;
 use Minwork\Helper\Formatter;
 use Minwork\Operation\Object\Operation;
 

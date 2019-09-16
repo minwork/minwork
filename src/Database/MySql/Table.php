@@ -7,11 +7,10 @@
  */
 namespace Minwork\Database\MySql;
 
-use Minwork\Database\Object\AbstractTable;
-use Minwork\Helper\Formatter;
-use Minwork\Database\Interfaces\TableInterface;
-use Minwork\Database\Object\Column;
 use Minwork\Database\Interfaces\ColumnInterface;
+use Minwork\Database\Interfaces\TableInterface;
+use Minwork\Database\Prototypes\AbstractTable;
+use Minwork\Helper\Formatter;
 
 /**
  * MySQL implementation of database table
@@ -30,7 +29,7 @@ class Table extends AbstractTable
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Database\Object\AbstractTable::setName()
+     * @see \Minwork\Database\Prototypes\AbstractTable::setName()
      */
     protected function setName(string $name): TableInterface
     {
@@ -42,7 +41,7 @@ class Table extends AbstractTable
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Database\Object\AbstractTable::getDbColumns()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getDbColumns()
      */
     protected function getDbColumns(): array
     {
@@ -54,7 +53,7 @@ class Table extends AbstractTable
             ->fetchAll(Database::FETCH_ASSOC);
         foreach ($result as $column) {
             //$column['CHARACTER_SET_NAME'] ?? ''
-            $c = new Column($column['COLUMN_NAME'], $column['COLUMN_TYPE'], $column['COLUMN_DEFAULT'], $column['IS_NULLABLE'] == 'YES', $column['COLUMN_KEY'] == 'PRI', strpos($column['EXTRA'], 'auto_increment') !== false);
+            $c = Column::createFromDefinition($column);
             $columns[strval($c)] = $c;
         }
         return $columns;
@@ -64,11 +63,11 @@ class Table extends AbstractTable
      *
      * {@inheritdoc}
      *
-     * @see \Minwork\Database\Object\AbstractTable::getColumnDefinition()
+     * @see \Minwork\Database\Prototypes\AbstractTable::getColumnDefinition()
      */
     protected function getColumnDefinition(ColumnInterface $column): string
     {
-        $definition = "{$this->escapeColumn($column->getName())} {$column->getType()}";
+        $definition = "{$this->escapeColumn($column->getName())} {$column->getDatabaseType()}";
         $definition .= $column->isNullable() ? " NULL" : " NOT NULL";
         
         if (is_null($column->getDefaultValue()) && $column->isNullable()) {

@@ -8,8 +8,6 @@ use Minwork\Basic\Model\ModelsList;
 use Minwork\Database\Interfaces\ColumnInterface;
 use Minwork\Database\Interfaces\DatabaseInterface;
 use Minwork\Database\Interfaces\TableInterface;
-use Minwork\Database\MySql\Database as MySqlDatabase;
-use Minwork\Database\Sqlite\Database as SqliteDatabase;
 use Minwork\Database\Utility\Query;
 use Minwork\Error\Object\Error;
 use Minwork\Helper\DateHelper;
@@ -21,95 +19,37 @@ use Minwork\Storage\Interfaces\DatabaseStorageInterface;
 use Minwork\Validation\Object\Validator;
 use Minwork\Validation\Utility\Field;
 use Minwork\Validation\Utility\Rule;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Test\Utils\DatabaseProvider;
 use Test\Utils\Timer;
-use Throwable;
 
-class ModelTest extends PHPUnit_Framework_TestCase
+class ModelTest extends TestCase
 {
-    /**
-     * @var DatabaseInterface
-     */
-    protected static $database;
-    /**
-     * @var TableInterface
-     */
-    protected static $table;
-    /**
-     * @var ColumnInterface
-     */
-    protected static $column;
-
-    /**
-     * @var array
-     */
-    protected static $columnTypes;
-
-    private static function setupMysql(array $config) {
-        self::$database = new MySqlDatabase($config['host'], $config['dbname'], $config['user'], $config['password'], $config['charset']);
-        self::$table = 'Minwork\Database\MySql\Table';
-        self::$column = 'Minwork\Database\Object\Column';
-        self::$columnTypes = [
-            'int' => 'INT',
-            'string' => 'VARCHAR(255)',
-            'datetime' => 'DATETIME',
-            'bool' => 'BOOL',
-            'text' => 'TEXT',
-        ];
-    }
-
-    private static function setupSqlite() {
-        self::$database = new SqliteDatabase(':memory:');
-        self::$table = 'Minwork\Database\Sqlite\Table';
-        self::$column = 'Minwork\Database\Object\Column';
-        self::$columnTypes = [
-            'int' => 'INT',
-            'string' => 'VARCHAR(255)',
-            'datetime' => 'DATETIME',
-            'bool' => 'BOOL',
-            'text' => 'TEXT',
-        ];
-    }
-
-    public static function setUpBeforeClass()
+    public function databaseProvider()
     {
-        $config = DatabaseProvider::getConfig();
-        $type = getenv('DB_TYPE');
-
-        try {
-            switch ($type) {
-                case 'mysql':
-                    self::setupMysql($config);
-                    break;
-                case 'sqlite':
-                default:
-                    self::setupSqlite();
-                    break;
-            }
-            echo "\nUsing {$type} database...\n";
-
-        } catch (Throwable $e) {
-            echo <<<EOT
-Database test: Cannot connect to database server ($type), used sqlite instead.
-Error({$e->getCode()}): {$e->getMessage()}
-
-Try specifying connection parameters via environment variables.
-
-Currently used:
-DB_HOST = '{$config['host']}' (default: 'localhost')
-DB_NAME = '{$config['dbname']}' (default: 'test')
-DB_USER = '{$config['user']}' (default: 'root')
-DB_PASS = '{$config['password']}' (default: '')
-DB_CHARSET = '{$config['charset']}' (default: '{$config['defaultCharset']}')
-DB_TYPE = '{$type}' (available: mysql|sqlite|doctrine)
-
-EOT;
-            self::setupSqlite();
-        }
+        /** @noinspection PhpUnhandledExceptionInspection */
+        return [
+            [
+                DatabaseProvider::getDatabase(DatabaseProvider::TYPE_MYSQL),
+                DatabaseProvider::getTableClass(DatabaseProvider::TYPE_MYSQL),
+                DatabaseProvider::getColumnClass(DatabaseProvider::TYPE_MYSQL)
+            ],
+            [
+                DatabaseProvider::getDatabase(DatabaseProvider::TYPE_SQLITE),
+                DatabaseProvider::getTableClass(DatabaseProvider::TYPE_SQLITE),
+                DatabaseProvider::getColumnClass(DatabaseProvider::TYPE_SQLITE)
+            ]
+        ];
     }
 
-    public function testModelFlow()
+    /**
+     * @param DatabaseInterface $database
+     * @param string $table
+     * @param string $column
+     *
+     * @dataProvider databaseProvider
+     */
+    public function testModelFlow(DatabaseInterface $database, string $table, string $column)
     {
         $validatorFunction = function ($value, $arg1, $arg2) {
             return ! empty($value) && $arg1 && ! $arg2;
@@ -126,17 +66,17 @@ EOT;
         $newId = 'unexisting';
 
         Timer::start("#1 Table creation");
-        /** @var $table TableInterface|DatabaseStorageInterface */
-        $table = new self::$table(self::$database, 'test', [
-            new self::$column('id', self::$columnTypes['int'], null, false, true, true),
-            new self::$column('name', self::$columnTypes['string']),
-            new self::$column('email', self::$columnTypes['string']),
-            new self::$column('change_date', self::$columnTypes['datetime'])
+        /** @var $table1 TableInterface|DatabaseStorageInterface */
+        $table1 = new $table($database, 'test', [
+            new $column('id', ColumnInterface::TYPE_INTEGER, null, false, true, true),
+            new $column('name', ColumnInterface::TYPE_STRING),
+            new $column('email', ColumnInterface::TYPE_STRING),
+            new $column('change_date', ColumnInterface::TYPE_DATETIME)
         ]);
-        $table->create(true);
+        $table1->create(true);
         Timer::start("#1 Model operations");
 
-        $model = new Model($table);
+        $model = new Model($table1);
         $validator = new class($validatorFunction) extends Validator {
             public function __construct(callable $validatorFunction)
             {
@@ -182,7 +122,7 @@ EOT;
         ]));
 
         // Test getting data on model with set id
-        $testModel = new Model(new self::$table(self::$database, 'test'), $model->getId());
+        $testModel = new Model(new $table($database, 'test'), $model->getId());
         $this->assertSame('id', $testModel->getStorage()->getPrimaryKey());
         $this->assertSame($data, $testModel->getData());
         $this->assertSame($model->getId(), $testModel->getId());
@@ -208,21 +148,21 @@ EOT;
         $this->assertNull($model->getId());
         
         // Clean up table
-        $table->remove();
+        $table1->remove();
         
         // Test multiple columns id
         Timer::start("#2 Table creation");
-        /** @var $table TableInterface */
-        $table = new self::$table(self::$database, 'test', [
-            new self::$column('id_1', self::$columnTypes['int'], null, false, true),
-            new self::$column('id_2', self::$columnTypes['string'], null, false, true),
-            new self::$column('id_3', self::$columnTypes['bool'], null, false, true),
-            new self::$column('data', self::$columnTypes['text'])
+        /** @var $table1 TableInterface */
+        $table1 = new $table($database, 'test', [
+            new $column('id_1', ColumnInterface::TYPE_INTEGER, null, false, true),
+            new $column('id_2', ColumnInterface::TYPE_STRING, null, false, true),
+            new $column('id_3', ColumnInterface::TYPE_BOOLEAN, null, false, true),
+            new $column('data', ColumnInterface::TYPE_TEXT)
         ]);
-        $table->create(true);
+        $table1->create(true);
         Timer::start("#2 Model operations");
 
-        $model = new Model($table, null, false);
+        $model = new Model($table1, null, false);
         $data = [
             'id_1' => Random::int(),
             'id_2' => Random::string(255),
@@ -246,17 +186,24 @@ EOT;
         $this->assertTrue($model->execute(new Update(), $data));
         $this->assertSame($data['data'], $model->getData('data'));
         
-        $model = new Model($table, $ids);
+        $model = new Model($table1, $ids);
         $this->assertSame(array_keys($ids), $model->getStorage()->getPrimaryKey());
         $this->assertEquals($data['data'], $model->getData('data'));
 
         Timer::finish();
         unset($model);
         // Clean up table
-        $table->remove();
+        $table1->remove();
     }
 
-    public function testModelsList()
+    /**
+     * @param DatabaseInterface $database
+     * @param string $table
+     * @param string $column
+     *
+     * @dataProvider databaseProvider
+     */
+    public function testModelsList(DatabaseInterface $database, string $table, string $column)
     {
         $dataList = [
             [
@@ -274,21 +221,21 @@ EOT;
         ];
 
         Timer::start("#1 Models List - table creation");
-        /** @var TableInterface $table */
-        $table = new self::$table(self::$database, 'test', [
-            new self::$column('id', self::$columnTypes['int'], null, false, true, true),
-            new self::$column('name', self::$columnTypes['string']),
-            new self::$column('key', self::$columnTypes['int'])
+        /** @var TableInterface $table1 */
+        $table1 = new $table($database, 'test', [
+            new $column('id', ColumnInterface::TYPE_INTEGER, null, false, true, true),
+            new $column('name', ColumnInterface::TYPE_STRING),
+            new $column('key', ColumnInterface::TYPE_INTEGER)
         ]);
-        $table->create(true);
+        $table1->create(true);
 
         Timer::start("#1 Models List - operations");
 
         foreach ($dataList as $data) {
-            $table->insert($data);
+            $table1->insert($data);
         }
         
-        $model = new Model($table);
+        $model = new Model($table1);
         
         $modelsList = new ModelsList($model, new Query([
             'key' => 1
@@ -353,34 +300,39 @@ EOT;
         }
         Timer::finish();
 
-        $table->remove();
+        $table1->remove();
     }
 
     /**
+     * @param DatabaseInterface $database
+     * @param string $table
+     * @param string $column
      * @throws Exception
+     *
+     * @dataProvider databaseProvider
      */
-    public function testModelsBinder()
+    public function testModelsBinder(DatabaseInterface $database, string $table, string $column)
     {
         Timer::start("#1 Models binder - table creation");
-        /** @var TableInterface $table */
-        $table = new self::$table(self::$database, 'test', [
-            new self::$column('id', self::$columnTypes['int'], null, false, true, true),
-            new self::$column('name', self::$columnTypes['string'])
+        /** @var TableInterface $table1 */
+        $table1 = new $table($database, 'test', [
+            new $column('id', ColumnInterface::TYPE_INTEGER, null, false, true, true),
+            new $column('name', ColumnInterface::TYPE_STRING)
         ]);
-        $table->create(true);
+        $table1->create(true);
 
         /** @var TableInterface|DatabaseStorageInterface $table2 */
-        $table2 = new self::$table(self::$database, 'test3', [
-            new self::$column('test_id_1', self::$columnTypes['int'], null, false, true),
-            new self::$column('test_id_2', self::$columnTypes['int'], null, false, true),
-            new self::$column('data', self::$columnTypes['string'])
+        $table2 = new $table($database, 'test3', [
+            new $column('test_id_1', ColumnInterface::TYPE_INTEGER, null, false, true),
+            new $column('test_id_2', ColumnInterface::TYPE_INTEGER, null, false, true),
+            new $column('data', ColumnInterface::TYPE_STRING)
         ]);
         $table2->create(true);
 
         Timer::start("#1 Models binder - operations");
         
-        $model1 = new Model($table);
-        $model2 = new Model($table);
+        $model1 = new Model($table1);
+        $model2 = new Model($table1);
         
         $model1->execute(new Create(), [
             'name' => 'Test 1'
@@ -418,7 +370,7 @@ EOT;
         Timer::finish();
 
         // Clean up tables
-        $table->remove();
+        $table1->remove();
         $table2->remove();
     }
 }

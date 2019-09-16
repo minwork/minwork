@@ -7,10 +7,10 @@
  */
 namespace Minwork\Http\Utility;
 
-use Minwork\Http\Object\Response;
-use Minwork\Http\Interfaces\UrlInterface;
-use Minwork\Http\Interfaces\ResponseInterface;
 use Minwork\Basic\Traits\Debugger;
+use Minwork\Http\Interfaces\ResponseInterface;
+use Minwork\Http\Interfaces\UrlInterface;
+use Minwork\Http\Object\Response;
 
 /**
  * Basic cUrl handler

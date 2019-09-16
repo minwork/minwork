@@ -7,10 +7,10 @@
  */
 namespace Minwork\Operation\Basic;
 
-use Minwork\Operation\Object\Operation;
-use Minwork\Operation\Interfaces\RevertableOperationInterface;
 use Minwork\Event\Interfaces\EventDispatcherInterface;
 use Minwork\Operation\Interfaces\RevertableObjectOperationInterface;
+use Minwork\Operation\Interfaces\RevertableOperationInterface;
+use Minwork\Operation\Object\Operation;
 
 /**
  * Create operation

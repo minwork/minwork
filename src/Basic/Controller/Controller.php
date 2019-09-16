@@ -7,16 +7,16 @@
  */
 namespace Minwork\Basic\Controller;
 
-use Minwork\Http\Object\Response;
-use Minwork\Http\Object\Request;
 use Minwork\Basic\Interfaces\ControllerInterface;
-use Minwork\Http\Interfaces\ResponseInterface;
-use Minwork\Http\Interfaces\RequestInterface;
 use Minwork\Basic\Interfaces\FrameworkInterface;
-use Minwork\Event\Traits\Connector;
-use Minwork\Event\Traits\Events;
 use Minwork\Event\Interfaces\EventDispatcherInterface;
 use Minwork\Event\Object\EventDispatcher;
+use Minwork\Event\Traits\Connector;
+use Minwork\Event\Traits\Events;
+use Minwork\Http\Interfaces\RequestInterface;
+use Minwork\Http\Interfaces\ResponseInterface;
+use Minwork\Http\Object\Request;
+use Minwork\Http\Object\Response;
 
 /**
  * Basic implementation of ControllerInterface

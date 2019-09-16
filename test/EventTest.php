@@ -3,9 +3,9 @@ namespace Test;
 
 use Minwork\Event\Object\Event;
 use Minwork\Event\Object\EventDispatcher;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 
-class EventTest extends PHPUnit_Framework_TestCase
+class EventTest extends TestCase
 {
 
     public function testDispatcher()
@@ -145,4 +145,3 @@ class EventTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('testingtest', $event->getData()[0]('testing'));
     }
 }
-?>

@@ -7,8 +7,8 @@
  */
 namespace Minwork\Http\Utility;
 
-use Minwork\Http\Interfaces\UrlInterface;
 use Minwork\Basic\Traits\Debugger;
+use Minwork\Http\Interfaces\UrlInterface;
 
 /**
  * Basic implementation of UrlInterface

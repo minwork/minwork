@@ -5,9 +5,9 @@ use Minwork\Storage\Basic\Get;
 use Minwork\Storage\Basic\Post;
 use Minwork\Storage\Basic\Session;
 use Minwork\Storage\Object\AbstractArrayStorage;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 
-class StorageTest extends PHPUnit_Framework_TestCase {
+class StorageTest extends TestCase {
     public function test()
     {
         $array = [];

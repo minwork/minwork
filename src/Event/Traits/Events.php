@@ -7,8 +7,8 @@
  */
 namespace Minwork\Event\Traits;
 
-use Minwork\Event\Interfaces\EventDispatcherInterface;
 use Minwork\Event\Interfaces\EventDispatcherContainerInterface;
+use Minwork\Event\Interfaces\EventDispatcherInterface;
 
 /**
  * Getter and setter for event dispatcher stored within object.
