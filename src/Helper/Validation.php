@@ -132,7 +132,17 @@ class Validation
     public static function isAlphabeticOnly(string $string, bool $includeSpace = true): bool
     {
         $regex = $includeSpace ? '/^[\p{L} ]+$/ui' : '/^[\p{L}]+$/ui';
-        return (bool) preg_match($regex, $string);
+        return boolval(preg_match($regex, $string));
+    }
+
+    /**
+     * If string is alphanumeric with optional "-" or "_" separators
+     * @param string $string
+     * @return bool
+     */
+    public static function isIdentifier(string $string): bool
+    {
+        return boolval(preg_match('/^[A-z0-9_\-]$/', $string));
     }
 
     /**

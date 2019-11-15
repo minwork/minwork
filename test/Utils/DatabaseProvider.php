@@ -3,6 +3,7 @@ namespace Test\Utils;
 
 use Minwork\Database\Exceptions\DatabaseException;
 use Minwork\Database\Interfaces\DatabaseInterface;
+use Minwork\Database\Interfaces\TableInterface;
 use Minwork\Database\MySql\Database as MySqlDatabase;
 use Minwork\Database\Prototypes\AbstractDatabase;
 use Minwork\Database\Sqlite\Database as SqliteDatabase;
@@ -22,6 +23,7 @@ class DatabaseProvider
     ];
 
     private static $connections = [];
+    private static $tables = [];
 
     public static function getConfig(): array
     {
@@ -107,6 +109,23 @@ EOT;
     }
 
     /**
+     * @param string $name
+     * @param array|null $columns
+     * @return TableInterface
+     * @throws DatabaseException
+     */
+    public static function getTable(string $name, ?array $columns = null): TableInterface
+    {
+        if (!array_key_exists($name, self::$tables)) {
+            $db = self::getDatabase();
+            $table = self::getTableClass();
+            self::$tables[$name] = new $table($db, $name, $columns);
+        }
+
+        return self::$tables[$name];
+    }
+
+    /**
      * @param string|null $type
      * @param array|null $config
      * @return string
@@ -144,5 +163,21 @@ EOT;
         }
 
         throw new DatabaseException("Internal column type unrecognised for '{$type}'");
+    }
+
+    /**
+     * @param string $name
+     * @param string $type
+     * @param null $defaultValue
+     * @param bool $nullable
+     * @param bool $primaryKey
+     * @param bool $autoIncrement
+     * @return mixed
+     * @throws DatabaseException
+     */
+    public static function createColumn(string $name, string $type, $defaultValue = null, bool $nullable = false, bool $primaryKey = false, bool $autoIncrement = false)
+    {
+        $class = self::getColumnClass();
+        return $class($name, $type, $defaultValue, $nullable, $primaryKey, $autoIncrement);
     }
 }

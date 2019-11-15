@@ -8,6 +8,7 @@
 namespace Minwork\Database\Interfaces;
 
 use Minwork\Database\Utility\Condition;
+use Minwork\Storage\Interfaces\DatabaseStorageInterface;
 
 /**
  * Interface for database table
@@ -15,7 +16,7 @@ use Minwork\Database\Utility\Condition;
  * @author Christopher Kalkhoff
  *        
  */
-interface TableInterface
+interface TableInterface extends DatabaseStorageInterface
 {
 
     const DEFAULT_PK_FIELD = 'id';
@@ -74,7 +75,7 @@ interface TableInterface
      * @param string|array|int|null $limit
      * @param string|array|null $group
      * @return mixed Select result specific to database query/exec method implementation
-     *@see \Minwork\Database\Prototypes\AbstractTable::prepareColumnsList()
+     * @see \Minwork\Database\Prototypes\AbstractTable::prepareColumnsList()
      * @see \Minwork\Database\Prototypes\AbstractTable::getConditionsQuery()
      * @see \Minwork\Database\Prototypes\AbstractTable::getOrderQuery()
      * @see \Minwork\Database\Prototypes\AbstractTable::getLimitQuery()

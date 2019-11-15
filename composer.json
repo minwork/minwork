@@ -24,7 +24,7 @@
     "php": ">=7.1",
     "ext-json": "*",
     "ext-pdo": "*",
-    "minwork/array": "^1.1",
+    "minwork/array": "^1.9",
     "ext-mbstring": "*",
     "ext-iconv": "*",
     "ext-curl": "*"

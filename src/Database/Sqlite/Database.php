@@ -19,17 +19,8 @@ use PDO;
  */
 class Database extends AbstractDatabase
 {
-
-    /**
-     *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Prototypes\AbstractDatabase::init()
-     */
-    protected function init(string $user, string $password): DatabaseInterface
+    protected function createDsn(): string
     {
-        PDO::__construct("sqlite:{$this->getHost()}", $user, $password, $this->getOptions());
-        $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        return $this;
+        return "sqlite:{$this->getHost()}";
     }
 }

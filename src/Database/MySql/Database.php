@@ -20,31 +20,30 @@ use PDO;
 class Database extends AbstractDatabase
 {
 
-    /**
-     *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Prototypes\AbstractDatabase::init()
-     */
-    protected function init(string $user, string $password): DatabaseInterface
+    protected function createDsn(): string
     {
-        $this->setOptions([
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->getCharset()}"
-        ]);
-        
         $dsn = 'mysql:';
         if ($this->getHost()) {
             $dsn .= 'host=' . $this->getHost();
+
+            if ($this->getName()) {
+                $dsn .= ';dbname=' . $this->getName();
+            }
         }
-        if ($this->getName()) {
-            $dsn .= ';dbname=' . $this->getName();
-        }
-        PDO::__construct($dsn, $user, $password, $this->getOptions());
-        
-        $this->setAttribute(PDO::ATTR_AUTOCOMMIT, 1);
-        $this->exec("SET SQL_MODE=ANSI_QUOTES;");
-        $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        
-        return $this;
+
+        return $dsn;
+    }
+
+    protected function getDefaultOptions(): array
+    {
+        return array_merge(parent::getDefaultOptions(), [
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->getCharset()}",
+            PDO::ATTR_AUTOCOMMIT => 1,
+        ]);
+    }
+
+    protected function initDatabase(): void
+    {
+        //$this->exec("SET SQL_MODE=ANSI_QUOTES;");
     }
 }

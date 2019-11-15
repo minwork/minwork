@@ -27,7 +27,7 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
 
     const DEFAULT_CHARSET = 'utf8';
 
-    const DEFAULT_ESCAPE_CHAR = "'";
+    const DEFAULT_QUOTE = "'";
 
     /**
      * Database host address
@@ -84,9 +84,26 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
         $this->setHost($host)
             ->setName($name ?? '')
             ->setCharset($charset ?? self::DEFAULT_CHARSET)
-            ->setOptions($options)
-            ->init($user ?? '', $password ?? '');
+            ->setOptions($options);
+
+        parent::__construct($this->createDsn(), $user, $password, array_merge($this->getDefaultOptions(), $options));
+
+        $this->initDatabase();
     }
+
+    abstract protected function createDsn(): string;
+
+    protected function getDefaultOptions(): array
+    {
+        return [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        ];
+    }
+
+    /**
+     * Execute queries immediately after initialization done in PDO constructor
+     */
+    protected function initDatabase(): void {}
 
     /**
      *
@@ -136,28 +153,6 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
      *
      * {@inheritdoc}
      *
-     * @see \PDO::exec()
-     */
-    public function exec($statement)
-    {
-        return parent::exec($statement);
-    }
-
-    /**
-     *
-     * {@inheritdoc}
-     *
-     * @see \Minwork\Database\Interfaces\DatabaseInterface::query()
-     */
-    public function query($statement)
-    {
-        return parent::query($statement);
-    }
-
-    /**
-     *
-     * {@inheritdoc}
-     *
      * @see \Minwork\Database\Interfaces\DatabaseInterface::getLastInsertId()
      */
     public function getLastInsertId()
@@ -189,17 +184,8 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
         } elseif (! is_string($value)) {
             $value = strval($value);
         }
-        return ($quoted = $this->quote($value)) === false ? self::DEFAULT_ESCAPE_CHAR . Formatter::removeQuotes(Formatter::cleanString($value)) . self::DEFAULT_ESCAPE_CHAR : $quoted;
+        return ($quoted = $this->quote($value, $type)) === false ? self::DEFAULT_QUOTE . Formatter::removeQuotes(Formatter::cleanString($value)) . self::DEFAULT_QUOTE : $quoted;
     }
-
-    /**
-     * Initialize database by setting all neccessary options and calling PDO constructor
-     *
-     * @param string $user
-     * @param string $password
-     * @return DatabaseInterface
-     */
-    abstract protected function init(string $user, string $password): DatabaseInterface;
 
     /**
      * Set database host
@@ -255,35 +241,53 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
         return $this;
     }
 
-    public function beginTransaction()
+    public function prepare($statement, array $driver_options = [])
+    {
+        return parent::prepare($statement, $driver_options);
+    }
+
+    public function query($statement, $mode = PDO::ATTR_DEFAULT_FETCH_MODE, $arg3 = null, array $ctorargs = [])
+    {
+        return parent::query($statement, $mode, $arg3, $ctorargs);
+    }
+
+    public function inTransaction(): bool
+    {
+        return parent::inTransaction();
+    }
+
+    public function beginTransaction(): bool
     {
         // If already in transaction then increment transactions counter to silently support nested transactions
         if (!$this->inTransaction()) {
-            parent::beginTransaction();
+            return parent::beginTransaction();
         }
         ++$this->transactions;
+        return true;
     }
 
     /**
-     * @return void
+     * @return bool
      * @throws DatabaseException
      */
-    public function commit(): void
+    public function commit(): bool
     {
         if ($this->isRollbackOnly) {
             throw DatabaseException::transactionRollbackOnly();
         }
         // If have nested transactions then just decrement counter instead of actually committing
         if (--$this->transactions <= 0) {
-            parent::commit();
+            return parent::commit();
         }
+
+        return true;
     }
 
     /**
-     * @return bool|mixed
+     * @return bool
      * @throws DatabaseException
      */
-    public function rollBack(): void
+    public function rollBack(): bool
     {
         if (!$this->inTransaction()) {
             throw DatabaseException::noTransaction();
@@ -291,35 +295,10 @@ abstract class AbstractDatabase extends PDO implements DatabaseInterface
 
         if (--$this->transactions <= 0) {
             $this->isRollbackOnly = false;
-            parent::rollBack();
+            return parent::rollBack();
         } else {
             $this->isRollbackOnly = true;
+            return true;
         }
-    }
-
-    public function startTransaction()
-    {
-        return $this->beginTransaction();
-    }
-
-    /**
-     * @throws DatabaseException
-     */
-    public function finishTransaction()
-    {
-        $this->commit();
-    }
-
-    /**
-     * @throws DatabaseException
-     */
-    public function abortTransaction()
-    {
-        $this->rollBack();
-    }
-
-    public function hasActiveTransaction(): bool
-    {
-        return $this->inTransaction();
     }
 }

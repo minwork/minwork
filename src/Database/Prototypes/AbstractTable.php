@@ -18,7 +18,6 @@ use Minwork\Database\Utility\Condition;
 use Minwork\Database\Utility\Query;
 use Minwork\Helper\Arr;
 use Minwork\Helper\Formatter;
-use Minwork\Storage\Interfaces\DatabaseStorageInterface;
 use Minwork\Storage\Interfaces\StorageInterface;
 use PDO;
 
@@ -28,7 +27,7 @@ use PDO;
  * @author Christopher Kalkhoff
  *        
  */
-abstract class AbstractTable implements TableInterface, DatabaseStorageInterface
+abstract class AbstractTable implements TableInterface
 {
     use Debugger;
 
