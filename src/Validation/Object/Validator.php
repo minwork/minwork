@@ -78,8 +78,12 @@ class Validator implements ValidatorInterface, ErrorsStorageContainerInterface
                 $fieldArguments = [];
                 // Extract field data from $data
                 foreach ($data as $argument) {
+                    // TODO make handling this case specific to Field flags
                     if (is_array($argument) && array_key_exists($validator->getName(), $argument)) {
                         $fieldArguments[] = $argument[$validator->getName()];
+                    } else {
+                        // Use argument as is if not array or field name key does not exists
+                        $fieldArguments[] = $argument;
                     }
                 }
                 
