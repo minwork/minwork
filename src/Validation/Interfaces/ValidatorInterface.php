@@ -76,6 +76,15 @@ interface ValidatorInterface
      */
     public function isValid(): bool;
 
+
+    /**
+     * Arbitrary set if validator validation was successful
+     *
+     * @param bool $valid
+     * @return self
+     */
+    public function setValid(bool $valid): self;
+
     /**
      * Get errors storage
      *

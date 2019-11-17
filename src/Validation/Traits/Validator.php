@@ -106,17 +106,17 @@ trait Validator {
     {
         return boolval($this->valid);
     }
-    
+
     /**
-     * Set if validation was successful
-     * 
+     * Arbitrary set if validator validation was successful
+     *
      * @param bool $valid
-     * @return self
+     * @return ValidatorInterface
      */
-    public function setValid(bool $valid): self
+    public function setValid(bool $valid): ValidatorInterface
     {
         $this->valid = $valid;
-        
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
     }
 }
