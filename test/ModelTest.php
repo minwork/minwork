@@ -373,6 +373,7 @@ EOT;
         $table2 = new self::$table(self::$database, 'test3', [
             new self::$column('test_id_1', self::$columnTypes['int'], null, false, true),
             new self::$column('test_id_2', self::$columnTypes['int'], null, false, true),
+            new self::$column('explicit_id', self::$columnTypes['int'], null, false, true),
             new self::$column('data', self::$columnTypes['string'])
         ]);
         $table2->create(true);
@@ -397,14 +398,16 @@ EOT;
         ];
         $modelBinder = new ModelBinder($table2, [
             $model1,
-            $model2
+            $model2,
+            'explicit_id' => 1,
         ]);
         
         $this->assertTrue($modelBinder->execute(new Create(), $data));
         $this->assertTrue($modelBinder->exists());
         $this->assertEquals([
             $model1->getBindingFieldName() . '_1' => $model1->getId(),
-            $model2->getBindingFieldName() . '_2' => $model2->getId()
+            $model2->getBindingFieldName() . '_2' => $model2->getId(),
+            'explicit_id' => 1
         ], $modelBinder->getId());
         $this->assertEquals($data, $modelBinder->getData());
         $modelBinder->execute(new Update(), $newData);
