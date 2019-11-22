@@ -7,6 +7,7 @@
  */
 namespace Minwork\Basic\Model;
 
+use Minwork\Basic\Exceptions\ModelException;
 use Minwork\Storage\Interfaces\DatabaseStorageInterface;
 use Minwork\Database\Utility\Query;
 use Minwork\Basic\Interfaces\BindableModelInterface;
@@ -61,7 +62,7 @@ class ModelBinder extends Model
             if ($idValue instanceof BindableModelInterface) {
                 $modelId = $idValue->getId();
                 if (is_null($modelId)) {
-                    throw new \InvalidArgumentException('Cannot use Model without id as one of ModelBinder arguments');
+                    throw ModelException::notEmptyIdRequired();
                 }
                 $id[$idFields[spl_object_hash($idValue)]] = $modelId;
             }

@@ -7,7 +7,7 @@
  */
 namespace Minwork\Basic\Model;
 
-use Exception;
+use Minwork\Basic\Exceptions\ModelException;
 use Minwork\Basic\Interfaces\BindableModelInterface;
 use Minwork\Basic\Interfaces\ModelInterface;
 use Minwork\Basic\Traits\Debugger;
@@ -170,14 +170,13 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
      *
      * {@inheritdoc}
      *
-     * @throws Exception
      * @see \Minwork\Basic\Interfaces\BindableModelInterface::getBindingFieldName()
      */
     public function getBindingFieldName(): string
     {
         $idField = $this->getStorage()->getPrimaryKey();
         if (! is_string($idField)) {
-            throw new Exception('Cannot bind model with multiple id fields');
+            throw ModelException::unbindableModel();
         }
         if ($this->getStorage() instanceof TableInterface) {
             $name = $this->getStorage()->getName(false);
@@ -372,11 +371,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
         if (is_null($this->getId())) {
             $this->exists = false;
         } elseif (is_null($this->exists)) {
-            try {
-                $this->exists = $this->getStorage()->isset(new Query($this->getQueryConditionsWithId()));
-            } catch (Exception $e) {
-                return false;
-            }
+            $this->exists = $this->getStorage()->isset(new Query($this->getQueryConditionsWithId()));
         }
         
         return $this->exists;
@@ -431,11 +426,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
                     break;
                 case self::STATE_UPDATE:
                     if ($updateData = $this->getChangedData()) {
-                        try {
-                            $this->getStorage()->set(new Query($this->getQueryConditionsWithId()), $updateData);
-                        } catch (Exception $e) {
-                            return false;
-                        }
+                        $this->getStorage()->set(new Query($this->getQueryConditionsWithId()), $updateData);
                     }
                     return true;
                     break;
@@ -521,12 +512,11 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
      *
      * @param array $conditions
      * @return array
-     * @throws Exception
      */
     protected function getQueryConditionsWithId(array $conditions = []): array
     {
         if (is_null($this->getId())) {
-            throw new Exception('Cannot append id to conditions when no id is set');
+            throw ModelException::notEmptyIdRequired();
         }
         
         $id = $this->getNormalizedId();
@@ -648,7 +638,6 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
      *
      * @param array $filter
      * @return self
-     * @throws Exception
      */
     public function read(array $filter = []): self
     {
@@ -702,11 +691,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
     public function delete(): bool
     {
         if ($this->exists()) {
-            try {
-                $this->getStorage()->unset(new Query($this->getQueryConditionsWithId()));
-            } catch (Exception $e) {
-                return false;
-            }
+            $this->getStorage()->unset(new Query($this->getQueryConditionsWithId()));
         }
         
         $this->reset();
