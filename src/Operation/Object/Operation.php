@@ -77,6 +77,16 @@ class Operation implements OperationInterface, EventDispatcherContainerInterface
             ->setEventDispatcher($eventDispatcher ?? EventDispatcher::getGlobal());
     }
 
+    public static function getBeforeOperationMethodName(string $methodName): string
+    {
+        return self::EVENT_BEFORE_PREFIX . ucfirst($methodName);
+    }
+
+    public static function getAfterOperationMethodName(string $methodName): string
+    {
+        return self::EVENT_AFTER_PREFIX . ucfirst($methodName);
+    }
+
     /**
      *
      * {@inheritdoc}
@@ -155,11 +165,12 @@ class Operation implements OperationInterface, EventDispatcherContainerInterface
     /**
      * Set if operation can be queued
      *
+     * @param bool $canQueue
      * @return self
      */
-    protected function setCanQueue(bool $bool): self
+    protected function setCanQueue(bool $canQueue): self
     {
-        $this->canQueue = boolval($bool);
+        $this->canQueue = boolval($canQueue);
         return $this;
     }
 
@@ -172,7 +183,7 @@ class Operation implements OperationInterface, EventDispatcherContainerInterface
     public function execute(ObjectOperationInterface $object, ...$arguments)
     {
         $methodName = $this->getName();
-        $eventBefore = new OperationEvent(self::EVENT_BEFORE_PREFIX . ucfirst($methodName), $arguments);
+        $eventBefore = new OperationEvent(self::getBeforeOperationMethodName($methodName), $arguments);
         $this->getEventDispatcher()->dispatch($eventBefore);
         if (! $this->hasResult() && $eventBefore->hasResult()) {
             $this->result = $eventBefore->getResult();
@@ -184,7 +195,7 @@ class Operation implements OperationInterface, EventDispatcherContainerInterface
             $this->result = $object->$methodName(...$arguments);
         }
         
-        $eventAfter = new OperationEvent(self::EVENT_AFTER_PREFIX . ucfirst($methodName), $arguments);
+        $eventAfter = new OperationEvent(self::getAfterOperationMethodName($methodName), $arguments);
         $this->getEventDispatcher()->dispatch($eventAfter);
         if (! $this->hasResult() && $eventAfter->hasResult()) {
             $this->result = $eventAfter->getResult();
