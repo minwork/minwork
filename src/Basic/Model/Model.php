@@ -22,7 +22,10 @@ use Minwork\Event\Traits\Connector;
 use Minwork\Event\Traits\Events;
 use Minwork\Helper\Arr;
 use Minwork\Helper\Formatter;
+use Minwork\Operation\Basic\Create;
+use Minwork\Operation\Basic\Delete;
 use Minwork\Operation\Basic\Read;
+use Minwork\Operation\Basic\Update;
 use Minwork\Operation\Interfaces\OperationInterface;
 use Minwork\Operation\Object\OperationEvent;
 use Minwork\Operation\Traits\Operations;
@@ -607,7 +610,7 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
     }
 
     /**
-     * Create operation
+     * Create storage entry for this model
      *
      * @param array $data            
      * @return bool
@@ -631,6 +634,18 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
         }
         
         return true;
+    }
+
+    /**
+     * Convenience method to execute Create operation calling "before" and "after" hooks
+     *
+     * @see Model::create()
+     * @param array $data
+     * @return bool
+     */
+    public function executeCreate(array $data = []): bool
+    {
+        return $this->execute(new Create(), $data);
     }
 
     /**
@@ -661,6 +676,18 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
     }
 
     /**
+     * Convenience method to execute Read operation calling "before" and "after" hooks
+     *
+     * @see Model::read()
+     * @param array $filter
+     * @return $this
+     */
+    public function executeRead(array $filter = []): self
+    {
+        return $this->execute(new Read(), $filter);
+    }
+
+    /**
      * Update operation
      *
      * @param array $data            
@@ -684,6 +711,18 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
     }
 
     /**
+     * Convenience method to execute Update operation calling "before" and "after" hooks
+     *
+     * @see Model::update()
+     * @param array $data
+     * @return bool
+     */
+    public function executeUpdate(array $data): bool
+    {
+        return $this->execute(new Update(), $data);
+    }
+
+    /**
      * Delete operation
      *
      * @return bool
@@ -696,5 +735,16 @@ class Model implements ModelInterface, BindableModelInterface, ErrorsStorageCont
         
         $this->reset();
         return true;
+    }
+
+    /**
+     * Convenience method to execute Create operation calling "before" and "after" hooks
+     *
+     * @see Model::delete()
+     * @return bool
+     */
+    public function executeDelete(): bool
+    {
+        return $this->execute(new Delete());
     }
 }
